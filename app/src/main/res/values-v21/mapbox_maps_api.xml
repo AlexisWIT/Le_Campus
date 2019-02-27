@@ -1,0 +1,3 @@
+<resources>
+    <string name="mapbox_maps_access_token" templateMergeStrategy="preserve" translatable="false">pk.eyJ1IjoiYWxleHdpdCIsImEiOiJjanAwZ2swZDgwNXg0M3ZtdGYxNmU2bmp0In0.zU1_RvYALukW283GZPKY3w</string>
+</resources>
