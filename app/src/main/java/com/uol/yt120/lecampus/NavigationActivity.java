@@ -12,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class NavigationActivity extends AppCompatActivity
@@ -20,7 +22,6 @@ public class NavigationActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_navigation);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -44,6 +45,19 @@ public class NavigationActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // For account login function by pressing nav-hader
+        View headerView = navigationView.getHeaderView(0);
+//            TextView username = (TextView) headerView.findViewById(R.id.username);
+//            username.setText("username")
+
+        // Lambda expression for onClick method
+        headerView.setOnClickListener(v -> {
+            Toast.makeText(this, "Fetching account information... ", Toast.LENGTH_SHORT).show();
+            getSupportFragmentManager().beginTransaction().replace(
+                    R.id.fragment_container, new AccountFragment()).addToBackStack(null).commit();
+            drawer.closeDrawer(GravityCompat.START);
+        });
 
         // set default screen
         if (savedInstanceState == null) {

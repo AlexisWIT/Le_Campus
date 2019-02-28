@@ -1,0 +1,9 @@
+<resources>
+    <string name="prefix_web_address">https://srs.le.ac.uk/sipr/sits.urd/run/</string>
+    <string name="login_web_address">https://srs.le.ac.uk/sipr/sits.urd/run/siw_lgn</string>
+    <string name="login_web_address_failed">https://srs.le.ac.uk/sipr/sits.urd/run/SIW_LGN</string>
+
+    <string name="nav_header_title">No Login</string>
+    <string name="nav_header_subtitle"></string>
+
+</resources>
