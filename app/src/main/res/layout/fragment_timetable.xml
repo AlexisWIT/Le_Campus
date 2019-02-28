@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="fill_parent"
-android:layout_height="wrap_content"
-android:orientation="vertical"
-android:background="#FFF"
-android:gravity="left">
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-<TextView
-    android:id="@+id/calendarView"
-    android:layout_height="25dp"
-    android:layout_width="wrap_content"
-    android:text="+15"
-    android:textColor="#000"
-    android:textSize="19sp"
-    android:textStyle="bold"
-    android:gravity="center"/>
+    <ListView
+        android:id="@+id/timetable_item_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp" />
 
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>
