@@ -211,6 +211,9 @@
 //        if (locationServiceManager == null || locationServiceManager.googleApiClient == null || locationServiceManager.currentStatus == STATUS.NOT_CONNECT || locationServiceManager.currentStatus == STATUS.NOT_TRACK)
 //            return;
 //        try {
+
+//////////////////////////////////////////////////////
+
 //            LocationServices.getFusedLocationProviderClient(context).removeLocationUpdates();
 //            locationServiceManager.currentStatus = STATUS.NOT_CONNECT;
 //            if (locationServiceManager.googleApiClient.isConnected() || locationServiceManager.googleApiClient.isConnecting())
@@ -232,6 +235,9 @@
 //            new TowerAndWiFiTask().executeDependSDK();
 //
 //        } else if (PrecisionMode) {
+
+//////////////////////////////////////////////////////
+
 //            LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(googleApiClient, createFastLocationRequest(), this);
 //            new TowerAndWiFiTask().executeDependSDK();
 //            Toast.makeText(locationServiceManager.context, "Obtained the last coordinate and start tracking", Toast.LENGTH_LONG).show();

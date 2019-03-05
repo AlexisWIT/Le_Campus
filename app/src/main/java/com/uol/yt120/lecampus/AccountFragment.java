@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,6 +48,7 @@ public class AccountFragment extends Fragment {
     volatile boolean detailSuccessful = false;
     volatile boolean timetableSuccessful = false;
 
+
     @SuppressLint("SetJavaScriptEnabled")
     @Nullable
     @Override
@@ -57,6 +59,8 @@ public class AccountFragment extends Fragment {
         prefixAddress = getString(R.string.prefix_web_address);
 
         getActivity().setTitle(getString(R.string.title_fragment_account));
+        //getActivity().setContentView(R.layout.fragment_timetable);
+        //ListView timetableListView = getActivity().findViewById(R.id.timetable_item_list);
 
         View view=inflater.inflate(R.layout.fragment_account_web, container, false);
         webView = view.findViewById(R.id.accountWebView);
@@ -69,6 +73,10 @@ public class AccountFragment extends Fragment {
 
         // Disable built in zoom control
         webView.getSettings().setBuiltInZoomControls(false);
+
+        // Disable cache
+//        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+//        webView.getSettings().setAppCacheEnabled(false);
 
         // Enable DOM Storage API
         webView.getSettings().setDomStorageEnabled(true);
@@ -98,16 +106,18 @@ public class AccountFragment extends Fragment {
                 // handler.handleMessage(null);
             }
 
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true; // load url in current webview
-            }
+//            @Override
+//            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                view.loadUrl(url);
+//                return true; // load url in current webview
+//            }
 
             @Override
             public void onPageFinished(WebView view, String url) {
+
                 Log.i("[Account Fragmt]","Current URL: "+url+", Login address: "+loginAddress);
                 Timber.tag("[Account Fragmt]").i("Current URL: "+url+", Login address: "+loginAddress);
+
                 if(url.equals(loginAddress) || url.equals(loginAddressFailed)) {
                     loginSuccessful = false;
                     // Login failed
@@ -122,6 +132,8 @@ public class AccountFragment extends Fragment {
                     if (!loginSuccessful) {
                         view.loadUrl("javascript:window.java_obj.showWelcomeSource('<head>'+" +
                                 "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+//                        view.loadUrl("javascript:window.onhashchange = function(){java_obj.showWelcomeSource('<head>'+" +
+//                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');};");
 
                         Log.i("[Account Fragmt]","Processing login...");
                         Timber.tag("[Account Fragmt]").i("Processing login...");
@@ -130,33 +142,44 @@ public class AccountFragment extends Fragment {
 
                     while (!loginSuccessful) { }
 
-                    if (!detailSuccessful && loginSuccessful) {
-                        // Load user detail
-                        webView.loadUrl(prefixAddress+detailAddress);
-                        view.loadUrl("javascript:window.java_obj.showDetailSource('<head>'+" +
-                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
-
-                        Log.i("[Account Fragmt]","Fetching user detail...");
-                        Timber.tag("[Account Fragmt]").i("Fetching user detail...");
-                        super.onPageFinished(view, url);
-
-                    }
+//                    if (!detailSuccessful && loginSuccessful) {
+//                        // Load user detail
+//                        super.onPageFinished(view, url);
+//                        view.loadUrl("javascript:window.onhashchange = function(){java_obj.showDetailSource('<head>'+" +
+//                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');};");
+//                        view.loadUrl("javascript:window.java_obj.showDetailSource('<head>'+" +
+//                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+//                        view.loadUrl(prefixAddress+detailAddress);
+//
+//                        Log.i("[Account Fragmt]","Fetching user detail...");
+//                        Timber.tag("[Account Fragmt]").i("Fetching user detail...");
+//                        view.reload();
+//
+//                    }
+//                    super.onPageFinished(view, url);
+                    detailSuccessful = true;
 
                     while (!detailSuccessful) { }
 
+
                     if (!timetableSuccessful && detailSuccessful && loginSuccessful) {
                         // Load user timetable
-                        webView.loadUrl(prefixAddress + timetableAddress);
+                        view.loadUrl(prefixAddress + timetableAddress);
+                        super.onPageFinished(view, url);
+
+                        while (!url.equals(prefixAddress + timetableAddress)) {}
+
+                        view.loadUrl("javascript:window.onhashchange = function(){java_obj.showTimetableSource('<head>'+" +
+                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');};");
+
                         view.loadUrl("javascript:window.java_obj.showTimetableSource('<head>'+" +
                                 "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
 
+
                         Log.i("[Account Fragmt]","Fetching timetable...");
                         Timber.tag("[Account Fragmt]").i("Fetching timetable...");
-                        super.onPageFinished(view, url);
 
                     }
-
-                    super.onPageFinished(view, url);
 
                 }
 
@@ -168,7 +191,7 @@ public class AccountFragment extends Fragment {
 
     }
 
-    public final class InJavaScriptLocalObj
+    private class InJavaScriptLocalObj
     {
         @JavascriptInterface
         public void showWelcomeSource(String html) {
@@ -204,7 +227,6 @@ public class AccountFragment extends Fragment {
         Log.i("[Account Fragmt]", welcomeInfo);
         if (welcomeInfo.contains("Welcome to MyStudentRecord")) {
 
-
             Log.i("[Account Fragmt]", "Login successful");
             Timber.tag("[Account Fragmt]").i("Login successful");
 
@@ -232,7 +254,7 @@ public class AccountFragment extends Fragment {
      * @param html
      */
     private void getDetailContent(final String html){
-        Log.i("[Account Fragmt]", "2. Start getting user detail"+html);
+        Log.i("[Account Fragmt]", "2. Start getting user detail");
         Timber.tag("[Account Fragmt]").i("2. Start getting user detail");
 
         Document document = Jsoup.parse(html);
@@ -240,7 +262,12 @@ public class AccountFragment extends Fragment {
 //        for (Element e: studentNum) {
 //            Log.i("[Account Fragmt]", "Element: "+e.text());
 //        }
+        String detailInfo = document.select("h1#sitsportalpagetitle").get(0).text();
+        Log.i("[Account Fragmt]", detailInfo);
 
+        timetableAddress = document.select("a[id=TTABLE]").get(0).attr("href");
+        Log.i("[Account Fragmt]", "Timetable Address: " + timetableAddress);
+        Timber.tag("[Account Fragmt]").i("Timetable Address: " + timetableAddress);
 
         Element infoBox = document.select("div.container").first();
         Log.i("[Account Fragmt]", "User Info Box: "+infoBox.html());
@@ -272,6 +299,7 @@ public class AccountFragment extends Fragment {
         String uolEmail = document.select("span.data").get(6).text();
         Log.i("[Account Fragmt]", "UoL Email: "+uolEmail);
         Timber.tag("[Account Fragmt]").i("UoL Email: "+uolEmail);
+
         final TextView tv = (TextView) getActivity().findViewById(R.id.accountNameTextView);
         //tv.setText(studentNum);
         detailSuccessful = true;
@@ -287,43 +315,56 @@ public class AccountFragment extends Fragment {
         Timber.tag("[Account Fragmt]").i("3. Start getting timetable info");
 
         Document document = Jsoup.parse(html);
-        Element timetableElement = document.select("div.sv-list-group-item:has(script)").first();
 
-        String script = timetableElement.select("script").get(0).text();
-        String eventList = "{ 'timetable': " +
+        String timetableInfo = document.select("h1#sitsportalpagetitle").get(0).text();
+        Log.i("[Account Fragmt]", timetableInfo);
+
+        //Element timetableElement = document.select("div.sv-list-group-item").last();
+
+        String script = document.select("script").last().data();
+        String eventList = "{ \"timetable\": " +
                 StringUtils.substringBetween(script, "events: ", "});") +
                 "}";
+        Log.i("[Account Fragmt]", eventList);
 
-        ListView timetableListView = (ListView) getActivity().findViewById(R.id.timetable_item_list);
 
-        String[] from = {"name_item_"};
+
+        String[] from = {"name_item"};
         int[] to = {R.id.event_name_item};
         ArrayList<HashMap<String, String>> arrayList = new ArrayList<HashMap<String, String>>();
         HashMap<String, String> hashmap;
 
         try {
             JSONObject json = new JSONObject(eventList);
-            JSONArray jArray = json.getJSONArray("platform");
+            JSONArray jArray = json.getJSONArray("timetable");
 
             for (int i = 0; i < jArray.length(); i++) {
                 JSONObject event = jArray.getJSONObject(i);
-
-//                String eventLocation = event.getString("building");
-//                Log.d("[Account Fragmt]", eventLocation);
-//
-//                String eventEndTime = event.getString("end");
-//                Log.d("[Account Fragmt]", eventEndTime);
-//
-//                String eventStartTime = event.getString("start");
-//                Log.d("[Account Fragmt]", eventStartTime);
+                Log.i("[Account Fragmt]", "=== Event "+i+" ===");
 
                 String eventName = event.getString("moduleName");
-                Log.d("[Account Fragmt]", eventName);
+                Log.i("[Account Fragmt]", "Event: "+eventName);
+
+                String eventType = event.getString("moduleType");
+                Log.i("[Account Fragmt]", "Type: "+eventType);
+
+                String eventLocation = event.getString("building");
+                Log.i("[Account Fragmt]", "Building: "+eventLocation);
+
+                String eventStartTime = event.getString("start");
+                Log.i("[Account Fragmt]", "Start Time: "+eventStartTime);
+
+                String eventEndTime = event.getString("end");
+                Log.i("[Account Fragmt]", "End Time: "+eventEndTime);
+
+
 
                 hashmap = new HashMap<String, String>();
                 hashmap.put("name_item", "" + eventName);
                 arrayList.add(hashmap);
             }
+            View v = getActivity().getLayoutInflater().inflate(R.layout.fragment_timetable,null);
+            ListView timetableListView = v.findViewById(R.id.timetable_item_list);
 
             final SimpleAdapter adapter = new SimpleAdapter(getActivity(), arrayList, R.layout.fragment_timetable_item, from, to);
             timetableListView.setAdapter(adapter);

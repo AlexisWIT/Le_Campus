@@ -95,9 +95,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 //        LocationServiceManager.onCreateGPS(getActivity().getApplication());
 
 
-
-
-
         Log.i("Button Clicked", "Locating Button Clicked");
         Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
@@ -229,7 +226,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
 
 
-    // Options specifically for Nearby fragment
+    // Options specifically for Google map fragment
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_fragment_google_maps, menu);

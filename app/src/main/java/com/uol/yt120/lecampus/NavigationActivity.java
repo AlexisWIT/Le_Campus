@@ -55,13 +55,13 @@ public class NavigationActivity extends AppCompatActivity
         headerView.setOnClickListener(v -> {
             Toast.makeText(this, "Fetching account information... ", Toast.LENGTH_SHORT).show();
             getSupportFragmentManager().beginTransaction().replace(
-                    R.id.fragment_container, new AccountFragment()).addToBackStack(null).commit();
+                    R.id.fragment_container, new AccountFragment(),"accountFrag").addToBackStack(null).commit();
             drawer.closeDrawer(GravityCompat.START);
         });
 
         // set default screen
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new GoogleMapsFragment()).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new GoogleMapsFragment(), "googleMapFrag").commit();
             navigationView.setCheckedItem(R.id.nav_map);
         }
     }
@@ -107,22 +107,22 @@ public class NavigationActivity extends AppCompatActivity
         switch (id) {
             case R.id.nav_map:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new GoogleMapsFragment()).addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new GoogleMapsFragment(), "googleMapFrag").addToBackStack(null).commit();
                 break;
 
             case R.id.nav_timetable:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new TimetableFragment()).addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new TimetableFragment(), "timetableFrag").addToBackStack(null).commit();
                 break;
 
             case R.id.nav_nearby:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new NearbyFragment()).addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new NearbyFragment(), "nearbyFrag").addToBackStack(null).commit();
                 break;
 
             case R.id.nav_route:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new RouteFragment()).addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new RouteFragment(), "routeFrag").addToBackStack(null).commit();
                 break;
         }
 
