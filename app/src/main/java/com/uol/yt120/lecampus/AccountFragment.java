@@ -43,8 +43,9 @@ public class AccountFragment extends Fragment {
     private String prefixAddress;
     private String detailAddress;
     private String timetableAddress;
-    private boolean loginSuccessful = false;
-    private boolean detailSuccessful = false;
+    volatile boolean loginSuccessful = false;
+    volatile boolean detailSuccessful = false;
+    volatile boolean timetableSuccessful = false;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Nullable
@@ -86,6 +87,8 @@ public class AccountFragment extends Fragment {
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 Log.i("[Account Fragmt]","Loading...");
                 Timber.tag("[Account Fragmt]").i("Loading...");
+                Log.i("[Account Fragmt]","Current URL: "+url);
+                Timber.tag("[Account Fragmt]").i("Current URL: "+url);
             }
 
             @Override
@@ -96,7 +99,14 @@ public class AccountFragment extends Fragment {
             }
 
             @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true; // load url in current webview
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
+                Log.i("[Account Fragmt]","Current URL: "+url+", Login address: "+loginAddress);
                 Timber.tag("[Account Fragmt]").i("Current URL: "+url+", Login address: "+loginAddress);
                 if(url.equals(loginAddress) || url.equals(loginAddressFailed)) {
                     loginSuccessful = false;
@@ -105,34 +115,46 @@ public class AccountFragment extends Fragment {
                     Timber.tag("[Account Fragmt]").i("Not Logged in");
 
                 } else {
-                    view.loadUrl("javascript:window.java_obj.showWelcomeSource('<head>'+" +
-                            "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+                    Log.i("[Account Fragmt]","LoginSuccessful: "+loginSuccessful);
+                    Log.i("[Account Fragmt]","DetailSuccessful: "+detailSuccessful);
+                    Log.i("[Account Fragmt]","TimetableSuccessful: "+timetableSuccessful);
 
-                    Log.i("[Account Fragmt]","Processing...");
-                    Timber.tag("[Account Fragmt]").i("Processing...");
+                    if (!loginSuccessful) {
+                        view.loadUrl("javascript:window.java_obj.showWelcomeSource('<head>'+" +
+                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
 
-                    int i = 1;
-                    while (loginSuccessful = false) {
-                        i += 1;
-                        if (i%30==0) {
-                            System.out.print(">");
-                        }
+                        Log.i("[Account Fragmt]","Processing login...");
+                        Timber.tag("[Account Fragmt]").i("Processing login...");
+                        super.onPageFinished(view, url);
                     }
 
-                    view.loadUrl(prefixAddress+detailAddress);
-                    view.loadUrl("javascript:window.java_obj.showDetailSource('<head>'+" +
-                            "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+                    while (!loginSuccessful) { }
 
-                    while (detailSuccessful = false) {
-                        i += 1;
-                        if (i%30==0) {
-                            System.out.print(">");
-                        }
+                    if (!detailSuccessful && loginSuccessful) {
+                        // Load user detail
+                        webView.loadUrl(prefixAddress+detailAddress);
+                        view.loadUrl("javascript:window.java_obj.showDetailSource('<head>'+" +
+                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+
+                        Log.i("[Account Fragmt]","Fetching user detail...");
+                        Timber.tag("[Account Fragmt]").i("Fetching user detail...");
+                        super.onPageFinished(view, url);
+
                     }
 
-                    view.loadUrl(prefixAddress+timetableAddress);
-                    view.loadUrl("javascript:window.java_obj.showTimetableSource('<head>'+" +
-                            "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+                    while (!detailSuccessful) { }
+
+                    if (!timetableSuccessful && detailSuccessful && loginSuccessful) {
+                        // Load user timetable
+                        webView.loadUrl(prefixAddress + timetableAddress);
+                        view.loadUrl("javascript:window.java_obj.showTimetableSource('<head>'+" +
+                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+
+                        Log.i("[Account Fragmt]","Fetching timetable...");
+                        Timber.tag("[Account Fragmt]").i("Fetching timetable...");
+                        super.onPageFinished(view, url);
+
+                    }
 
                     super.onPageFinished(view, url);
 
@@ -174,14 +196,14 @@ public class AccountFragment extends Fragment {
      * @param html
      */
     private void getWelcomeContent(final String html){
-        Log.i("[Account Fragmt]", "Start getting web content");
-        Timber.tag("[Account Fragmt]").i("Start getting web content");
+        Log.i("[Account Fragmt]", "1. Start getting welcome page content");
+        Timber.tag("[Account Fragmt]").i("1. Start getting welcome page content");
 
         Document document = Jsoup.parse(html);
         String welcomeInfo = document.select("div#CON_PORT_RECP_TITLE").get(0).text();
-
+        Log.i("[Account Fragmt]", welcomeInfo);
         if (welcomeInfo.contains("Welcome to MyStudentRecord")) {
-            loginSuccessful = true;
+
 
             Log.i("[Account Fragmt]", "Login successful");
             Timber.tag("[Account Fragmt]").i("Login successful");
@@ -194,8 +216,14 @@ public class AccountFragment extends Fragment {
             Log.i("[Account Fragmt]", "Timetable Address: " + timetableAddress);
             Timber.tag("[Account Fragmt]").i("Timetable Address: " + timetableAddress);
 
+            loginSuccessful = true;
+
+        } else {
+            Log.i("[Account Fragmt]", "Error occured: Login page");
+            Timber.tag("[Account Fragmt]").i("Error occured: Login page");
+            loginSuccessful = false;
         }
-        detailSuccessful = true;
+
 
     }
 
@@ -204,42 +232,50 @@ public class AccountFragment extends Fragment {
      * @param html
      */
     private void getDetailContent(final String html){
-        Log.i("[Account Fragmt]", "Start getting user detail");
-        Timber.tag("[Account Fragmt]").i("Start getting user detail");
+        Log.i("[Account Fragmt]", "2. Start getting user detail"+html);
+        Timber.tag("[Account Fragmt]").i("2. Start getting user detail");
 
         Document document = Jsoup.parse(html);
-        Elements studentNum = document.select("div > p > span.data");
-        for (Element e: studentNum) {
-            Log.i("[Account Fragmt]", "Element: "+e.text());
-        }
+//        Elements studentNum = document.select("div > p > span.data");
+//        for (Element e: studentNum) {
+//            Log.i("[Account Fragmt]", "Element: "+e.text());
+//        }
+
+
+        Element infoBox = document.select("div.container").first();
+        Log.i("[Account Fragmt]", "User Info Box: "+infoBox.html());
+
+        String studentNum = infoBox.select("p:has(span.data))").text();
         Log.i("[Account Fragmt]", "Student Number: "+studentNum);
         Timber.tag("[Account Fragmt]").i("Student Number: "+studentNum);
 
-//        String ucasNum = document.select("p:has(span[class=data])").get(1).text();
-//        Log.i("[Account Fragmt]", "UCAS Number: "+ucasNum);
-//        Timber.tag("[Account Fragmt]").i("UCAS Number: "+ucasNum);
-//
-//        String surName = document.select("p:has(span[class=data])").get(2).text();
-//        Log.i("[Account Fragmt]", "Surname: "+surName);
-//        Timber.tag("[Account Fragmt]").i("Surname: "+surName);
-//
-//        String foreName = document.select("p:has(span[class=data])").get(3).text();
-//        Log.i("[Account Fragmt]", "Forename: "+foreName);
-//        Timber.tag("[Account Fragmt]").i("Forename: "+foreName);
-//
-//        String prefName = document.select("p:has(span[class=data])").get(4).text();
-//        Log.i("[Account Fragmt]", "Perffered First Name: "+prefName);
-//        Timber.tag("[Account Fragmt]").i("Perffered First Name: "+prefName);
-//
-//        String dob = document.select("p:has(span[class=data])").get(5).text();
-//        Log.i("[Account Fragmt]", "Date of Birth: "+dob);
-//        Timber.tag("[Account Fragmt]").i("Date of Birth: "+dob);
-//
-//        String uolEmail = document.select("p:has(span[class=data])").get(6).text();
-//        Log.i("[Account Fragmt]", "UoL Email: "+uolEmail);
-//        Timber.tag("[Account Fragmt]").i("UoL Email: "+uolEmail);
+        String ucasNum = document.select("span.data").get(1).text();
+        Log.i("[Account Fragmt]", "UCAS Number: "+ucasNum);
+        Timber.tag("[Account Fragmt]").i("UCAS Number: "+ucasNum);
+
+        String surName = document.select("span.data").get(2).text();
+        Log.i("[Account Fragmt]", "Surname: "+surName);
+        Timber.tag("[Account Fragmt]").i("Surname: "+surName);
+
+        String foreName = document.select("span.data").get(3).text();
+        Log.i("[Account Fragmt]", "Forename: "+foreName);
+        Timber.tag("[Account Fragmt]").i("Forename: "+foreName);
+
+        String prefName = document.select("span.data").get(4).text();
+        Log.i("[Account Fragmt]", "Perffered First Name: "+prefName);
+        Timber.tag("[Account Fragmt]").i("Perffered First Name: "+prefName);
+
+        String dob = document.select("span.data").get(5).text();
+        Log.i("[Account Fragmt]", "Date of Birth: "+dob);
+        Timber.tag("[Account Fragmt]").i("Date of Birth: "+dob);
+
+        String uolEmail = document.select("span.data").get(6).text();
+        Log.i("[Account Fragmt]", "UoL Email: "+uolEmail);
+        Timber.tag("[Account Fragmt]").i("UoL Email: "+uolEmail);
         final TextView tv = (TextView) getActivity().findViewById(R.id.accountNameTextView);
         //tv.setText(studentNum);
+        detailSuccessful = true;
+
     }
 
     /**
@@ -247,6 +283,9 @@ public class AccountFragment extends Fragment {
      * @param html
      */
     private void getTimetableContent(final String html){
+        Log.i("[Account Fragmt]", "3. Start getting timetable info");
+        Timber.tag("[Account Fragmt]").i("3. Start getting timetable info");
+
         Document document = Jsoup.parse(html);
         Element timetableElement = document.select("div.sv-list-group-item:has(script)").first();
 
@@ -288,6 +327,8 @@ public class AccountFragment extends Fragment {
 
             final SimpleAdapter adapter = new SimpleAdapter(getActivity(), arrayList, R.layout.fragment_timetable_item, from, to);
             timetableListView.setAdapter(adapter);
+            timetableSuccessful = true;
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
