@@ -19,7 +19,16 @@ public class TimetableFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Fragment currentFragment = getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        if (currentFragment instanceof TimetableFragment) {
+            FragmentTransaction fragTransaction = (getActivity()).getSupportFragmentManager().beginTransaction();
+            fragTransaction.detach(currentFragment);
+            fragTransaction.attach(currentFragment);
+            fragTransaction.commit();}
+
         setHasOptionsMenu(true);
+        Log.i("[Timetable Fragmt]", "Fragment created");
     }
 
     @Nullable
@@ -28,6 +37,7 @@ public class TimetableFragment extends Fragment {
 
         getActivity().setTitle(getString(R.string.title_fragment_timetable));
         View timetableView = inflater.inflate(R.layout.fragment_timetable, container, false);
+        Log.i("[Timetable Fragmt]", "Fragment view inflated");
         return timetableView;
     }
 

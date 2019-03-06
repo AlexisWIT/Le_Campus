@@ -84,8 +84,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(uniOfLeicester,18));
 
         // Add marker to map location
-        gMap.addMarker(new MarkerOptions().position(uniOfLeicester).title("Charles Wilson Building")
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
+//        gMap.addMarker(new MarkerOptions().position(uniOfLeicester).title("Charles Wilson Building")
+//                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
     }
 
     //@Override Click button "locating"
@@ -94,13 +94,12 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 //        LocationServiceManager.setGoogleAPIKey(googleAPIkey);
 //        LocationServiceManager.onCreateGPS(getActivity().getApplication());
 
-
-        Log.i("Button Clicked", "Locating Button Clicked");
+        Log.i("[Map Fragmt]", "Locating Button Clicked");
         Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
 
         LocationManager locationManagerGPS = (LocationManager) Objects.requireNonNull(getActivity()).getSystemService(Context.LOCATION_SERVICE);
-        Log.i("Location Manager", "Location Manager for GPS defined: "+locationManagerGPS.getAllProviders().toString());
+        Log.i("[Map Fragmt]", "Location Manager for GPS defined: "+locationManagerGPS.getAllProviders().toString());
 
         Criteria criteria = new Criteria();
 
@@ -108,17 +107,18 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         criteria.setCostAllowed(true);
         criteria.setBearingRequired(true);
 
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        criteria.setPowerRequirement(Criteria.POWER_MEDIUM);
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
 
-        Log.i("Service Provider", "Provider Found: "+locationManagerGPS.getBestProvider(criteria, true));
+        Log.i("[Map Fragmt]", "Service Provider Found: "+locationManagerGPS.getBestProvider(criteria, true));
         String locationServiceProvider = locationManagerGPS.getBestProvider(criteria, true);
 
 
         try {
             location = locationManagerGPS.getLastKnownLocation(locationServiceProvider);
+            Log.i("[Map Fragmt]", "Last known Location: "+location.toString());
 
-        } catch (SecurityException e) { // Location service permission error
+        } catch (Exception e) { // Location service permission error
             new AlertDialog.Builder(getActivity())
                     .setTitle("GPS Service Error")
                     .setMessage(this.getContext().toString())
@@ -226,7 +226,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
 
 
-    // Options specifically for Google map fragment
+    // Options specifically for Nearby fragment
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_fragment_google_maps, menu);

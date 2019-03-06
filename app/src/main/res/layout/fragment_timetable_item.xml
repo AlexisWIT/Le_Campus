@@ -12,16 +12,7 @@
         android:text="+15"
         android:textColor="#000"
         android:textSize="20sp"
-        android:id="@+id/event_name_item"
-        android:textStyle="bold"
-        android:gravity="center"/>
-    <!--<TextView
-        android:layout_height="25dp"
-        android:layout_width="wrap_content"
-        android:text="+15"
-        android:textColor="#000"
-        android:textSize="15sp"
-        android:id="@+id/event_start_item"
+        android:id="@+id/event_name"
         android:textStyle="bold"
         android:gravity="center"/>
     <TextView
@@ -30,7 +21,34 @@
         android:text="+15"
         android:textColor="#000"
         android:textSize="15sp"
-        android:id="@+id/event_end_item"
+        android:id="@+id/event_type"
+        android:textStyle="bold"
+        android:gravity="center"/>
+    <TextView
+        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:text="+15"
+        android:textColor="#000"
+        android:textSize="15sp"
+        android:id="@+id/event_location"
+        android:textStyle="bold"
+        android:gravity="center"/>
+    <TextView
+        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:text="+15"
+        android:textColor="#000"
+        android:textSize="15sp"
+        android:id="@+id/event_lat"
+        android:textStyle="bold"
+        android:gravity="center"/>
+    <TextView
+        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:text="+15"
+        android:textColor="#000"
+        android:textSize="15sp"
+        android:id="@+id/event_lon"
         android:textStyle="bold"
         android:gravity="center"/>
     <TextView
@@ -39,7 +57,16 @@
         android:text="+15"
         android:textColor="#000"
         android:textSize="17sp"
-        android:id="@+id/event_location_item"
+        android:id="@+id/event_startTime"
         android:textStyle="bold"
-        android:gravity="center"/>-->
+        android:gravity="center"/>
+    <TextView
+        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:text="+15"
+        android:textColor="#000"
+        android:textSize="17sp"
+        android:id="@+id/event_endTime"
+        android:textStyle="bold"
+        android:gravity="center"/>
 </LinearLayout>

@@ -167,7 +167,7 @@ public class AccountFragment extends Fragment {
                         view.loadUrl(prefixAddress + timetableAddress);
                         super.onPageFinished(view, url);
 
-                        while (!url.equals(prefixAddress + timetableAddress)) {}
+                        //while (!url.equals(prefixAddress + timetableAddress)) {}
 
                         view.loadUrl("javascript:window.onhashchange = function(){java_obj.showTimetableSource('<head>'+" +
                                 "document.getElementsByTagName('html')[0].innerHTML+'</head>');};");
@@ -315,11 +315,8 @@ public class AccountFragment extends Fragment {
         Timber.tag("[Account Fragmt]").i("3. Start getting timetable info");
 
         Document document = Jsoup.parse(html);
-
         String timetableInfo = document.select("h1#sitsportalpagetitle").get(0).text();
         Log.i("[Account Fragmt]", timetableInfo);
-
-        //Element timetableElement = document.select("div.sv-list-group-item").last();
 
         String script = document.select("script").last().data();
         String eventList = "{ \"timetable\": " +
@@ -327,11 +324,9 @@ public class AccountFragment extends Fragment {
                 "}";
         Log.i("[Account Fragmt]", eventList);
 
-
-
-        String[] from = {"name_item"};
-        int[] to = {R.id.event_name_item};
-        ArrayList<HashMap<String, String>> arrayList = new ArrayList<HashMap<String, String>>();
+        String[] from = {"Name", "Type", "Location", "Lat", "Lon","StartTime","EndTime",};
+        int[] to = {R.id.event_name, R.id.event_type, R.id.event_location, R.id.event_lat, R.id.event_lon, R.id.event_startTime, R.id.event_endTime};
+        ArrayList<HashMap<String, String>> eventArrayList = new ArrayList<HashMap<String, String>>();
         HashMap<String, String> hashmap;
 
         try {
@@ -351,23 +346,37 @@ public class AccountFragment extends Fragment {
                 String eventLocation = event.getString("building");
                 Log.i("[Account Fragmt]", "Building: "+eventLocation);
 
+                String eventLat = event.getString("buildingLatitude");
+                Log.i("[Account Fragmt]", "LAT: "+eventLat);
+
+                String eventLon = event.getString("buildingLongitude");
+                Log.i("[Account Fragmt]", "LON: "+eventLon);
+
                 String eventStartTime = event.getString("start");
                 Log.i("[Account Fragmt]", "Start Time: "+eventStartTime);
 
                 String eventEndTime = event.getString("end");
                 Log.i("[Account Fragmt]", "End Time: "+eventEndTime);
 
-
-
                 hashmap = new HashMap<String, String>();
-                hashmap.put("name_item", "" + eventName);
-                arrayList.add(hashmap);
-            }
-            View v = getActivity().getLayoutInflater().inflate(R.layout.fragment_timetable,null);
-            ListView timetableListView = v.findViewById(R.id.timetable_item_list);
+                hashmap.put("Name", "" + eventName);
+                hashmap.put("Type", "" + eventType);
+                hashmap.put("Location", "" + eventLocation);
+                hashmap.put("Lat", "" + eventLat);
+                hashmap.put("Lon", "" + eventLon);
+                hashmap.put("StartTime", "" + eventStartTime);
+                hashmap.put("EndTime", "" + eventEndTime);
+                eventArrayList.add(hashmap);
 
-            final SimpleAdapter adapter = new SimpleAdapter(getActivity(), arrayList, R.layout.fragment_timetable_item, from, to);
+            }
+
+            View v = getActivity().getLayoutInflater().inflate(R.layout.fragment_timetable,null);
+            ListView timetableListView = (ListView) v.findViewById(R.id.timetable_item_list);
+
+            final SimpleAdapter adapter = new SimpleAdapter(getActivity(), eventArrayList, R.layout.fragment_timetable_item, from, to);
             timetableListView.setAdapter(adapter);
+
+
             timetableSuccessful = true;
 
         } catch (JSONException e) {
