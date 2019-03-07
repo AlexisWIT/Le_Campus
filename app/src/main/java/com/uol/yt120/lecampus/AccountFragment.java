@@ -1,9 +1,13 @@
 package com.uol.yt120.lecampus;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,6 +16,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebSettings;
@@ -30,20 +36,32 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
 import timber.log.Timber;
 
+import static android.os.Environment.MEDIA_MOUNTED;
+
 public class AccountFragment extends Fragment {
 
     public WebView webView;
+
+    private Activity mActivity;
+    private Context mContext;
+
     private String loginAddress;
     private String loginAddressFailed;
     private String prefixAddress;
     private String detailAddress;
     private String timetableAddress;
+
     volatile boolean loginSuccessful = false;
     volatile boolean detailSuccessful = false;
     volatile boolean timetableSuccessful = false;
@@ -115,6 +133,12 @@ public class AccountFragment extends Fragment {
             @Override
             public void onPageFinished(WebView view, String url) {
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) { // >= API 22
+                    CookieManager.getInstance().flush();
+                } else {
+                    CookieSyncManager.getInstance().sync();
+                }
+
                 Log.i("[Account Fragmt]","Current URL: "+url+", Login address: "+loginAddress);
                 Timber.tag("[Account Fragmt]").i("Current URL: "+url+", Login address: "+loginAddress);
 
@@ -160,7 +184,6 @@ public class AccountFragment extends Fragment {
                     detailSuccessful = true;
 
                     while (!detailSuccessful) { }
-
 
                     if (!timetableSuccessful && detailSuccessful && loginSuccessful) {
                         // Load user timetable
@@ -300,14 +323,14 @@ public class AccountFragment extends Fragment {
         Log.i("[Account Fragmt]", "UoL Email: "+uolEmail);
         Timber.tag("[Account Fragmt]").i("UoL Email: "+uolEmail);
 
-        final TextView tv = (TextView) getActivity().findViewById(R.id.accountNameTextView);
+        final TextView tv = (TextView) mActivity.findViewById(R.id.accountNameTextView);
         //tv.setText(studentNum);
         detailSuccessful = true;
 
     }
 
     /**
-     * Getting timetable content
+     * Getting timetable content and save it to local file
      * @param html
      */
     private void getTimetableContent(final String html){
@@ -323,6 +346,12 @@ public class AccountFragment extends Fragment {
                 StringUtils.substringBetween(script, "events: ", "});") +
                 "}";
         Log.i("[Account Fragmt]", eventList);
+
+
+        writeIntoFile(mContext, eventList, "timetable.json", "timetable");
+
+
+
 
         String[] from = {"Name", "Type", "Location", "Lat", "Lon","StartTime","EndTime",};
         int[] to = {R.id.event_name, R.id.event_type, R.id.event_location, R.id.event_lat, R.id.event_lon, R.id.event_startTime, R.id.event_endTime};
@@ -373,7 +402,7 @@ public class AccountFragment extends Fragment {
             View v = getActivity().getLayoutInflater().inflate(R.layout.fragment_timetable,null);
             ListView timetableListView = (ListView) v.findViewById(R.id.timetable_item_list);
 
-            final SimpleAdapter adapter = new SimpleAdapter(getActivity(), eventArrayList, R.layout.fragment_timetable_item, from, to);
+            final SimpleAdapter adapter = new SimpleAdapter(mContext, eventArrayList, R.layout.fragment_timetable_item, from, to);
             timetableListView.setAdapter(adapter);
 
 
@@ -383,6 +412,82 @@ public class AccountFragment extends Fragment {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * Write timetable into local file with JSON format
+     * @param context App context, stored as global var when fragment attached
+     * @param content Content to be stored locally (JSON string here)
+     * @param fileName File name
+     * @param folderName Name of the folder the file will be stored in.
+     * @return
+     */
+    public File writeIntoFile (Context context, String content, String fileName, String folderName) {
+
+        String filePath = getFilePath(context, folderName);
+        File folder = new File(filePath);
+        File file = new File(folder, fileName);
+
+        try {
+            if (!file.exists()) {
+                Log.i("[Account Fragmt]", "File '" + file + "' doesn't exist, creating now...");
+                file.createNewFile();
+            }
+
+            // Empty the file for new coming contents
+//            FileWriter fileEraser = new FileWriter(filePath+File.separator+fileName);
+//            fileEraser.write("");
+//            fileEraser.flush();
+//            fileEraser.close();
+
+            FileWriter fileWriter = new FileWriter(filePath+File.separator+fileName);
+            fileWriter.write(content);
+//            FileOutputStream fos = new FileOutputStream(file);
+//            DataOutputStream dos = new DataOutputStream(fos);
+            fileWriter.flush();
+            fileWriter.close();
+
+            Log.i("[Account Fragmt]", "Timetable has been saved to '" + file.getPath() + "'");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return file;
+
+    }
+
+
+    /**
+     * Determine if the current device has External Storage (SDCard)
+     * if no, use Internal path
+     * @param context App context, stored as global var when fragment attached
+     * @param subDir The indicated folder name under 'files' dir
+     * @return
+     */
+    public static String getFilePath(Context context, String subDir) {
+        String filePath = "";
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ) {
+            Log.i("[Account Fragmt]", "External Storage is available.");
+            filePath = Objects.requireNonNull(context.getExternalFilesDir(subDir)).getAbsolutePath();
+
+        }else{
+            Log.i("[Account Fragmt]", "External Storage is unavailable, try Internal Storage.");
+            filePath = context.getFilesDir()+ File.separator+subDir;
+
+        }
+
+        File folder = new File(filePath);
+
+        try {
+            if(!folder.exists())
+                Log.i("[Account Fragmt]", "Directory '"+folder.getPath()+"' doesn't exist, creating now...");
+            folder.mkdirs();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return filePath;
     }
 
 
@@ -397,6 +502,28 @@ public class AccountFragment extends Fragment {
             webView = null;
         }
         super.onDestroy();
+    }
+
+    /**
+     * Due to the different lifecycle, Activity may be recycled
+     * by the system with the Fragment still existed. To prevent the
+     * return value 'null' from getActivity() when the Activity is
+     * recycled...
+     *
+     * @param context
+     */
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        this.mContext = context;
+        this.mActivity = getActivity();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mActivity = null;
+        mContext = null;
     }
 
 }

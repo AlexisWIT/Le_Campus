@@ -20,12 +20,6 @@ public class TimetableFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Fragment currentFragment = getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if (currentFragment instanceof TimetableFragment) {
-            FragmentTransaction fragTransaction = (getActivity()).getSupportFragmentManager().beginTransaction();
-            fragTransaction.detach(currentFragment);
-            fragTransaction.attach(currentFragment);
-            fragTransaction.commit();}
 
         setHasOptionsMenu(true);
         Log.i("[Timetable Fragmt]", "Fragment created");
