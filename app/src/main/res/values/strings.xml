@@ -16,7 +16,7 @@
     <string name="nav_button_timetable">Timetable</string>
     <string name="nav_button_nearby">Nearby</string>
     <string name="nav_button_route">Route</string>
-    <string name="nav_button_more">More&#8230;</string>
+    <string name="nav_button_more">More…</string>
 
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
