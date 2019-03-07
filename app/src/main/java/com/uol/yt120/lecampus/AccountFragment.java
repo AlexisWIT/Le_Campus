@@ -166,6 +166,12 @@ public class AccountFragment extends Fragment {
 
                     while (!loginSuccessful) { }
 
+                    if (!detailSuccessful && loginSuccessful) {
+                        view.loadUrl(prefixAddress+detailAddress);
+                        super.onPageFinished(view, url);
+                    }
+
+
 //                    if (!detailSuccessful && loginSuccessful) {
 //                        // Load user detail
 //                        super.onPageFinished(view, url);
@@ -173,7 +179,7 @@ public class AccountFragment extends Fragment {
 //                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');};");
 //                        view.loadUrl("javascript:window.java_obj.showDetailSource('<head>'+" +
 //                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
-//                        view.loadUrl(prefixAddress+detailAddress);
+//
 //
 //                        Log.i("[Account Fragmt]","Fetching user detail...");
 //                        Timber.tag("[Account Fragmt]").i("Fetching user detail...");
@@ -295,7 +301,7 @@ public class AccountFragment extends Fragment {
         Element infoBox = document.select("div.container").first();
         Log.i("[Account Fragmt]", "User Info Box: "+infoBox.html());
 
-        String studentNum = infoBox.select("p:has(span.data))").text();
+        String studentNum = infoBox.select("span.data").get(0).text();
         Log.i("[Account Fragmt]", "Student Number: "+studentNum);
         Timber.tag("[Account Fragmt]").i("Student Number: "+studentNum);
 
@@ -347,69 +353,15 @@ public class AccountFragment extends Fragment {
                 "}";
         Log.i("[Account Fragmt]", eventList);
 
-
-        writeIntoFile(mContext, eventList, "timetable.json", "timetable");
-
-
-
-
-        String[] from = {"Name", "Type", "Location", "Lat", "Lon","StartTime","EndTime",};
-        int[] to = {R.id.event_name, R.id.event_type, R.id.event_location, R.id.event_lat, R.id.event_lon, R.id.event_startTime, R.id.event_endTime};
-        ArrayList<HashMap<String, String>> eventArrayList = new ArrayList<HashMap<String, String>>();
-        HashMap<String, String> hashmap;
-
         try {
             JSONObject json = new JSONObject(eventList);
             JSONArray jArray = json.getJSONArray("timetable");
-
-            for (int i = 0; i < jArray.length(); i++) {
-                JSONObject event = jArray.getJSONObject(i);
-                Log.i("[Account Fragmt]", "=== Event "+i+" ===");
-
-                String eventName = event.getString("moduleName");
-                Log.i("[Account Fragmt]", "Event: "+eventName);
-
-                String eventType = event.getString("moduleType");
-                Log.i("[Account Fragmt]", "Type: "+eventType);
-
-                String eventLocation = event.getString("building");
-                Log.i("[Account Fragmt]", "Building: "+eventLocation);
-
-                String eventLat = event.getString("buildingLatitude");
-                Log.i("[Account Fragmt]", "LAT: "+eventLat);
-
-                String eventLon = event.getString("buildingLongitude");
-                Log.i("[Account Fragmt]", "LON: "+eventLon);
-
-                String eventStartTime = event.getString("start");
-                Log.i("[Account Fragmt]", "Start Time: "+eventStartTime);
-
-                String eventEndTime = event.getString("end");
-                Log.i("[Account Fragmt]", "End Time: "+eventEndTime);
-
-                hashmap = new HashMap<String, String>();
-                hashmap.put("Name", "" + eventName);
-                hashmap.put("Type", "" + eventType);
-                hashmap.put("Location", "" + eventLocation);
-                hashmap.put("Lat", "" + eventLat);
-                hashmap.put("Lon", "" + eventLon);
-                hashmap.put("StartTime", "" + eventStartTime);
-                hashmap.put("EndTime", "" + eventEndTime);
-                eventArrayList.add(hashmap);
-
-            }
-
-            View v = getActivity().getLayoutInflater().inflate(R.layout.fragment_timetable,null);
-            ListView timetableListView = (ListView) v.findViewById(R.id.timetable_item_list);
-
-            final SimpleAdapter adapter = new SimpleAdapter(mContext, eventArrayList, R.layout.fragment_timetable_item, from, to);
-            timetableListView.setAdapter(adapter);
-
-
+            writeIntoFile(mContext, eventList, "timetable.json", "timetable");
             timetableSuccessful = true;
 
         } catch (JSONException e) {
             e.printStackTrace();
+            timetableSuccessful = false;
         }
 
     }

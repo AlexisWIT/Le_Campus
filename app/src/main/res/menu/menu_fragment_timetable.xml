@@ -8,13 +8,13 @@
         android:icon="@drawable/ic_menu_refresh"
         app:showAsAction="always" />
     <item
-        android:id="@+id/action_opt_1"
+        android:id="@+id/action_export_to_calender"
         android:orderInCategory="100"
-        android:title="Option 1"
+        android:title="Export to calender"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_opt_2"
+        android:id="@+id/action_delete_local_timetable"
         android:orderInCategory="90"
-        android:title="Option 2"
+        android:title="Delete timetable"
         app:showAsAction="never" />
 </menu>
