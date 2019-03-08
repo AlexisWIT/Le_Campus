@@ -17,9 +17,9 @@
             android:icon="@drawable/ic_menu_nearby"
             android:title="@string/nav_button_nearby" />
         <item
-            android:id="@+id/nav_route"
-            android:icon="@drawable/ic_menu_route"
-            android:title="@string/nav_button_route" />
+            android:id="@+id/nav_footprint"
+            android:icon="@drawable/ic_menu_footprint"
+            android:title="@string/nav_button_footprint" />
         <item
             android:id="@+id/nav_more"
             android:title="@string/nav_button_more" />

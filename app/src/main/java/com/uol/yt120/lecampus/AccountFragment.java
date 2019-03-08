@@ -506,7 +506,7 @@ public class AccountFragment extends Fragment {
 
             loadingDialog.dismiss();
             detailSuccessful = true;
-            refreshAccount();
+            showTimetable();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -687,15 +687,10 @@ public class AccountFragment extends Fragment {
         super.onDestroy();
     }
 
-    public void refreshAccount() {
-        Fragment currentFragment = getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if (currentFragment instanceof AccountFragment) {
-            FragmentTransaction fragTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-            fragTransaction.detach(currentFragment);
-            fragTransaction.attach(currentFragment);
-            fragTransaction.commit();}
+    public void showTimetable() {
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, new TimetableFragment()).commit();
 
-        Log.i("[Account Fragmt]", "Reloading Account Fragment");
     }
 
     public void logoutAccount() {
@@ -755,7 +750,7 @@ public class AccountFragment extends Fragment {
      */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_fragment_timetable, menu);
+        inflater.inflate(R.menu.menu_fragment_account, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -766,7 +761,13 @@ public class AccountFragment extends Fragment {
             case R.id.action_log_out:
                 logoutAccount();
                 Toast.makeText(getActivity(), "You have been logged out.", Toast.LENGTH_SHORT).show();
-                refreshAccount();
+                Fragment currentFragment = getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                if (currentFragment instanceof AccountFragment) {
+                    FragmentTransaction fragTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+                    fragTransaction.detach(currentFragment);
+                    fragTransaction.attach(currentFragment);
+                    fragTransaction.commit();}
+
                 return true;
 
             case R.id.action_settings:

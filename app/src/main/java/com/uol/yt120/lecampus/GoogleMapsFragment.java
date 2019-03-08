@@ -36,6 +36,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.Objects;
 
@@ -47,6 +48,11 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private String googleAPIkey;
     private GoogleMap gMap;
     private Location location;
+
+    Marker prevMarker;
+    Marker currentMarker;
+    LatLng prevLatLng;
+    LatLng currentLatLng;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -93,13 +99,11 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
 //        LocationServiceManager.setGoogleAPIKey(googleAPIkey);
 //        LocationServiceManager.onCreateGPS(getActivity().getApplication());
-
-        Log.i("[Map Fragmt]", "Locating Button Clicked");
         Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
 
         LocationManager locationManagerGPS = (LocationManager) Objects.requireNonNull(getActivity()).getSystemService(Context.LOCATION_SERVICE);
-        Log.i("[Map Fragmt]", "Location Manager for GPS defined: "+locationManagerGPS.getAllProviders().toString());
+        Log.i("[Google Map Fragmt]", "Location Manager for GPS defined: "+locationManagerGPS.getAllProviders().toString());
 
         Criteria criteria = new Criteria();
 
@@ -110,39 +114,33 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         criteria.setPowerRequirement(Criteria.POWER_MEDIUM);
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
 
-        Log.i("[Map Fragmt]", "Service Provider Found: "+locationManagerGPS.getBestProvider(criteria, true));
-        String locationServiceProvider = locationManagerGPS.getBestProvider(criteria, true);
-
-
         try {
-            location = locationManagerGPS.getLastKnownLocation(locationServiceProvider);
-            Location location2 = locationManagerGPS.getLastKnownLocation("network");
-            if (location.getAccuracy() >= location2.getAccuracy()) {
+            Log.i("[Google Map Fragmt]", "Best Service Provider Found: "+locationManagerGPS.getBestProvider(criteria, true));
+            String locationServiceProvider = locationManagerGPS.getBestProvider(criteria, true);
 
+            location = locationManagerGPS.getLastKnownLocation(locationServiceProvider);
+            Location location2 = locationManagerGPS.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            Log.i("[Google Map Fragmt]", "Network - LAT: "+location2.getLatitude()+", LNG: "+location2.getLongitude()+", ALT: "+location2.getAltitude()+", ACC: "+location2.getAccuracy());
+            if (location != null) {
+                Log.i("[Google Map Fragmt]", "Default Provider - LAT: "+ location.getLatitude()+ ", LNG: "+ location.getLongitude() +
+                        ", ALT: " + location.getAltitude()+", ACC: "+location.getAccuracy());
+            }
+
+            if (location == null || (location.getAccuracy() >= location2.getAccuracy())) {
                 location = location2;
             }
-            Log.i("[Map Fragmt]", "Last known Location: "+location.toString());
+            Log.i("[Google Map Fragmt]", "Final - LAT: "+location.getLatitude()+", LNG: "+location.getLongitude()+", ALT: "+location.getAltitude()+", ACC: "+location.getAccuracy());
+
+            //prevLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            updateLocation(location);
+
+            // provider, minTime, minDistance, listener
+            locationManagerGPS.requestLocationUpdates(locationServiceProvider, 1000, 10, this);
 
         } catch (Exception e) { // Location service permission error
             new AlertDialog.Builder(getActivity())
                     .setTitle("GPS Service Error")
-                    .setMessage(this.getContext().toString())
-                    .setPositiveButton("OK", (dialog, which) ->
-                            Timber.d(this.getContext().toString()))
-                    .show();
-        }
-
-        updateLocation(location);
-
-        try {
-            // provider, minTime, minDistance, listener
-            locationManagerGPS.requestLocationUpdates(locationServiceProvider, 2000, 10, this);
-
-
-        } catch (SecurityException e) { // Location service permission error
-            new AlertDialog.Builder(getActivity())
-                    .setTitle("GPS Service Error")
-                    .setMessage(this.getContext().toString())
+                    .setMessage(e.getMessage())
                     .setPositiveButton("OK", (dialog, which) ->
                             Timber.d(this.getContext().toString()))
                     .show();
@@ -156,51 +154,70 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         String statusMsg;
         if (location != null) {
             double currentLatitude = location.getLatitude();
-            Log.i("LAT", String.valueOf(currentLatitude));
             double currentLongitude = location.getLongitude();
-            Log.i("LNG", String.valueOf(currentLongitude));
             double currentAltitude = location.getAltitude();
-            Log.i("ALT", String.valueOf(currentAltitude));
             double currentAccuracy = location.getAccuracy();
-            Log.i("ACC", String.valueOf(currentAccuracy));
+            Log.i("[Google Map Fragmt]", "Updated - LAT: "+currentLatitude+", LNG: "+currentLongitude+", ALT: "+currentAltitude+", ACC: "+currentAccuracy);
 
-            gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(currentLatitude, currentLongitude), 17));// Updated coordinate
+            if (currentLatLng != null) {
+                prevLatLng = currentLatLng;
+            }
 
-            gMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
-                    .title("You are here").snippet("LAT: "+currentLatitude+"\nLNG: "+currentLongitude+"\nALT: "+currentAltitude)
-                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
+            currentLatLng = new LatLng(currentLatitude, currentLongitude);
 
-            // Enable marker text shown in multiple lines
-            gMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            try {
+                gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f), 4000, null);// Updated coordinate
 
-                @Override
-                public View getInfoWindow(Marker arg0) {
-                    return null;
+                if (currentMarker != null) {
+                    prevMarker = currentMarker;
+                }
+                currentMarker = gMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
+                        .title("LOCATION").snippet("LAT: "+currentLatitude+"\nLNG: "+currentLongitude+"\nALT: "+currentAltitude)
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
+
+                if (prevMarker != null) {
+                    prevMarker.remove();
                 }
 
-                @Override
-                public View getInfoContents(Marker marker) {
-
-                    LinearLayout info = new LinearLayout(getContext());
-                    info.setOrientation(LinearLayout.VERTICAL);
-
-                    TextView title = new TextView(getContext());
-                    title.setTextColor(Color.BLACK);
-                    title.setGravity(Gravity.CENTER);
-                    title.setTypeface(null, Typeface.BOLD);
-                    title.setText(marker.getTitle());
-
-                    TextView snippet = new TextView(getContext());
-                    snippet.setTextColor(Color.GRAY);
-                    snippet.setText(marker.getSnippet());
-
-                    info.addView(title);
-                    info.addView(snippet);
-
-                    return info;
+                if (prevLatLng != null && currentLatLng != null) {
+                    gMap.addPolyline((new PolylineOptions()).add(prevLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
                 }
 
-            });
+                // Enable marker text shown in multiple lines
+                gMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+                    @Override
+                    public View getInfoWindow(Marker arg0) {
+                        return null;
+                    }
+
+                    @Override
+                    public View getInfoContents(Marker marker) {
+
+                        LinearLayout info = new LinearLayout(getContext());
+                        info.setOrientation(LinearLayout.VERTICAL);
+
+                        TextView title = new TextView(getContext());
+                        title.setTextColor(Color.BLACK);
+                        title.setGravity(Gravity.CENTER);
+                        title.setTypeface(null, Typeface.BOLD);
+                        title.setText(marker.getTitle());
+
+                        TextView snippet = new TextView(getContext());
+                        snippet.setTextColor(Color.GRAY);
+                        snippet.setText(marker.getSnippet());
+
+                        info.addView(title);
+                        info.addView(snippet);
+
+                        return info;
+                    }
+
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
 
         } else {
             Snackbar.make(Objects.requireNonNull(getActivity()).findViewById(R.id.button_locate_google),

@@ -8,14 +8,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class RouteFragment extends Fragment {
+public class FootprintFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         getActivity().setTitle(getString(R.string.title_fragment_route));
-        View routeView = inflater.inflate(R.layout.fragment_route, container, false);
+        View routeView = inflater.inflate(R.layout.fragment_footprint, container, false);
         return routeView;
     }
 }
