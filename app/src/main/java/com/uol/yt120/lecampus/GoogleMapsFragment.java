@@ -116,6 +116,11 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         try {
             location = locationManagerGPS.getLastKnownLocation(locationServiceProvider);
+            Location location2 = locationManagerGPS.getLastKnownLocation("network");
+            if (location.getAccuracy() >= location2.getAccuracy()) {
+
+                location = location2;
+            }
             Log.i("[Map Fragmt]", "Last known Location: "+location.toString());
 
         } catch (Exception e) { // Location service permission error
@@ -151,11 +156,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         String statusMsg;
         if (location != null) {
             double currentLatitude = location.getLatitude();
-            Log.i("LAT",String.valueOf(currentLatitude));
+            Log.i("LAT", String.valueOf(currentLatitude));
             double currentLongitude = location.getLongitude();
-            Log.i("LNG",String.valueOf(currentLongitude));
+            Log.i("LNG", String.valueOf(currentLongitude));
             double currentAltitude = location.getAltitude();
-            Log.i("ALT",String.valueOf(currentAltitude));
+            Log.i("ALT", String.valueOf(currentAltitude));
+            double currentAccuracy = location.getAccuracy();
+            Log.i("ACC", String.valueOf(currentAccuracy));
 
             gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(currentLatitude, currentLongitude), 17));// Updated coordinate
 

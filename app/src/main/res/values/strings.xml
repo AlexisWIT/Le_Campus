@@ -20,6 +20,11 @@
 
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
-    <string name="action_switch_to">Switch to&#8230;</string>
+    <string name="action_switch_to">Switch to…</string>
+
+    <string name="progress_dialog_config_account">Configuring your account…</string>
+    <string name="progress_dialog_check_login_status">Checking login status…</string>
+    <string name="progress_dialog_retrieve_timetable">Retrieving your timetable…</string>
+    <string name="progress_dialog_fetch_user_detail">Fetching personal detail…</string>
 
 </resources>

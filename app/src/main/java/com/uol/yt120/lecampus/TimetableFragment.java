@@ -57,7 +57,7 @@ public class TimetableFragment extends Fragment {
         File externalFolder = new File(externalFilePath);
 
         File internalFile = new File(internalFolder, timetableFileName);
-        File externalFile = new File(externalFilePath, timetableFileName);
+        File externalFile = new File(externalFolder, timetableFileName);
 
         if (!externalFile.exists() || externalFile==null) {
             Log.i("[Timetable Fragmt]", "Timetable file in external storage not found");
@@ -88,7 +88,7 @@ public class TimetableFragment extends Fragment {
             timetableContent = "";
         }
 
-        Log.i("[Timetable Fragmt]", "Fragment created");
+        Log.i("[Timetable Fragmt]", "Timetable Fragment created");
     }
 
     @Nullable
