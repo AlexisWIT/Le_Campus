@@ -114,22 +114,33 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         criteria.setPowerRequirement(Criteria.POWER_MEDIUM);
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
 
+        double accuracy1 = 500.0;
+        double accuracy2 = 500.0;
+
         try {
-            Log.i("[Google Map Fragmt]", "Best Service Provider Found: "+locationManagerGPS.getBestProvider(criteria, true));
+            Log.i("[Google Map Fragmt]", "Default Service Provider Found: "+locationManagerGPS.getBestProvider(criteria, true));
             String locationServiceProvider = locationManagerGPS.getBestProvider(criteria, true);
 
             location = locationManagerGPS.getLastKnownLocation(locationServiceProvider);
             Location location2 = locationManagerGPS.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Log.i("[Google Map Fragmt]", "Network - LAT: "+location2.getLatitude()+", LNG: "+location2.getLongitude()+", ALT: "+location2.getAltitude()+", ACC: "+location2.getAccuracy());
-            if (location != null) {
-                Log.i("[Google Map Fragmt]", "Default Provider - LAT: "+ location.getLatitude()+ ", LNG: "+ location.getLongitude() +
-                        ", ALT: " + location.getAltitude()+", ACC: "+location.getAccuracy());
+
+            if (location2 != null) {
+                Log.i("[Google Map Fragmt]", "Network - LAT: "+location2.getLatitude()+", LNG: "+location2.getLongitude()+", ALT: "+location2.getAltitude()+", ACC: "+location2.getAccuracy());
+                accuracy2 = location2.getAccuracy();
             }
 
-            if (location == null || (location.getAccuracy() >= location2.getAccuracy())) {
+            if (location != null) {
+                Log.i("[Google Map Fragmt]", "Default - LAT: "+ location.getLatitude()+ ", LNG: "+ location.getLongitude() + ", ALT: " + location.getAltitude()+", ACC: "+location.getAccuracy());
+                accuracy1 = location.getAccuracy();
+            }
+
+            if (location == null || (accuracy1 > accuracy2)) {
                 location = location2;
             }
-            Log.i("[Google Map Fragmt]", "Final - LAT: "+location.getLatitude()+", LNG: "+location.getLongitude()+", ALT: "+location.getAltitude()+", ACC: "+location.getAccuracy());
+
+            if (location != null) {
+                Log.i("[Google Map Fragmt]", "Final - LAT: "+location.getLatitude()+", LNG: "+location.getLongitude()+", ALT: "+location.getAltitude()+", ACC: "+location.getAccuracy());
+            }
 
             //prevLatLng = new LatLng(location.getLatitude(), location.getLongitude());
             updateLocation(location);
@@ -139,7 +150,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         } catch (Exception e) { // Location service permission error
             new AlertDialog.Builder(getActivity())
-                    .setTitle("GPS Service Error")
+                    .setTitle("Location Service Unavailable")
                     .setMessage(e.getMessage())
                     .setPositiveButton("OK", (dialog, which) ->
                             Timber.d(this.getContext().toString()))
@@ -149,23 +160,60 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
     }
 
-    public void updateLocation(Location location) {
+    public void updateLocation(Location locationForUpdate) {
+
+        Location location1 = locationForUpdate;
+        Location location2 = null;
+        double accuracy1 = 500.0;
+        double accuracy2 = 500.0;
+
+        try {
+            LocationManager locationManager2 = (LocationManager) Objects.requireNonNull(getActivity()).getSystemService(Context.LOCATION_SERVICE);
+            location2 = locationManager2.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception e) {
+            e.printStackTrace();
+            new AlertDialog.Builder(getActivity())
+                    .setTitle("Network Unavailable")
+                    .setMessage(e.getMessage())
+                    .setPositiveButton("OK", (dialog, which) ->
+                            Timber.d(this.getContext().toString()))
+                    .show();
+        }
+
+        if (location2 != null) {
+            Log.i("[Google Map Fragmt]", "Network - LAT: "+location2.getLatitude()+", LNG: "+location2.getLongitude()+", ALT: "+location2.getAltitude()+", ACC: "+location2.getAccuracy());
+            accuracy2 = location2.getAccuracy();
+        }
+        if (location1 != null) {
+            Log.i("[Google Map Fragmt]", "Default - LAT: "+location1.getLatitude()+", LNG: "+location1.getLongitude()+", ALT: "+location1.getAltitude()+", ACC: "+location1.getAccuracy());
+        }
+
+        if (accuracy1 > accuracy2) {
+            location1 = location2;
+        }
+
+        try {
+            accuracy1 = location1.getAccuracy();
+        } catch (Exception e) {
+
+        }
 
         String statusMsg;
-        if (location != null) {
-            double currentLatitude = location.getLatitude();
-            double currentLongitude = location.getLongitude();
-            double currentAltitude = location.getAltitude();
-            double currentAccuracy = location.getAccuracy();
-            Log.i("[Google Map Fragmt]", "Updated - LAT: "+currentLatitude+", LNG: "+currentLongitude+", ALT: "+currentAltitude+", ACC: "+currentAccuracy);
-
-            if (currentLatLng != null) {
-                prevLatLng = currentLatLng;
-            }
-
-            currentLatLng = new LatLng(currentLatitude, currentLongitude);
-
+        if (location1 != null && accuracy1 <= 35) {
             try {
+                double currentLatitude = location1.getLatitude();
+                double currentLongitude = location1.getLongitude();
+                double currentAltitude = location1.getAltitude();
+                double currentAccuracy = location1.getAccuracy();
+                Log.i("[Google Map Fragmt]", "Updated - LAT: "+currentLatitude+", LNG: "+currentLongitude+", ALT: "+currentAltitude+", ACC: "+currentAccuracy);
+
+                if (currentLatLng != null) {
+                    prevLatLng = currentLatLng;
+                }
+
+                currentLatLng = new LatLng(currentLatitude, currentLongitude);
+
+
                 gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f), 4000, null);// Updated coordinate
 
                 if (currentMarker != null) {
@@ -216,10 +264,19 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 });
             } catch (Exception e) {
                 e.printStackTrace();
+                new AlertDialog.Builder(getActivity())
+                        .setTitle("Unable to update your location")
+                        .setMessage(e.getMessage())
+                        .setPositiveButton("OK", (dialog, which) ->
+                                Timber.d(this.getContext().toString()))
+                        .show();
             }
 
 
         } else {
+            if (locationForUpdate != null) {
+                Log.i("[Google Map Fragmt]", "Discarded - LAT: "+locationForUpdate.getLatitude()+", LNG: "+locationForUpdate.getLongitude()+", ALT: "+locationForUpdate.getAltitude()+", ACC: "+locationForUpdate.getAccuracy());
+            }
             Snackbar.make(Objects.requireNonNull(getActivity()).findViewById(R.id.button_locate_google),
                     "Unable to get your current location.", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();

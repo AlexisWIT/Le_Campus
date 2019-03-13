@@ -258,14 +258,29 @@ public class TimetableFragment extends Fragment {
     }
 
     public void refreshTimetable() {
-        Fragment currentFragment = getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if (currentFragment instanceof TimetableFragment) {
-            FragmentTransaction fragTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-            fragTransaction.detach(currentFragment);
-            fragTransaction.attach(currentFragment);
-            fragTransaction.commit();}
 
-        Log.i("[Timetable Fragmt]", "Reloading Timetable");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 

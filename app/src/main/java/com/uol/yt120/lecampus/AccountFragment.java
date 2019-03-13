@@ -80,10 +80,12 @@ public class AccountFragment extends Fragment {
     volatile boolean externalFileFound = false;
     volatile boolean internalFileFound = false;
 
-    private ProgressDialog loadingDialog;
+    //private ProgressDialog loadingDialog;
     String profileFolderName = "profile";
     String profileFileName = "profile.json";
     String profileContent = "";
+
+    LoadingDialog loadingDialog = new LoadingDialog();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -137,7 +139,8 @@ public class AccountFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        loadingDialog = new ProgressDialog(mContext);
+        //loadingDialog = new ProgressDialog(mContext);
+        //LoadingDialog loadingDialog = new LoadingDialog();
 
         loginAddress = getString(R.string.login_web_address);
         loginAddressFailed = getString(R.string.login_web_address_failed);
@@ -241,7 +244,8 @@ public class AccountFragment extends Fragment {
 
                         if (!detailAddressloaded) {
 
-                            loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_fetch_user_detail));
+                            //loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_fetch_user_detail));
+                            loadingDialog.setTitle(mActivity.getString(R.string.progress_dialog_fetch_user_detail));
 
                             // Load user detail
                             view.loadUrl(prefixAddress+detailAddress);
@@ -270,7 +274,8 @@ public class AccountFragment extends Fragment {
                                     e.printStackTrace();
                                 }
 
-                                loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_config_account));
+                                //loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_config_account));
+                                loadingDialog.setTitle(mActivity.getString(R.string.progress_dialog_config_account));
 
                             }
 
@@ -315,10 +320,14 @@ public class AccountFragment extends Fragment {
                     } else {
 
                         if (!loginSuccessful) {
-                            loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_check_login_status));
-                            loadingDialog.setCancelable(false);
-                            loadingDialog.setCanceledOnTouchOutside(false);
-                            loadingDialog.show();
+//                            loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_check_login_status));
+//                            loadingDialog.setCancelable(false);
+//                            loadingDialog.setCanceledOnTouchOutside(false);
+//                            loadingDialog.show();
+
+                            loadingDialog.init(mContext);
+                            loadingDialog.setTitle(mActivity.getString(R.string.progress_dialog_check_login_status));
+                            loadingDialog.run();
 
                             view.loadUrl("javascript:window.java_obj.showWelcomeSource('<head>'+" +
                                     "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
@@ -341,7 +350,7 @@ public class AccountFragment extends Fragment {
 
                         if ((!timetableSuccessful && !detailSuccessful && loginSuccessful)) {
 
-                            loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_retrieve_timetable));
+                            loadingDialog.setTitle(mActivity.getString(R.string.progress_dialog_retrieve_timetable));
 
                             view.loadUrl(prefixAddress + timetableAddress);
 
@@ -504,7 +513,7 @@ public class AccountFragment extends Fragment {
             Log.i("[Account Fragmt]", "User JSON detail: "+userDetail);
             writeIntoFile(mContext, userDetail, profileFileName, profileFolderName);
 
-            loadingDialog.dismiss();
+            loadingDialog.hide();
             detailSuccessful = true;
             showTimetable();
 
@@ -766,6 +775,9 @@ public class AccountFragment extends Fragment {
                     FragmentTransaction fragTransaction = getActivity().getSupportFragmentManager().beginTransaction();
                     fragTransaction.detach(currentFragment);
                     fragTransaction.attach(currentFragment);
+
+
+
                     fragTransaction.commit();}
 
                 return true;
@@ -799,6 +811,33 @@ public class AccountFragment extends Fragment {
         super.onDetach();
         mActivity = null;
         mContext = null;
+    }
+
+    class LoadingDialog extends Thread implements Runnable {
+        private ProgressDialog loadingDialog;
+
+        public void init(Context context) {
+            Log.i("[Account Fragmt Thread]", "Loading Dialog initialised");
+            loadingDialog = new ProgressDialog(context);
+        }
+
+        public void setTitle(String title) {
+            Log.i("[Account Fragmt Thread]", "Title of Loading Dialog changed");
+            loadingDialog.setMessage(title);
+        }
+
+        @Override
+        public void run() {
+            //while (!userAccountObtained) {
+                loadingDialog.setCancelable(false);
+                loadingDialog.setCanceledOnTouchOutside(false);
+                loadingDialog.show();
+            //}
+        }
+
+        public void hide() {
+            loadingDialog.dismiss();
+        }
     }
 
 }
