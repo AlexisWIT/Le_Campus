@@ -31,6 +31,17 @@ repositories {
 }
 
 dependencies {
+    def lifecycle_version = "1.1.1"
+    def room_version = "1.1.1"
+
+    // Lifecycle components
+    implementation "android.arch.lifecycle:extensions:$lifecycle_version"
+    annotationProcessor "android.arch.lifecycle:compiler:$lifecycle_version"
+
+    // Room components
+    implementation "android.arch.persistence.room:runtime:$room_version"
+    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:6.7.1'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:28.0.0'
@@ -40,12 +51,17 @@ dependencies {
     implementation 'com.android.support:cardview-v7:28.0.0'
     implementation 'com.google.android.gms:play-services-maps:16.1.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
+
+    // Test components
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
     implementation 'com.squareup.okhttp3:okhttp:3.13.1'
     implementation 'cn.finalteam:okhttpfinal:2.0.7'
+
     // jsoup HTML parser library @ https://jsoup.org/
     implementation 'org.jsoup:jsoup:1.11.3'
+
     implementation 'org.apache.commons:commons-lang3:3.8.1'
 }
