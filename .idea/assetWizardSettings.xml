@@ -65,7 +65,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_all_out_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_close_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -75,13 +75,9 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="c4002b" />
-                            <entry key="height" value="10" />
-                            <entry key="opacityPercent" value="81" />
-                            <entry key="outputName" value="ic_map_marker" />
-                            <entry key="overrideSize" value="true" />
+                            <entry key="color" value="ffffff" />
+                            <entry key="outputName" value="ic_action_close" />
                             <entry key="sourceFile" value="C:\Users\Tang\Pictures\素材\UniOfLeicesterCrest.svg" />
-                            <entry key="width" value="10" />
                           </map>
                         </option>
                       </PersistentState>

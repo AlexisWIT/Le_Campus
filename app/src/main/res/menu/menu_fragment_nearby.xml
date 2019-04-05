@@ -8,12 +8,12 @@
         android:icon="@drawable/ic_menu_search"
         app:showAsAction="always" />
     <item
-        android:id="@+id/action_opt_1"
+        android:id="@+id/action_opt_1_nearby"
         android:orderInCategory="100"
         android:title="Option 1"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_opt_2"
+        android:id="@+id/action_opt_2_nearby"
         android:orderInCategory="90"
         android:title="Option 2"
         app:showAsAction="never" />

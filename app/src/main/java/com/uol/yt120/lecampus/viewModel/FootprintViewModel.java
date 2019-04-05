@@ -33,7 +33,7 @@ public class FootprintViewModel extends AndroidViewModel {
         footprintRepository.delete(footprint);
     }
 
-    public void deleteAll(Footprint footprint) {
+    public void deleteAll() {
         footprintRepository.deleteAllFootprints();
     }
 

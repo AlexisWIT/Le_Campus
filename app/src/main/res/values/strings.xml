@@ -27,4 +27,8 @@
     <string name="progress_dialog_retrieve_timetable">Retrieving your timetable…</string>
     <string name="progress_dialog_fetch_user_detail">Fetching personal detail…</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="edit_footprint_title_hint">Title</string>
+    <string name="edit_footprint_title_description">Description</string>
+
 </resources>

@@ -16,6 +16,7 @@ import java.util.List;
 public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.FootprintHolder> {
 
     private List<Footprint> footprintList = new ArrayList<>();
+    private OnItemClickListener listener;
 
     @NonNull
     @Override
@@ -34,6 +35,11 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
         // Footprint map thumbnail image
         // Add here
 
+    }
+
+
+    public Footprint getFootprintAt(int position) {
+        return footprintList.get(position);
     }
 
     /**
@@ -60,6 +66,25 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
             textViewTitle = itemView.findViewById(R.id.text_footprint_title);
             textViewDesc = itemView.findViewById(R.id.text_footprint_desc);
             textViewDate = itemView.findViewById(R.id.text_footprint_date);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    int position = getAdapterPosition();
+                    if (listener != null && position != RecyclerView.NO_POSITION) {
+                        listener.onItemClick(footprintList.get(position));
+                    }
+                }
+            });
         }
     }
+
+    public interface OnItemClickListener {
+        void onItemClick(Footprint footprint);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
 }

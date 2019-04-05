@@ -48,6 +48,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private String googleAPIkey;
     private GoogleMap gMap;
     private Location location;
+    private boolean enableFootprintTrack;
 
     Marker prevMarker;
     Marker currentMarker;
@@ -78,6 +79,10 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         FloatingActionButton googleLocateButton = (FloatingActionButton) googleMapViewLayout.findViewById(R.id.button_locate_google);
         googleLocateButton.setOnClickListener(this::onClick);
 
+        FloatingActionButton footprintTrackButton = googleMapViewLayout.findViewById(R.id.button_add_footprint);
+        footprintTrackButton.setOnClickListener(this::onFootprintClick);
+        enableFootprintTrack = false;
+
         return googleMapViewLayout;
     }
 
@@ -92,6 +97,17 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         // Add marker to map location
 //        gMap.addMarker(new MarkerOptions().position(uniOfLeicester).title("Charles Wilson Building")
 //                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
+    }
+
+    public void onFootprintClick(View view) {
+        if (!enableFootprintTrack) {
+            //If footprint tracking is disabled, enable it
+            showStartTrackingDialog();
+
+        } else {
+            //Notify if user want to save footprint data
+            showEndTrackingDialog();
+        }
     }
 
     //@Override Click button "locating"
@@ -334,6 +350,44 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
     }
 
+    private void showStartTrackingDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Recording Footprint");
+        builder.setMessage("You are about to start recording your footprint, continue?");
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User cancelled the operation
+                        enableFootprintTrack = false;
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User approved the operation
+                        enableFootprintTrack = true;
+                    }
+                });
+        builder.show();
 
+    }
+
+    private void showEndTrackingDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Stop Recording Footprint");
+        builder.setMessage("Do you want to stop recording and save your footprint?");
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User cancelled the operation, continue tracking
+                        enableFootprintTrack = true;
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User approved the operation, footprint tracking stopped
+                        enableFootprintTrack = false;
+                    }
+                });
+        builder.show();
+
+    }
 
 }
