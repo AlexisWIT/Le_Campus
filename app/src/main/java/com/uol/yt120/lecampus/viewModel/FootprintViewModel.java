@@ -40,4 +40,6 @@ public class FootprintViewModel extends AndroidViewModel {
     public LiveData<List<Footprint>> getAllFootprints() {
         return allFootprints;
     }
+
+    public LiveData<Footprint> getFootprintById(int id) { return footprintRepository.getFootprintById(id); }
 }

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,23 +22,48 @@ import android.widget.Toast;
  */
 public class FootprintEditFragment extends Fragment {
 
+    public static final String EXTRA_ID = "com.uol.yt120.lecampus.EXTRA_ID";
     public static final String EXTRA_TITLE = "com.uol.yt120.lecampus.EXTRA_TITLE";
     public static final String EXTRA_DESC = "com.uol.yt120.lecampus.EXTRA_DESC";
+    public static final String EXTRA_NODELIST = "com.uol.yt120.lecampus.EXTRA_NODELIST";
+    public static final String EXTRA_TIMECREATED = "com.uol.yt120.lecampus.EXTRA_TIMECREATED";
+    public static final String EXTRA_PUBLISHER = "com.uol.yt120.lecampus.EXTRA_PUBLISHER";
     private EditText editTextTitle;
-    private EditText editTextDescripytion;
+    private EditText editTextDescription;
+
+    Intent intent;
+    int footprintId;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        editTextTitle = getActivity().findViewById(R.id.edit_text_footprint_title);
-        editTextDescripytion = getActivity().findViewById(R.id.edit_text_footprint_desc);
+        intent = getActivity().getIntent();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        getActivity().setTitle("Edit Footprint");
+
+
+
+        editTextTitle = getActivity().findViewById(R.id.text_footprint_edit_title);
+        editTextDescription = getActivity().findViewById(R.id.text_footprint_edit_desc);
+
+        editTextTitle.setText(intent.getStringExtra(EXTRA_TITLE));
+        editTextDescription.setText(intent.getStringExtra(EXTRA_DESC));
+
+        return inflater.inflate(R.layout.fragment_footprint_edit, container, false);
     }
 
     private void saveEditedFootprint() {
         String title = editTextTitle.getText().toString();
-        String description = editTextDescripytion.getText().toString();
+        String description = editTextDescription.getText().toString();
+        String timeCreated = intent.getStringExtra(EXTRA_TIMECREATED);
+        String nodeList = intent.getStringExtra(EXTRA_NODELIST);
 
         if (title.trim().isEmpty() || description.trim().isEmpty()) {
             Toast.makeText(getContext(), "Please insert a title and description.", Toast.LENGTH_SHORT);
@@ -47,19 +73,22 @@ public class FootprintEditFragment extends Fragment {
         Intent data = new Intent();
         data.putExtra(EXTRA_TITLE, title);
         data.putExtra(EXTRA_DESC, description);
+        data.putExtra(EXTRA_NODELIST, nodeList);
+        data.putExtra(EXTRA_TIMECREATED, timeCreated);
+
+        footprintId = intent.getIntExtra(EXTRA_ID, -1);
+        if (footprintId != -1) {
+            data.putExtra(EXTRA_ID, footprintId);
+
+        } else {
+            Log.e("FootprintEditFragment", "Intent data input error.");
+        }
 
 
         getActivity().setResult(Activity.RESULT_OK, data);
         getActivity().finish();
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        getActivity().setTitle("Edit Footprint");
-        return inflater.inflate(R.layout.fragment_footprint_edit, container, false);
-    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
@@ -79,51 +108,4 @@ public class FootprintEditFragment extends Fragment {
         }
     }
 
-
-
-
-
-
-
-
-
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-//        if (mListener != null) {
-//            mListener.onFragmentInteraction(uri);
-//        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            //mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        //mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
 }

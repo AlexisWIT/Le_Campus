@@ -1,6 +1,7 @@
 package com.uol.yt120.lecampus;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +13,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 public class NavigationActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, DataPassListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +127,36 @@ public class NavigationActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void passData(String data) {
+        try {
+            JSONObject dataJSON = new JSONObject(data);
+            String from = (String)dataJSON.get("from");
+            String destination = (String)dataJSON.get("to");
+            Log.i("NavigationActivity", "Data Transmission: ["+from+"] -> ["+destination+"]");
+
+            switch (destination) {
+                case "FootprintDetailFragment":
+
+                    FootprintDetailFragment footprintDetailFragment = new FootprintDetailFragment();
+
+                    Bundle args = new Bundle();
+                    args.putString(FootprintDetailFragment.KEY_DATA_RECEIVED, data);
+                    footprintDetailFragment.setArguments(args);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.container, footprintDetailFragment).commit();
+                    break;
+            }
+
+
+        } catch (JSONException e) {
+            Log.e("NavigationActivity", "Invalid pass data.");
+            e.printStackTrace();
+        }
+
+
     }
 
 

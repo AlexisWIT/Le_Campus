@@ -42,6 +42,8 @@ public class FootprintRepository {
         return allFootprints;
     }
 
+    public LiveData<Footprint> getFootprintById(int id) { return footprintDAO.getFootprintById(id); }
+
     // Make this class static to prevent memory leak
     private static class InsertFootprintAsyncTask extends AsyncTask<Footprint, Void, Void> {
         private FootprintDAO footprintDAO;

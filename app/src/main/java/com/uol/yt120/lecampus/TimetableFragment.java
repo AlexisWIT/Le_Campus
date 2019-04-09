@@ -260,27 +260,6 @@ public class TimetableFragment extends Fragment {
     public void refreshTimetable() {
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
 

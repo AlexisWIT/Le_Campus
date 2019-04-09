@@ -29,4 +29,7 @@ public interface FootprintDAO {
     @Query("SELECT * FROM footprint_table ORDER BY createTime DESC")
     LiveData<List<Footprint>> getAllFootprints();
 
+    @Query("SELECT * FROM footprint_table WHERE id = :id LIMIT 1")
+    LiveData<Footprint> getFootprintById(int id);
+
 }

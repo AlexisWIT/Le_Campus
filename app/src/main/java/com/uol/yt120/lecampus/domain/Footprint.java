@@ -2,20 +2,27 @@ package com.uol.yt120.lecampus.domain;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
+import android.location.Location;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 @Entity(tableName = "footprint_table")
 public class Footprint {
-
+    // if any variable name changed, change query in DAO as well
     @PrimaryKey(autoGenerate = true)
-    private int id;
+    private Integer id;
     private String title;
     private String description;
-    private ArrayList nodeList;
+    private String nodeList;  // String of JSONArray [ArrayList<HashMap<String, Object>>]
     private String createTime;
 
-    public Footprint(String title, String description, ArrayList nodeList, String createTime) {
+//    private String username;
+//    private String length;        in metre
+//    private Integer totalTime;    in millisec
+//    private Integer privacy;      0-private, 1-open to public, 2-open to friends only
+
+    public Footprint(String title, String description, String nodeList, String createTime) {
         this.title = title;
         this.description = description;
         this.nodeList = nodeList;
@@ -26,7 +33,7 @@ public class Footprint {
         this.id = id;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -38,7 +45,7 @@ public class Footprint {
         return description;
     }
 
-    public ArrayList getNodeList() {
+    public String getNodeList() {
         return nodeList;
     }
 

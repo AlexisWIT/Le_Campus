@@ -7,7 +7,7 @@
     <string name="title_fragment_campus_map">Campus Map</string>
     <string name="title_fragment_timetable">Timetable</string>
     <string name="title_fragment_nearby">Nearby</string>
-    <string name="title_fragment_route">Route</string>
+    <string name="title_fragment_footprint">Footprint</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -26,6 +26,21 @@
     <string name="progress_dialog_check_login_status">Checking login status…</string>
     <string name="progress_dialog_retrieve_timetable">Retrieving your timetable…</string>
     <string name="progress_dialog_fetch_user_detail">Fetching personal detail…</string>
+
+    <string name="latitude_label">Latitude</string>
+    <string name="longitude_label">Longitude</string>
+    <string name="last_update_time_label">Last location update time</string>
+
+    <string name="start_updates">Start updates</string>
+    <string name="stop_updates">Stop updates</string>
+
+    <string name="location_settings_inadequate_warning">The location settings on the device are not
+        adequate to run this sample. Fix in Settings.</string>
+
+    <string name="permission_rationale">Location permission is needed for core functionality</string>
+    <string name="permission_denied_explanation">Permission was denied, but is needed for core
+        functionality.</string>
+    <string name="settings">Settings</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="edit_footprint_title_hint">Title</string>

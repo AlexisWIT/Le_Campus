@@ -1,5 +1,6 @@
 package com.uol.yt120.lecampus;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -36,8 +37,23 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.utility.DateTimeFormatter;
+import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 import timber.log.Timber;
@@ -49,11 +65,20 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private GoogleMap gMap;
     private Location location;
     private boolean enableFootprintTrack;
+    private FootprintViewModel footprintViewModel;
+
+    Calendar calendar = Calendar.getInstance();
+    DateTimeFormatter dateTimeFormatter;
 
     Marker prevMarker;
     Marker currentMarker;
+    Polyline polyline;
     LatLng prevLatLng;
     LatLng currentLatLng;
+
+    Integer trackpointIndex = 0;
+    ArrayList<HashMap<String, Object>> trackpointList = new ArrayList<>();
+    HashMap<String, Object> trackpoint = new HashMap<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -113,7 +138,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     //@Override Click button "locating"
     public void onClick(View view) {
 
-//        LocationServiceManager.setGoogleAPIKey(googleAPIkey);
+ //       LocationServiceManager.setGoogleAPIKey(googleAPIkey);
 //        LocationServiceManager.onCreateGPS(getActivity().getApplication());
         Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
@@ -233,18 +258,23 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f), 4000, null);// Updated coordinate
 
                 if (currentMarker != null) {
-                    prevMarker = currentMarker;
+                    currentMarker.remove();
                 }
-                currentMarker = gMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
+                currentMarker = gMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude)).flat(true)
                         .title("LOCATION").snippet("LAT: "+currentLatitude+"\nLNG: "+currentLongitude+"\nALT: "+currentAltitude)
                         .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
 
-                if (prevMarker != null) {
-                    prevMarker.remove();
-                }
+                if (enableFootprintTrack) {
+                    if (prevLatLng != null && currentLatLng != null) {
+                        polyline = gMap.addPolyline((new PolylineOptions()).add(prevLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
 
-                if (prevLatLng != null && currentLatLng != null) {
-                    gMap.addPolyline((new PolylineOptions()).add(prevLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
+                        trackpoint = new HashMap<>();
+                        trackpoint.put("index", trackpointIndex+1);
+                        trackpoint.put("time", dateTimeFormatter.format(calendar.getTime()));
+                        trackpoint.put("location", location1);
+
+                        trackpointList.add(trackpoint);
+                    }
                 }
 
                 // Enable marker text shown in multiple lines
@@ -374,20 +404,50 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Stop Recording Footprint");
         builder.setMessage("Do you want to stop recording and save your footprint?");
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User cancelled the operation, continue tracking
-                        enableFootprintTrack = true;
-                    }
-                })
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User approved the operation, footprint tracking stopped
-                        enableFootprintTrack = false;
-                    }
-                });
+        builder.setNeutralButton("Discard", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User cancelled the operation, stop tracking, clear existing footprint
+                    enableFootprintTrack = false;
+                    trackpointList = new ArrayList<>();
+                }
+            })
+            .setNegativeButton("Keep Recording", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User cancelled the operation, continue tracking
+                    enableFootprintTrack = true;
+                }
+            })
+            .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User approved the operation, footprint tracking stopped, save footprint
+                    enableFootprintTrack = false;
+
+                    String title = "New Footprint";
+                    String desc = "No description.";
+                    String timeCreated = dateTimeFormatter.format(calendar.getTime());
+
+                    saveFootprint(title, desc, timeCreated, trackpointList);
+
+                    trackpointList = new ArrayList<>();
+                }
+            });
         builder.show();
 
+    }
+
+    private void saveFootprint(String title, String desc, String timeCreated, ArrayList<HashMap<String, Object>> nodeList){
+        footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
+
+        JSONArray nodeJSONArray = new JSONArray();
+        for (HashMap<String, Object> node : nodeList) {
+            JSONObject nodeJSONElement = new JSONObject(node);
+            nodeJSONArray.put(nodeJSONElement);
+        }
+        String nodeListJSON = nodeJSONArray.toString();
+
+        Footprint footprint = new Footprint(title, desc, nodeListJSON, timeCreated);
+        footprintViewModel.insert(footprint);
+        Toast.makeText(getActivity(), "Footprint saved - "+timeCreated, Toast.LENGTH_SHORT).show();
     }
 
 }

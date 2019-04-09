@@ -2,7 +2,9 @@ package com.uol.yt120.lecampus;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,20 +23,34 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.uol.yt120.lecampus.adapter.FootprintAdapter;
+import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
 public class FootprintFragment extends Fragment {
+    public static final String TAG = FootprintFragment.class.getSimpleName();
+
     public static final int ADD_FOOTPRINT_REQUEST = 1;
+    public static final int VIEW_FOOTPRINT_REQUEST = 2;
+    public static final int EDIT_FOOTPRINT_REQUEST = 3;
     private FootprintViewModel footprintViewModel;
+
+    DataPassListener mCallback;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
         FloatingActionButton buttonAddFootprint = getActivity().findViewById(R.id.button_add_footprint);
         buttonAddFootprint.setOnClickListener(new View.OnClickListener() {
@@ -48,6 +64,14 @@ public class FootprintFragment extends Fragment {
 //                startActivityForResult(intent, ADD_FOOTPRINT_REQUEST);
             }
         });
+
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        getActivity().setTitle(getString(R.string.title_fragment_footprint));
 
         RecyclerView recyclerView = getActivity().findViewById(R.id.recycler_view_footprint);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -75,8 +99,8 @@ public class FootprintFragment extends Fragment {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-               footprintViewModel.delete(footprintAdapter.getFootprintAt(viewHolder.getAdapterPosition()));
-               Toast.makeText(getActivity(), "Footprint deleted", Toast.LENGTH_SHORT).show();
+                footprintViewModel.delete(footprintAdapter.getFootprintAt(viewHolder.getAdapterPosition()));
+                Toast.makeText(getActivity(), "Footprint deleted", Toast.LENGTH_SHORT).show();
 
             }
         }).attachToRecyclerView(recyclerView);
@@ -84,19 +108,43 @@ public class FootprintFragment extends Fragment {
         footprintAdapter.setOnItemClickListener(new FootprintAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Footprint footprint) {
-                Intent intent = new Intent(getActivity(), FootprintDetailFragment.class);
-                //intent.putExtra()
+                JSONObject footprintDetailJSON = new JSONObject();
+
+                Integer footprintId = footprint.getId();
+                String title = footprint.getTitle();
+                String desc = footprint.getDescription();
+                String timeCreated = footprint.getCreateTime();
+                //String publisher = footprint.getUsername();
+                String publisher = "default";
+                String trackpointList = footprint.getNodeList();
+//                ArrayList<HashMap<String, Object>> trackpointList = footprint.getNodeList();
+//
+//                JSONArray trackpointJSONArray = new JSONArray();
+//                for (HashMap<String, Object> trackpoint : trackpointList) {
+//                    JSONObject trackpointJSONElement = new JSONObject(trackpoint);
+//                    trackpointJSONArray.put(trackpointJSONElement);
+//                }
+
+                try {
+                    footprintDetailJSON.put("from", TAG);
+                    footprintDetailJSON.put("to", FootprintDetailFragment.TAG);
+                    footprintDetailJSON.put("footprintId", footprintId);
+                    footprintDetailJSON.put("title", title);
+                    footprintDetailJSON.put("desc", desc);
+                    footprintDetailJSON.put("timeCreated", timeCreated);
+                    footprintDetailJSON.put("publisher", publisher);
+                    footprintDetailJSON.put("footprint", trackpointList);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                String footprintDetailJSONString = footprintDetailJSON.toString();
+                mCallback.passData(footprintDetailJSONString);
             }
         });
-    }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
-        getActivity().setTitle(getString(R.string.title_fragment_route));
-        View routeView = inflater.inflate(R.layout.fragment_footprint, container, false);
-        return routeView;
+        View footprintView = inflater.inflate(R.layout.fragment_footprint, container, false);
+        return footprintView;
     }
 
     @Override
@@ -127,13 +175,21 @@ public class FootprintFragment extends Fragment {
 
     }
 
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        if (requestCode == ADD_FOOTPRINT_REQUEST && resultCode == RESULT_OK) {
-//            String title = data.getStringExtra(Add)
-//        }
-//
-//    }
+
+
+    @Override
+    public void onAttach(Context context)
+    {
+        super.onAttach(context);
+        // Makes sure that the host activity has implemented the callback interface
+        try
+        {
+            mCallback = (DataPassListener) context;
+        }
+        catch (ClassCastException e)
+        {
+            throw new ClassCastException(context.toString()+ " did not implement DataPassListener");
+        }
+    }
+
 }
