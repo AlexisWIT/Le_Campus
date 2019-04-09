@@ -10,9 +10,10 @@ public class DateTimeFormatter {
     private String datePattern = "yyyy/MM/dd HH:mm:ss";
     private Locale zoneLocale = Locale.UK;
 
-    public String format(Date date) {
+    public String formatDate(Date date) {
         DateFormat dateFormat = new SimpleDateFormat(datePattern, zoneLocale);
-        return dateFormat.format(date);
+        String result = dateFormat.format(date);
+        return result;
     }
 
     public String getDatePattern() {

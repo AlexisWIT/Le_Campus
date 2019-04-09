@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -52,7 +53,17 @@ public class FootprintFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        FloatingActionButton buttonAddFootprint = getActivity().findViewById(R.id.button_add_footprint);
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        getActivity().setTitle(getString(R.string.title_fragment_footprint));
+
+        View footprintView = inflater.inflate(R.layout.fragment_footprint, container, false);
+
+        FloatingActionButton buttonAddFootprint = (FloatingActionButton) footprintView.findViewById(R.id.button_add_footprint);
         buttonAddFootprint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,15 +76,7 @@ public class FootprintFragment extends Fragment {
             }
         });
 
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
-        getActivity().setTitle(getString(R.string.title_fragment_footprint));
-
-        RecyclerView recyclerView = getActivity().findViewById(R.id.recycler_view_footprint);
+        RecyclerView recyclerView = (RecyclerView)footprintView.findViewById(R.id.recycler_view_footprint);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setHasFixedSize(true);
 
@@ -139,11 +142,11 @@ public class FootprintFragment extends Fragment {
                 }
 
                 String footprintDetailJSONString = footprintDetailJSON.toString();
+                Log.w("[DEBUG INFO]", "Ready to send: ["+footprintDetailJSONString+"]");
                 mCallback.passData(footprintDetailJSONString);
             }
         });
 
-        View footprintView = inflater.inflate(R.layout.fragment_footprint, container, false);
         return footprintView;
     }
 

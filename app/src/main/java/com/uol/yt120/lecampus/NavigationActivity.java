@@ -30,16 +30,6 @@ public class NavigationActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//        // Locating button
-//        FloatingActionButton locateButton = (FloatingActionButton) findViewById(R.id.button_locate);
-//        locateButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Current location", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -136,6 +126,7 @@ public class NavigationActivity extends AppCompatActivity
             String from = (String)dataJSON.get("from");
             String destination = (String)dataJSON.get("to");
             Log.i("NavigationActivity", "Data Transmission: ["+from+"] -> ["+destination+"]");
+            Log.w("[DEBUG INFO]", "Ready to relay: ["+data+"]");
 
             switch (destination) {
                 case "FootprintDetailFragment":
@@ -146,10 +137,9 @@ public class NavigationActivity extends AppCompatActivity
                     args.putString(FootprintDetailFragment.KEY_DATA_RECEIVED, data);
                     footprintDetailFragment.setArguments(args);
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.container, footprintDetailFragment).commit();
+                            .replace(R.id.fragment_container, footprintDetailFragment).commit();
                     break;
             }
-
 
         } catch (JSONException e) {
             Log.e("NavigationActivity", "Invalid pass data.");

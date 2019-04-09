@@ -43,7 +43,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
 /**
  *
  */
@@ -121,7 +120,6 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 //                intent.putExtra(FootprintDetailFragment.EXTRA_PRIVACY, footprintPrivacyView.getText());
                 startActivityForResult(intent, EDIT_FOOTPRINT_REQUEST);
 
-
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -135,8 +133,8 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
         super.onStart();
         Bundle args = getArguments();
         if (args != null) {
-            Log.i("FootprintDetailFragment", "New data received.");
             String dataReceived = args.getString(KEY_DATA_RECEIVED);
+            Log.w("[DEBUG INFO]", "Data received: ["+dataReceived+"]");
             footprintDetailData = dataReceived;
 
             try {
@@ -147,7 +145,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                 footprintDescView.setText((String) footprintDetailJSON.get("desc"));
                 footprintTimeCreated.setText((String) footprintDetailJSON.get("timeCreated"));
                 footprintPublisher.setText((String) footprintDetailJSON.get("publisher"));
-                trackpointJSONArray = new JSONArray((String)footprintDetailJSON.get("footprint"));
+                trackpointJSONArray = footprintDetailJSON.getJSONArray("footprint");
 
 
             } catch (JSONException e) {
@@ -192,6 +190,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
         //gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(uniOfLeicester,18));
 
         try {
+            Log.w("[DEBUG INFO]", "NodeList JSONArray casted: ["+trackpointJSONArray+"]");
             JSONArray nodeJSONArray = new JSONArray(trackpointJSONArray);
 
             for (int i=0; i<nodeJSONArray.length(); i++) {
@@ -201,7 +200,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                 JSONObject nodeJSON = nodeJSONArray.getJSONObject(i);
                 currentIndex = nodeJSON.getInt("index");
                 String dateTime = nodeJSON.getString("time");
-                Location currentLocation = (Location)nodeJSON.get("location");
+                String locationInfo = (String)nodeJSON.get("allInfo");
 
                 if (currentIndex == lastIndex+1) {
 
@@ -211,8 +210,8 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                         // Add marker as end point
                     }
 
-                    double lat = currentLocation.getLatitude();
-                    double lon = currentLocation.getLongitude();
+                    double lat = (double)nodeJSON.get("lat");
+                    double lon = (double)nodeJSON.get("lon");
                     currentLatLng = new LatLng(lat, lon);
 
                     latLngBoundsBuilder.include(currentLatLng);
@@ -220,7 +219,6 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                     if (lastLatLng != null) {
                         polyline = gMap.addPolyline((new PolylineOptions()).add(lastLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
                     }
-
 
                 } else {
                     Log.e(FootprintDetailFragment.TAG, "Node JSON data contains error.");

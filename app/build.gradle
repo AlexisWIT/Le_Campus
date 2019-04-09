@@ -8,13 +8,14 @@ android {
     }
 
     compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "com.uol.yt120.lecampus"
         minSdkVersion 22
         targetSdkVersion 28
         versionCode 1
-        versionName "1.1"
+        versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,6 +30,11 @@ android {
 repositories {
     mavenCentral()
     maven { url 'https://skyhookwireless.github.io/skyhook-context-android' }
+}
+
+configurations {
+    cleanedAnnotations
+    compile.exclude group: 'org.jetbrains' , module:'annotations'
 }
 
 dependencies {

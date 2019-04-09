@@ -40,10 +40,13 @@ public class NearbyFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.action_opt_1:
+            case R.id.action_search_nearby:
+                Toast.makeText(getActivity(), "Search", Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.action_opt_1_nearby:
                 Toast.makeText(getActivity(), "Option_1", Toast.LENGTH_SHORT).show();
                 return true;
-            case R.id.action_opt_2:
+            case R.id.action_opt_2_nearby:
                 Toast.makeText(getActivity(), "Option_2", Toast.LENGTH_SHORT).show();
                 return true;
             default:

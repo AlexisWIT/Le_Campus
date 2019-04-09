@@ -11,7 +11,7 @@ import android.support.annotation.NonNull;
 import com.uol.yt120.lecampus.dataAccessObjects.FootprintDAO;
 import com.uol.yt120.lecampus.domain.Footprint;
 
-@Database(entities = {Footprint.class}, version = 1)
+@Database(entities = {Footprint.class}, exportSchema = false, version = 1)
 public abstract class FootprintDatabase extends RoomDatabase {
 
     private static FootprintDatabase instance;
