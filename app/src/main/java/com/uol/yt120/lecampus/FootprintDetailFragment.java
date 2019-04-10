@@ -4,9 +4,9 @@ import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -27,21 +27,18 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  *
@@ -53,7 +50,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     public static final int VIEW_FOOTPRINT_REQUEST = 2;
     public static final int EDIT_FOOTPRINT_REQUEST = 3;
 
-    public static final String KEY_DATA_RECEIVED = "com.uol.yt120.lecampus.KEY_DATA_RECEIVED";
+    public static final String KEY_FOOTPRINT_DATA_RECEIVED = "com.uol.yt120.lecampus.KEY_FOOTPRINT_DATA_RECEIVED";
 
     public static final String EXTRA_ID = "com.uol.yt120.lecampus.EXTRA_ID";
     public static final String EXTRA_TITLE = "com.uol.yt120.lecampus.EXTRA_TITLE";
@@ -62,14 +59,15 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     public static final String EXTRA_TIMECREATED = "com.uol.yt120.lecampus.EXTRA_TIMECREATED";
     public static final String EXTRA_PUBLISHER = "com.uol.yt120.lecampus.EXTRA_PUBLISHER";
 
+    DataPassListener mCallback;
     String footprintDetailData;
+    String footprintDataForEdit;
     JSONArray trackpointJSONArray;
 
     TextView footprintTitleView;
     TextView footprintDescView;
     TextView footprintTimeCreated;
     TextView footprintPublisher;
-    private FootprintViewModel footprintViewModel;
 
     private GoogleMap gMap;
     MapView mapView;
@@ -111,14 +109,8 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.option_footprint_detail_edit:
-                Intent intent = new Intent(getActivity(), FootprintEditFragment.class);
-                intent.putExtra(FootprintDetailFragment.EXTRA_ID, footprintId);
-                intent.putExtra(FootprintDetailFragment.EXTRA_TITLE, footprintTitleView.getText());
-                intent.putExtra(FootprintDetailFragment.EXTRA_DESC, footprintDescView.getText());
-                intent.putExtra(FootprintDetailFragment.EXTRA_NODELIST, footprintDetailData);
-                intent.putExtra(FootprintDetailFragment.EXTRA_TIMECREATED, footprintTimeCreated.getText());
-//                intent.putExtra(FootprintDetailFragment.EXTRA_PRIVACY, footprintPrivacyView.getText());
-                startActivityForResult(intent, EDIT_FOOTPRINT_REQUEST);
+                mCallback.passData(footprintDataForEdit);
+                return true;
 
             default:
                 return super.onOptionsItemSelected(item);
@@ -126,14 +118,12 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 
     }
 
-
-
     @Override
     public void onStart() {
         super.onStart();
         Bundle args = getArguments();
         if (args != null) {
-            String dataReceived = args.getString(KEY_DATA_RECEIVED);
+            String dataReceived = args.getString(KEY_FOOTPRINT_DATA_RECEIVED);
             Log.w("[DEBUG INFO]", "Data received: ["+dataReceived+"]");
             footprintDetailData = dataReceived;
 
@@ -141,11 +131,20 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                 JSONObject footprintDetailJSON = new JSONObject(footprintDetailData);
                 footprintId = footprintDetailJSON.getInt("footprintId");
 
-                footprintTitleView.setText((String) footprintDetailJSON.get("title"));
-                footprintDescView.setText((String) footprintDetailJSON.get("desc"));
-                footprintTimeCreated.setText((String) footprintDetailJSON.get("timeCreated"));
-                footprintPublisher.setText((String) footprintDetailJSON.get("publisher"));
-                trackpointJSONArray = footprintDetailJSON.getJSONArray("footprint");
+                footprintTitleView.setText(footprintDetailJSON.getString("title"));
+                footprintDescView.setText(footprintDetailJSON.getString("desc"));
+                footprintTimeCreated.setText(footprintDetailJSON.getString("timeCreated"));
+                footprintPublisher.setText(footprintDetailJSON.getString("publisher"));
+                trackpointJSONArray = new JSONArray(footprintDetailJSON.getString("footprint"));
+
+                JSONObject footprintDataForEditJSON = footprintDetailJSON;
+                try {
+                    footprintDataForEditJSON.put("from", TAG);
+                    footprintDataForEditJSON.put("to", FootprintEditFragment.TAG);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                footprintDataForEdit = footprintDataForEditJSON.toString();
 
 
             } catch (JSONException e) {
@@ -191,7 +190,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 
         try {
             Log.w("[DEBUG INFO]", "NodeList JSONArray casted: ["+trackpointJSONArray+"]");
-            JSONArray nodeJSONArray = new JSONArray(trackpointJSONArray);
+            JSONArray nodeJSONArray = trackpointJSONArray;
 
             for (int i=0; i<nodeJSONArray.length(); i++) {
                 if (currentLatLng != null) { lastLatLng = currentLatLng; }
@@ -230,9 +229,11 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 
             int width = getResources().getDisplayMetrics().widthPixels;
             int height = getResources().getDisplayMetrics().heightPixels;
-            int padding = (int) (height * 0.20); // offset from edges of the map 20% of screen
+            int padding = (int) (height * 0.10); // offset from edges of the map 20% of screen
 
             CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
+
+            // Camera effect: flating, rotating. etc
 
             gMap.animateCamera(cu);
 
@@ -241,38 +242,40 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
             e.printStackTrace();
         }
 
+        mapView.onResume();
+
         // Add marker to map location
 //        gMap.addMarker(new MarkerOptions().position(uniOfLeicester).title("Charles Wilson Building")
 //                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == EDIT_FOOTPRINT_REQUEST && resultCode == Activity.RESULT_OK) {
-            int id = data.getIntExtra(FootprintEditFragment.EXTRA_ID, -1);
-            if (id == -1) {
-                Toast.makeText(getActivity(), "Update footprint failed.", Toast.LENGTH_SHORT);
-                return;
-            }
-
-            String title = data.getStringExtra(FootprintEditFragment.EXTRA_TITLE);
-            String desc = data.getStringExtra(FootprintEditFragment.EXTRA_DESC);
-            String nodeList = data.getStringExtra(FootprintEditFragment.EXTRA_NODELIST);
-            String timeCreated = data.getStringExtra(FootprintEditFragment.EXTRA_TIMECREATED);
-
-            footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
-            Footprint footprint = new Footprint(title, desc, nodeList, timeCreated);
-            footprint.setId(id);
-            footprintViewModel.update(footprint);
-
-            Toast.makeText(getActivity(), "Footprint updated.", Toast.LENGTH_SHORT);
-
-        } else {
-            Toast.makeText(getActivity(), "Edit footprint not saved.", Toast.LENGTH_SHORT).show();
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        // Makes sure that the host activity has implemented the callback interface
+        try {
+            mCallback = (DataPassListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()+ " did not implement DataPassListener");
         }
     }
 
+    /**
+     * Set screen auto-rotation disabled in current Fragment.
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(getActivity() != null)
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(getActivity() != null)
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+    }
 
 }

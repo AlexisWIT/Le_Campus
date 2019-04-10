@@ -18,7 +18,7 @@ public class FootprintViewModel extends AndroidViewModel {
     public FootprintViewModel(@NonNull Application application) {
         super(application);
         footprintRepository = new FootprintRepository(application);
-        allFootprints = footprintRepository.getAllFootprints();
+        allFootprints = footprintRepository.getAllFootprintsLiveData();
     }
 
     public void insert(Footprint footprint) {

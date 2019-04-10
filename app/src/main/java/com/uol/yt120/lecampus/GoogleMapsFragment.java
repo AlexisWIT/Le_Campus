@@ -130,7 +130,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 //                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
     }
 
-    public void onFootprintClick(View view) {
+    private void onFootprintClick(View view) {
         if (!enableFootprintTrack) {
             //If footprint tracking is disabled, enable it
             showStartTrackingDialog();
@@ -143,7 +143,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
     //@Override Click button "locating"
     @SuppressLint("MissingPermission")
-    public void onClick(View view) {
+    private void onClick(View view) {
 
  //       LocationServiceManager.setGoogleAPIKey(googleAPIkey);
 //        LocationServiceManager.onCreateGPS(getActivity().getApplication());
@@ -197,12 +197,16 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             locationManagerGPS.requestLocationUpdates(locationServiceProvider, 1000, 5, this);
 
         } catch (Exception e) { // Location service permission error
-            AlertDialog alertDialog1 = new AlertDialog.Builder(getActivity())
-                    .setTitle("Location Service Unavailable")
-                    .setMessage(e.getMessage())
-                    .setPositiveButton("OK", (dialog, which) ->
-                            Timber.d(this.getContext().toString()))
-                    .show();
+            e.printStackTrace();
+            if (getActivity() != null) {
+                AlertDialog alertDialog1 = new AlertDialog.Builder(getActivity())
+                        .setTitle("Location Service Unavailable")
+                        .setMessage(e.getMessage())
+                        .setPositiveButton("OK", (dialog, which) ->
+                                Timber.d(this.getContext().toString()))
+                        .show();
+            }
+
         }
 
 
@@ -223,12 +227,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             location2 = locationManager2.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         } catch (Exception e) {
             e.printStackTrace();
-            AlertDialog alertDialog2 = new AlertDialog.Builder(mActivity)
-                    .setTitle("Network Unavailable")
-                    .setMessage(e.getMessage())
-                    .setPositiveButton("OK", (dialog, which) ->
-                            Timber.d(this.getContext().toString()))
-                    .show();
+            if (getActivity() != null) {
+                AlertDialog alertDialog2 = new AlertDialog.Builder(getActivity())
+                        .setTitle("Network Unavailable")
+                        .setMessage(e.getMessage())
+                        .setPositiveButton("OK", (dialog, which) ->
+                                Timber.d(this.getContext().toString()))
+                        .show();
+            }
+
         }
 
         if (location1 != null) {
@@ -329,12 +336,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 });
             } catch (Exception e) {
                 e.printStackTrace();
-                AlertDialog alertDialog3 = new AlertDialog.Builder(mActivity)
-                        .setTitle("Unable to update your location")
-                        .setMessage(e.getMessage())
-                        .setPositiveButton("OK", (dialog, which) ->
-                                Timber.d(this.getContext().toString()))
-                        .show();
+                if (getActivity() != null) {
+                    AlertDialog alertDialog3 = new AlertDialog.Builder(getActivity())
+                            .setTitle("Unable to update your location")
+                            .setMessage(e.getMessage())
+                            .setPositiveButton("OK", (dialog, which) ->
+                                    Timber.d(this.getContext().toString()))
+                            .show();
+                }
+
             }
 
 
@@ -387,7 +397,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 Toast.makeText(getActivity(), "Switching to offline map", Toast.LENGTH_SHORT).show();
 
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.fragment_container, new MapBoxMapsFragment()).commit();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, new MapBoxMapsFragment())
+                        .commit();
 
                 return true;
             case R.id.action_opt_2:

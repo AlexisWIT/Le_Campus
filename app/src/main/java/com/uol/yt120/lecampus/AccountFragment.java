@@ -354,8 +354,6 @@ public class AccountFragment extends Fragment {
 
                             view.loadUrl(prefixAddress + timetableAddress);
 
-
-
                         }
 
                     }

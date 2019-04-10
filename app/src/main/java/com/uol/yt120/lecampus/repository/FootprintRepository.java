@@ -5,19 +5,20 @@ import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
 
 import com.uol.yt120.lecampus.dataAccessObjects.FootprintDAO;
-import com.uol.yt120.lecampus.database.FootprintDatabase;
+import com.uol.yt120.lecampus.database.LocalDatabase;
 import com.uol.yt120.lecampus.domain.Footprint;
 
 import java.util.List;
 
 public class FootprintRepository {
     private FootprintDAO footprintDAO;
-    private LiveData<List<Footprint>> allFootprints;
+    private LiveData<Footprint> footprintLiveData;
+    private LiveData<List<Footprint>> allFootprintsLiveData;
 
     public FootprintRepository(Application application) {
-        FootprintDatabase database = FootprintDatabase.getInstance(application);
+        LocalDatabase database = LocalDatabase.getInstance(application);
         footprintDAO = database.footprintDAO();
-        allFootprints = footprintDAO.getAllFootprints();
+        allFootprintsLiveData = footprintDAO.getAllFootprints();
     }
 
     // Room doesnt allow database operations to be run in the main thread
@@ -38,8 +39,8 @@ public class FootprintRepository {
         new DeleteAllFootprintAsyncTask(footprintDAO).execute();
     }
 
-    public LiveData<List<Footprint>> getAllFootprints() {
-        return allFootprints;
+    public LiveData<List<Footprint>> getAllFootprintsLiveData() {
+        return allFootprintsLiveData;
     }
 
     public LiveData<Footprint> getFootprintById(int id) { return footprintDAO.getFootprintById(id); }

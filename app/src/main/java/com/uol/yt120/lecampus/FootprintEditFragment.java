@@ -1,8 +1,10 @@
 package com.uol.yt120.lecampus;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,23 +15,35 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.Toast;
+
+import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
+import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 /**
  *
  */
 public class FootprintEditFragment extends Fragment {
+    public static final String TAG = FootprintEditFragment.class.getSimpleName();
 
-    public static final String EXTRA_ID = "com.uol.yt120.lecampus.EXTRA_ID";
-    public static final String EXTRA_TITLE = "com.uol.yt120.lecampus.EXTRA_TITLE";
-    public static final String EXTRA_DESC = "com.uol.yt120.lecampus.EXTRA_DESC";
-    public static final String EXTRA_NODELIST = "com.uol.yt120.lecampus.EXTRA_NODELIST";
-    public static final String EXTRA_TIMECREATED = "com.uol.yt120.lecampus.EXTRA_TIMECREATED";
-    public static final String EXTRA_PUBLISHER = "com.uol.yt120.lecampus.EXTRA_PUBLISHER";
+    public static final String KEY_FOOTPRINT_EDIT_DATA_RECEIVED = "com.uol.yt120.lecampus.KEY_FOOTPRINT_EDIT_DATA_RECEIVED";
+
     private EditText editTextTitle;
     private EditText editTextDescription;
+
+    DataPassListener mCallback;
+    String footprintDataForEdit;
+    JSONObject footprintDataForEditJSON;
 
     Intent intent;
     int footprintId;
@@ -45,48 +59,93 @@ public class FootprintEditFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         getActivity().setTitle("Edit Footprint");
+        View view = inflater.inflate(R.layout.fragment_footprint_edit, container, false);
 
+        editTextTitle = view.findViewById(R.id.text_footprint_edit_title);
+        editTextDescription = view.findViewById(R.id.text_footprint_edit_desc);
 
+        Switch privacySwitch = view.findViewById(R.id.switch_footprint_edit_privacy);
 
-        editTextTitle = getActivity().findViewById(R.id.text_footprint_edit_title);
-        editTextDescription = getActivity().findViewById(R.id.text_footprint_edit_desc);
+        Button saveEditButton = view.findViewById(R.id.button_footprint_edit_save);
+        saveEditButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideSoftKeyboard(getActivity());
+                saveEditedFootprint();
+            }
+        });
 
-        editTextTitle.setText(intent.getStringExtra(EXTRA_TITLE));
-        editTextDescription.setText(intent.getStringExtra(EXTRA_DESC));
-
-        return inflater.inflate(R.layout.fragment_footprint_edit, container, false);
+        return view;
     }
 
     private void saveEditedFootprint() {
         String title = editTextTitle.getText().toString();
         String description = editTextDescription.getText().toString();
-        String timeCreated = intent.getStringExtra(EXTRA_TIMECREATED);
-        String nodeList = intent.getStringExtra(EXTRA_NODELIST);
+        String timeCreated = null;
+        String nodeList = null;
+        try {
+            timeCreated = footprintDataForEditJSON.getString("timeCreated");
+            nodeList = footprintDataForEditJSON.getString("footprint");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.w("[DEBUG INFO]", "Unexpected data in JSON for edit.");
+            return;
+        }
 
         if (title.trim().isEmpty() || description.trim().isEmpty()) {
             Toast.makeText(getContext(), "Please insert a title and description.", Toast.LENGTH_SHORT);
             return;
         }
 
-        Intent data = new Intent();
-        data.putExtra(EXTRA_TITLE, title);
-        data.putExtra(EXTRA_DESC, description);
-        data.putExtra(EXTRA_NODELIST, nodeList);
-        data.putExtra(EXTRA_TIMECREATED, timeCreated);
+        FootprintViewModel footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
+        Footprint footprint = new Footprint(title, description, nodeList, timeCreated);
+        footprint.setId(footprintId);
+        footprintViewModel.update(footprint);
+        Toast.makeText(getContext(), "Footprint saved.", Toast.LENGTH_SHORT);
 
-        footprintId = intent.getIntExtra(EXTRA_ID, -1);
-        if (footprintId != -1) {
-            data.putExtra(EXTRA_ID, footprintId);
-
-        } else {
-            Log.e("FootprintEditFragment", "Intent data input error.");
+        JSONObject dataEditCompleteJSON = footprintDataForEditJSON;
+        try {
+            dataEditCompleteJSON.put("title", title);
+            dataEditCompleteJSON.put("desc", description);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
+        updateFootprintDetail(dataEditCompleteJSON);
 
-        getActivity().setResult(Activity.RESULT_OK, data);
-        getActivity().finish();
+    }
+
+    private void updateFootprintDetail(JSONObject resultJSON){
+        try {
+            resultJSON.put("from", TAG);
+            resultJSON.put("to", FootprintDetailFragment.TAG);
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        mCallback.passData(resultJSON.toString());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Bundle args = getArguments();
+        if (args != null) {
+            String dataReceived = args.getString(KEY_FOOTPRINT_EDIT_DATA_RECEIVED);
+            Log.w("[DEBUG INFO]", "Data for edit received: ["+dataReceived+"]");
+
+            try {
+                footprintDataForEditJSON = new JSONObject(dataReceived);
+                footprintId = footprintDataForEditJSON.getInt("footprintId");
+
+                editTextTitle.setText((String) footprintDataForEditJSON.get("title"));
+                editTextDescription.setText((String) footprintDataForEditJSON.get("desc"));
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
 
@@ -106,6 +165,43 @@ public class FootprintEditFragment extends Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        // Makes sure that the host activity has implemented the callback interface
+        try {
+            mCallback = (DataPassListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()+ " did not implement DataPassListener");
+        }
+    }
+
+    /**
+     * Set screen auto-rotation disabled in current Fragment.
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(getActivity() != null)
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(getActivity() != null)
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+    }
+
+    public static void hideSoftKeyboard(Activity activity) {
+        if (activity.getCurrentFocus() == null) {
+            return;
+        }
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
     }
 
 }

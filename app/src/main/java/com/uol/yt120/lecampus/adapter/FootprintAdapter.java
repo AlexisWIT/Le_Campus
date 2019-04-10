@@ -16,6 +16,7 @@ import java.util.List;
 public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.FootprintHolder> {
 
     private List<Footprint> footprintList = new ArrayList<>();
+    private Footprint footprint = new Footprint();
     private OnItemClickListener listener;
 
     @NonNull
@@ -42,6 +43,16 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
         return footprintList.get(position);
     }
 
+    public void setFootprintList(List<Footprint> footprintList) {
+        this.footprintList = footprintList;
+        notifyDataSetChanged();
+    }
+
+    public void setFootprint(Footprint footprint) {
+        this.footprint = footprint;
+        notifyDataSetChanged();
+    }
+
     /**
      * Get how many item we want to display in recycle view
      * @return size of footprintList
@@ -51,10 +62,6 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
         return footprintList.size();
     }
 
-    public void setFootprintList(List<Footprint> footprintList) {
-        this.footprintList = footprintList;
-        notifyDataSetChanged();
-    }
 
     class FootprintHolder extends RecyclerView.ViewHolder {
         private TextView textViewTitle;

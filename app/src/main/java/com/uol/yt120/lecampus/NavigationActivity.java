@@ -22,6 +22,16 @@ import org.json.JSONObject;
 public class NavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DataPassListener {
 
+    public static final String FRAGMENT_ACCOUNT = "AccountFragment";
+    public static final String FRAGMENT_FOOTPRINT = "FootprintFragment";
+    public static final String FRAGMENT_FOOTPRINT_DETAIL = "FootprintDetailFragment";
+    public static final String FRAGMENT_FOOTPRINT_EDIT = "FootprintEditFragment";
+    public static final String FRAGMENT_GOOGLE_MAPS = "GoogleMapsFragment";
+    public static final String FRAGMENT_MAPBOX_MAPS = "MapBoxMapsFragment";
+    public static final String FRAGMENT_NEARBY = "NearbyFragment";
+    public static final String FRAGMENT_TIMETABLE = "TimetableFragment";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +64,10 @@ public class NavigationActivity extends AppCompatActivity
 
         // set default screen
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new GoogleMapsFragment(), "googleMapFrag").commit();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new GoogleMapsFragment(), "googleMapFrag")
+                    .addToBackStack(null)
+                    .commit();
             navigationView.setCheckedItem(R.id.nav_map);
         }
     }
@@ -95,22 +108,28 @@ public class NavigationActivity extends AppCompatActivity
         switch (id) {
             case R.id.nav_map:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new GoogleMapsFragment(), "googleMapFrag").addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new GoogleMapsFragment(), "googleMapFrag")
+                        .addToBackStack(null)
+                        .commit();
                 break;
 
             case R.id.nav_timetable:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new TimetableFragment(), "timetableFrag").addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new TimetableFragment(), "timetableFrag")
+                        .commit();
                 break;
 
             case R.id.nav_nearby:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new NearbyFragment(), "nearbyFrag").addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new NearbyFragment(), "nearbyFrag")
+                        .commit();
                 break;
 
             case R.id.nav_footprint:
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new FootprintFragment(), "routeFrag").addToBackStack(null).commit();
+                        .replace(R.id.fragment_container, new FootprintFragment(), "routeFrag")
+                        .addToBackStack(null)
+                        .commit();
                 break;
         }
 
@@ -129,23 +148,32 @@ public class NavigationActivity extends AppCompatActivity
             Log.w("[DEBUG INFO]", "Ready to relay: ["+data+"]");
 
             switch (destination) {
-                case "FootprintDetailFragment":
-
+                case FRAGMENT_FOOTPRINT_DETAIL:
                     FootprintDetailFragment footprintDetailFragment = new FootprintDetailFragment();
 
-                    Bundle args = new Bundle();
-                    args.putString(FootprintDetailFragment.KEY_DATA_RECEIVED, data);
-                    footprintDetailFragment.setArguments(args);
+                    Bundle args1 = new Bundle();
+                    args1.putString(FootprintDetailFragment.KEY_FOOTPRINT_DATA_RECEIVED, data);
+                    footprintDetailFragment.setArguments(args1);
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.fragment_container, footprintDetailFragment).commit();
                     break;
+
+                case FRAGMENT_FOOTPRINT_EDIT:
+                    FootprintEditFragment footprintEditFragment = new FootprintEditFragment();
+
+                    Bundle args2 = new Bundle();
+                    args2.putString(FootprintEditFragment.KEY_FOOTPRINT_EDIT_DATA_RECEIVED, data);
+                    footprintEditFragment.setArguments(args2);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, footprintEditFragment).commit();
+                    break;
+
             }
 
         } catch (JSONException e) {
             Log.e("NavigationActivity", "Invalid pass data.");
             e.printStackTrace();
         }
-
 
     }
 

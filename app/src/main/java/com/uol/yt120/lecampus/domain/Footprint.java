@@ -18,7 +18,7 @@ public class Footprint {
     private String nodeList;  // String of JSONArray [ArrayList<HashMap<String, Object>>]
     private String createTime;
 
-//    private String username;
+//    private String creator;       Author username
 //    private String length;        in metre
 //    private Integer totalTime;    in millisec
 //    private Integer privacy;      0-private, 1-open to public, 2-open to friends only
@@ -32,7 +32,7 @@ public class Footprint {
         this.createTime = createTime;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

@@ -32,7 +32,7 @@
 
     <TextView
         android:id="@+id/text_footprint_detail_title"
-        android:layout_width="wrap_content"
+        android:layout_width="270dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
@@ -56,13 +56,15 @@
 
     <TextView
         android:id="@+id/text_footprint_detail_description"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
         android:text="[Description here which indicates the main feature of this footprint.]"
         android:textAlignment="viewStart"
         android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/label_footprint_detail_description" />
 

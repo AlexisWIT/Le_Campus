@@ -70,7 +70,10 @@ public class FootprintFragment extends Fragment {
                 // Confirmation dialog pop out, Redirect to Google map fragment and start tracking
 
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.fragment_container, new GoogleMapsFragment()).commit();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, new GoogleMapsFragment())
+                        .addToBackStack(null)
+                        .commit();
 //                Intent intent = new Intent(getActivity(), GoogleMapsFragment.class);
 //                startActivityForResult(intent, ADD_FOOTPRINT_REQUEST);
             }
@@ -181,16 +184,12 @@ public class FootprintFragment extends Fragment {
 
 
     @Override
-    public void onAttach(Context context)
-    {
+    public void onAttach(Context context) {
         super.onAttach(context);
         // Makes sure that the host activity has implemented the callback interface
-        try
-        {
+        try {
             mCallback = (DataPassListener) context;
-        }
-        catch (ClassCastException e)
-        {
+        } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()+ " did not implement DataPassListener");
         }
     }

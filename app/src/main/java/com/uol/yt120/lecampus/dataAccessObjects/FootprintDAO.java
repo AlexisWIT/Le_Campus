@@ -26,7 +26,7 @@ public interface FootprintDAO {
 
     // By adding "LiveData" here, once the data in database is changed,
     // the data in viewModel will also be changed.
-    @Query("SELECT * FROM footprint_table ORDER BY createTime DESC")
+    @Query("SELECT * FROM footprint_table ORDER BY createTime DESC") //Descending
     LiveData<List<Footprint>> getAllFootprints();
 
     @Query("SELECT * FROM footprint_table WHERE id = :id LIMIT 1")
