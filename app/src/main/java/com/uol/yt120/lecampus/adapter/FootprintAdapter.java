@@ -1,6 +1,8 @@
 package com.uol.yt120.lecampus.adapter;
 
 import android.support.annotation.NonNull;
+import android.support.v7.recyclerview.extensions.ListAdapter;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,15 +11,33 @@ import android.widget.TextView;
 
 import com.uol.yt120.lecampus.*;
 import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.utility.ObjectComparetor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.FootprintHolder> {
+public class FootprintAdapter extends ListAdapter<Footprint, FootprintAdapter.FootprintHolder> {
 
-    private List<Footprint> footprintList = new ArrayList<>();
-    private Footprint footprint = new Footprint();
+    //private List<Footprint> footprintList = new ArrayList<>();
+    //private Footprint footprint = new Footprint();
     private OnItemClickListener listener;
+    private static ObjectComparetor objectComparetor;
+
+    public FootprintAdapter() {
+        super(DIFF_CALLBACK);
+    }
+
+    private static final DiffUtil.ItemCallback<Footprint> DIFF_CALLBACK = new DiffUtil.ItemCallback<Footprint>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Footprint oldFootprint, @NonNull Footprint newFootprint) {
+            return oldFootprint.getId() == newFootprint.getId();
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Footprint oldFootprint, @NonNull Footprint newFootprint) {
+            return objectComparetor.areSameFootprints(oldFootprint, newFootprint);
+        }
+    };
 
     @NonNull
     @Override
@@ -29,7 +49,7 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
 
     @Override
     public void onBindViewHolder(@NonNull FootprintHolder footprintHolder, int position) {
-        Footprint currentFootprint = footprintList.get(position);
+        Footprint currentFootprint = getItem(position);
         footprintHolder.textViewTitle.setText(currentFootprint.getTitle());
         footprintHolder.textViewDesc.setText(currentFootprint.getDescription());
         footprintHolder.textViewDate.setText(currentFootprint.getCreateTime());
@@ -40,26 +60,7 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
 
 
     public Footprint getFootprintAt(int position) {
-        return footprintList.get(position);
-    }
-
-    public void setFootprintList(List<Footprint> footprintList) {
-        this.footprintList = footprintList;
-        notifyDataSetChanged();
-    }
-
-    public void setFootprint(Footprint footprint) {
-        this.footprint = footprint;
-        notifyDataSetChanged();
-    }
-
-    /**
-     * Get how many item we want to display in recycle view
-     * @return size of footprintList
-     */
-    @Override
-    public int getItemCount() {
-        return footprintList.size();
+        return getItem(position);
     }
 
 
@@ -79,7 +80,7 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
                 public void onClick(View view) {
                     int position = getAdapterPosition();
                     if (listener != null && position != RecyclerView.NO_POSITION) {
-                        listener.onItemClick(footprintList.get(position));
+                        listener.onItemClick(getItem(position));
                     }
                 }
             });

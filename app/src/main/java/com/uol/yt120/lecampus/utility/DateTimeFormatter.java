@@ -8,48 +8,58 @@ import java.util.Locale;
 
 public class DateTimeFormatter {
 
-    private String datePattern = "yyyy-MM-dd HH:mm:ss";
-    //private String datePatternUni = "yyyy-MM-dd HH:mm:ss";
+    private final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private final String DATE_NO_TIME_PATTERN = "yyyy-MM-dd";
+    private final String TIME_ONLY_PATERN = "HH:mm";
+    private final String UNI_DATE_PATTERN = "dd/MMM/yyyy";
+
     private Locale zoneLocale = Locale.UK;
 
-    public String formatDateToString(Date date) {
-        DateFormat dateFormat = new SimpleDateFormat(datePattern, zoneLocale);
-        String result = dateFormat.format(date);
-        return result;
+    public String formatDateToString(Date date, String pattern) {
+        DateFormat dateFormat;
+        switch (pattern) {
+            case "default":
+                dateFormat = new SimpleDateFormat(DEFAULT_PATTERN);
+                break;
+            case "no_time":
+                dateFormat = new SimpleDateFormat(DATE_NO_TIME_PATTERN);
+                break;
+            case "uni_date":
+                dateFormat = new SimpleDateFormat(UNI_DATE_PATTERN);
+                break;
+            default:
+                dateFormat = new SimpleDateFormat(DEFAULT_PATTERN);
+                break;
+        }
+        return dateFormat.format(date);
+
     }
 
-//    public String formatDateToStringUni(Date date) {
-//        DateFormat dateFormat = new SimpleDateFormat(datePatternUni, zoneLocale);
-//        String result = dateFormat.format(date);
-//        return result;
-//    }
-
-    public Date parseStringToDate(String string) throws ParseException {
-        DateFormat dateFormat = new SimpleDateFormat(datePattern, zoneLocale);
-        Date result = dateFormat.parse(string);
-        return result;
+    public Date parseStringToDate(String string, String pattern) throws ParseException {
+        DateFormat dateFormat;
+        switch (pattern) {
+            case "default":
+                dateFormat = new SimpleDateFormat(DEFAULT_PATTERN);
+                break;
+            case "no_time":
+                dateFormat = new SimpleDateFormat(DATE_NO_TIME_PATTERN);
+                break;
+            case "uni_date":
+                dateFormat = new SimpleDateFormat(UNI_DATE_PATTERN);
+                break;
+            default:
+                dateFormat = new SimpleDateFormat(DEFAULT_PATTERN);
+                break;
+        }
+        return dateFormat.parse(string);
     }
 
-//    public Date parseStringToDateUni(String string) throws ParseException {
-//        DateFormat dateFormat = new SimpleDateFormat(datePatternUni, zoneLocale);
-//        Date result = dateFormat.parse(string);
-//        return result;
-//    }
-
-
-
-    public String getDatePattern() {
-        return datePattern;
+    public String getDEFAULT_PATTERN() {
+        return DEFAULT_PATTERN;
     }
-
-    public void setDatePattern(String datePattern) {
-        this.datePattern = datePattern;
-    }
-
     public Locale getZoneLocale() {
         return zoneLocale;
     }
-
     public String getZoneLocaleInString() {
         String locale = zoneLocale.toString();
         return locale;

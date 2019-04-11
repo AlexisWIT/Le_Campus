@@ -7,11 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.uol.yt120.lecampus.R;
+
 public class ImageViewAdapter extends PagerAdapter {
 
     private Context mContext;
     private int[] mImageIds =
-            new int[] {R.drawable.};
+            new int[] {R.drawable.md_rnb_bg};
 
     public ImageViewAdapter(Context context) {
         mContext = context;

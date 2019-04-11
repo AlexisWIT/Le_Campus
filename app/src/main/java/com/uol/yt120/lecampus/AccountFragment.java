@@ -35,6 +35,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.uol.yt120.lecampus.domain.UserEvent;
+import com.uol.yt120.lecampus.utility.DateTimeCalculator;
+import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
 
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +79,8 @@ public class AccountFragment extends Fragment {
     private String timetableAddress;
 
     private UserEventViewModel userEventViewModel;
+    private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
+    private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
 
     volatile boolean userAccountObtained = false;
     volatile boolean loginSuccessful = false;
@@ -97,43 +101,7 @@ public class AccountFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        String internalFilePath = mContext.getFilesDir()+ File.separator+profileFolderName;
-        String externalFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(profileFolderName)).getAbsolutePath();
-
-        File internalFolder = new File(internalFilePath);
-        File externalFolder = new File(externalFilePath);
-
-        File internalFile = new File(internalFolder, profileFileName);
-        File externalFile = new File(externalFolder, profileFileName);
-
-        if (!externalFile.exists() || externalFile==null) {
-            Log.i("[Account Fragmt]", "User Profile in external storage not found");
-            externalFileFound = false;
-        } else {
-            Log.i("[Account Fragmt]", "Found User Profile in external storage");
-            externalFileFound = true;
-        }
-
-        if (!internalFile.exists() || internalFile==null) {
-            Log.i("[Account Fragmt]", "User Profile in internal storage not found");
-            internalFileFound = false;
-        } else {
-            Log.i("[Account Fragmt]", "Found User Profile in internal storage");
-            internalFileFound = true;
-        }
-
-        if (externalFileFound) {
-            userAccountObtained = true;
-            profileContent = readFromFile(externalFilePath+File.separator+profileFileName);
-
-        } else if (internalFileFound) {
-            userAccountObtained = true;
-            profileContent = readFromFile(internalFilePath+File.separator+profileFileName);
-
-        } else {
-            userAccountObtained = false;
-            profileContent = "";
-        }
+        checkFilePath();
 
         Log.i("[Account Fragmt]", "Account Fragment created");
 
@@ -308,11 +276,7 @@ public class AccountFragment extends Fragment {
                 public void onPageFinished(WebView view, String url) {
                     super.onPageFinished(view, url);
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) { // >= API 22
-                        CookieManager.getInstance().flush();
-                    } else {
-                        CookieSyncManager.getInstance().sync();
-                    }
+                    CookieManager.getInstance().flush();
 
                     Log.i("[Account Fragmt]","Current URL: "+url+", Login address: "+loginAddress);
                     Timber.tag("[Account Fragmt]").i("Current URL: "+url+", Login address: "+loginAddress);
@@ -472,8 +436,14 @@ public class AccountFragment extends Fragment {
                 String lat = eventJSON.getString("buildingLatitude");
                 String lon = eventJSON.getString("buildingLongitude");
 
-                String startTime = eventJSON.getString("start");
-                String endTime = eventJSON.getString("end");
+                String startTime =
+                        dateTimeCalculator.getNewDateBy(5, "month",
+                                dateTimeFormatter.parseStringToDate(eventJSON.getString("start"),"default"));
+
+                String endTime =
+                        dateTimeCalculator.getNewDateBy(5, "month",
+                                dateTimeFormatter.parseStringToDate(eventJSON.getString("end"),"default"));
+
                 String duration = eventJSON.getString("eventDuration");
                 String weekDay = eventJSON.getString("moduleWeekDay");
 
@@ -491,7 +461,7 @@ public class AccountFragment extends Fragment {
             writeIntoFile(mContext, eventList, "timetable.json", "timetable");
             timetableSuccessful = true;
 
-        } catch (JSONException e) {
+        } catch (Exception e) {
 //            e.printStackTrace();
             timetableSuccessful = false;
         }
@@ -880,6 +850,46 @@ public class AccountFragment extends Fragment {
 
         public void hide() {
             loadingDialog.dismiss();
+        }
+    }
+
+    private void checkFilePath() {
+        String internalFilePath = mContext.getFilesDir()+ File.separator+profileFolderName;
+        String externalFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(profileFolderName)).getAbsolutePath();
+
+        File internalFolder = new File(internalFilePath);
+        File externalFolder = new File(externalFilePath);
+
+        File internalFile = new File(internalFolder, profileFileName);
+        File externalFile = new File(externalFolder, profileFileName);
+
+        if (!externalFile.exists() || externalFile==null) {
+            Log.i("[Account Fragmt]", "User Profile in external storage not found");
+            externalFileFound = false;
+        } else {
+            Log.i("[Account Fragmt]", "Found User Profile in external storage");
+            externalFileFound = true;
+        }
+
+        if (!internalFile.exists() || internalFile==null) {
+            Log.i("[Account Fragmt]", "User Profile in internal storage not found");
+            internalFileFound = false;
+        } else {
+            Log.i("[Account Fragmt]", "Found User Profile in internal storage");
+            internalFileFound = true;
+        }
+
+        if (externalFileFound) {
+            userAccountObtained = true;
+            profileContent = readFromFile(externalFilePath+File.separator+profileFileName);
+
+        } else if (internalFileFound) {
+            userAccountObtained = true;
+            profileContent = readFromFile(internalFilePath+File.separator+profileFileName);
+
+        } else {
+            userAccountObtained = false;
+            profileContent = "";
         }
     }
 

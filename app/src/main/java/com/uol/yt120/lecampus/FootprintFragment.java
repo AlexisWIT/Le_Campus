@@ -91,7 +91,7 @@ public class FootprintFragment extends Fragment {
             @Override
             public void onChanged(@Nullable List<Footprint> footprintList) {
                 // Update recycleView
-                footprintAdapter.setFootprintList(footprintList);
+                footprintAdapter.submitList(footprintList);
                 Toast.makeText(getActivity(), "Footprints updated", Toast.LENGTH_SHORT).show();
             }
         });

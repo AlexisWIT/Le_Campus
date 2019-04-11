@@ -4,6 +4,7 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.uol.yt120.lecampus.domain.UserEvent;
 import com.uol.yt120.lecampus.repository.UserEventRepository;
@@ -41,5 +42,12 @@ public class UserEventViewModel extends AndroidViewModel {
         return allUsereventsLiveData;
     }
 
-    public LiveData<UserEvent> getUserEventById(int id) { return userEventRepository.getFootprintById(id); }
+    public LiveData<UserEvent> getUserEventById(int id) {
+        return userEventRepository.getFootprintById(id);
+    }
+
+    public LiveData<List<UserEvent>> getUserEventListByDate(String date) {
+        Log.w("[DEBUG INFO]", "Date received in ViewModel: ["+ date +"]");
+        return userEventRepository.getUserEventListByDate(date);
+    }
 }

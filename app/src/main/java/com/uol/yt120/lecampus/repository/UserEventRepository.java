@@ -3,6 +3,7 @@ package com.uol.yt120.lecampus.repository;
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
 import com.uol.yt120.lecampus.database.LocalDatabase;
@@ -43,7 +44,14 @@ public class UserEventRepository {
         return allUserEventsLiveData;
     }
 
-    public LiveData<UserEvent> getFootprintById(int id) { return userEventDAO.getUserEventById(id); }
+    public LiveData<UserEvent> getFootprintById(int id) {
+        return userEventDAO.getUserEventById(id);
+    }
+
+    public LiveData<List<UserEvent>> getUserEventListByDate(String date) {
+        Log.w("[DEBUG INFO]", "Date received in Repository: ["+ date +"]");
+        return userEventDAO.getUserEventListByDate(date);
+    }
 
     // Make this class static to prevent memory leak
     private static class InsertUserEventAsyncTask extends AsyncTask<UserEvent, Void, Void> {

@@ -28,10 +28,15 @@ public class UserEvent {
     private String startTime;
     private String endTime;
     private String duration;
-    private String weekDay;    // '1' Monday, '2' Tuesday ..
+    private String weekDay;     // '1' Monday, '2' Tuesday ..
 
     private String host;        // Lecturer or Organizer in name
     private String email;
+
+    private Integer publicEventId;
+    private String detailUrl;
+    private String imageUrl;
+    private String offers;      // JsonObject -> String
 
     public UserEvent() { }
 
@@ -68,12 +73,14 @@ public class UserEvent {
         this.email = email;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+
 
     public Integer getId() {
         return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getHoldBy() {
@@ -226,5 +233,37 @@ public class UserEvent {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Integer getPublicEventId() {
+        return publicEventId;
+    }
+
+    public void setPublicEventId(Integer publicEventId) {
+        this.publicEventId = publicEventId;
+    }
+
+    public String getDetailUrl() {
+        return detailUrl;
+    }
+
+    public void setDetailUrl(String detailUrl) {
+        this.detailUrl = detailUrl;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getOffers() {
+        return offers;
+    }
+
+    public void setOffers(String offers) {
+        this.offers = offers;
     }
 }

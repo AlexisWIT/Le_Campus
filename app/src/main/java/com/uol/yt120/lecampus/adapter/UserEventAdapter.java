@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.uol.yt120.lecampus.*;
 import com.uol.yt120.lecampus.domain.UserEvent;
+import com.uol.yt120.lecampus.utility.TextValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class UserEventAdapter extends RecyclerView.Adapter<UserEventAdapter.User
     private UserEvent userEvent = new UserEvent();
     private OnItemClickListener listener;
     private String adapterMode = "load_eventlist";
+    private TextValidator textValidator = new TextValidator();
 
     @NonNull
     @Override
@@ -46,22 +48,22 @@ public class UserEventAdapter extends RecyclerView.Adapter<UserEventAdapter.User
                 String startTime = currentUserEvent.getStartTime();
 
                 String eventType = currentUserEvent.getEventType();
-                if (!isEmptyString(eventType)) {
+                if (!textValidator.isEmptyString(eventType)) {
                     eventType = " - "+eventType;
                 }
 
                 String address = currentUserEvent.getAddress();
-                if (!isEmptyString(address)) {
+                if (!textValidator.isEmptyString(address)) {
                     address = " - "+address;
                 }
 
-                String duration = " - "+currentUserEvent.getDuration();
-                if (!isEmptyString(duration)) {
-                    duration = " - "+duration;
+                String duration = currentUserEvent.getDuration();
+                if (!textValidator.isEmptyString(duration)) {
+                    duration = " - "+duration + " mins";
                 }
 
                 String textTitle;
-                if (!isEmptyString(eventCode)) {
+                if (!textValidator.isEmptyString(eventCode)) {
                     textTitle = "("+eventCode+") "+eventTitle;
                 } else {
                     textTitle = eventTitle;
@@ -137,10 +139,4 @@ public class UserEventAdapter extends RecyclerView.Adapter<UserEventAdapter.User
         this.adapterMode = adapterMode;
     }
 
-    private boolean isEmptyString(String string) {
-        return string == null ||
-                string.equalsIgnoreCase("null") ||
-                (TextUtils.equals(string, "null")) ||
-                (TextUtils.isEmpty(string));
-    }
 }

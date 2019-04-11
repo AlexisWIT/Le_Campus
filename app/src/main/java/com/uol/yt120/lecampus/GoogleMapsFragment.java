@@ -290,7 +290,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
                         HashMap<String, Object> trackpoint = new HashMap<>();
                         trackpoint.put("index", index);
-                        trackpoint.put("time", dateTimeFormatter.formatDateToString(calendar.getTime()));
+                        trackpoint.put("time", dateTimeFormatter.formatDateToString(calendar.getTime(), "default"));
                         trackpoint.put("lat", location1.getLatitude());
                         trackpoint.put("lon", location1.getLongitude());
                         trackpoint.put("allInfo", location1.toString());
@@ -462,7 +462,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
                     String title = "New Footprint";
                     String desc = "No description.";
-                    String timeCreated = dateTimeFormatter.formatDateToString(saveTime);
+                    String timeCreated = dateTimeFormatter.formatDateToString(saveTime, "default");
 
                     saveFootprint(title, desc, timeCreated, trackpointList);
 

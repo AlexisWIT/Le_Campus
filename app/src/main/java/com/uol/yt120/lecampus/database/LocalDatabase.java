@@ -13,7 +13,7 @@ import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.domain.UserEvent;
 
-@Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 2)
+@Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 1)
 public abstract class LocalDatabase extends RoomDatabase {
 
     private static LocalDatabase instance;
@@ -79,7 +79,7 @@ public abstract class LocalDatabase extends RoomDatabase {
                 "(Increase 5.6%) from the 2011 census figure of 329,839, making it the " +
                 "most populous municipality in the East Midlands region. The associated " +
                 "urban area is also the 11th most populous in England and the 13th most " +
-                "populous in the United Kingdom.";
+                "populous in the United Kingdom. [Source: Wikipedia]";
 
         String example_nodeList =
                 "[{\"lon\":-1.131445,\"index\":1,\"time\":\"2019-04-10 03:00:20\",\"lat\":52.634439,\"allInfo\":\"\"}," +

@@ -32,6 +32,7 @@ public class NearbyFragment extends Fragment {
 
         ViewPager viewPager = nearbyView.findViewById(R.id.viewPager_image);
         ImageViewAdapter adapter = new ImageViewAdapter(getActivity());
+        viewPager.setAdapter(adapter);
         return nearbyView;
     }
 

@@ -13,25 +13,37 @@
 
         <View
             android:id="@+id/divider"
-            android:layout_width="2dp"
+            android:layout_width="1dp"
             android:layout_height="0dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:background="?android:attr/listDivider"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/timetable_day_item_list"
+            app:layout_constraintStart_toEndOf="@+id/label_timetable_day_date"
             app:layout_constraintTop_toTopOf="parent" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/timetable_day_item_list"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:minWidth="400dp"
             android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/divider"
             app:layout_constraintTop_toTopOf="parent"
             tools:listitem="@layout/fragment_timetable_day_item" />
+
+        <TextView
+            android:id="@+id/label_timetable_day_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:text="04-11"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/timetable_day_item_list" />
 
 
     </android.support.constraint.ConstraintLayout>
