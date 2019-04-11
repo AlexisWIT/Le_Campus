@@ -140,13 +140,14 @@ public class FootprintFragment extends Fragment {
                     footprintDetailJSON.put("timeCreated", timeCreated);
                     footprintDetailJSON.put("publisher", publisher);
                     footprintDetailJSON.put("footprint", trackpointList);
+
+                    String footprintDetailJSONString = footprintDetailJSON.toString();
+                    Log.w("[DEBUG INFO]", "Ready to send: ["+footprintDetailJSONString+"]");
+                    mCallback.passData(footprintDetailJSONString);
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    Toast.makeText(getActivity(), "Something went wrong, please try again.", Toast.LENGTH_SHORT).show();
                 }
-
-                String footprintDetailJSONString = footprintDetailJSON.toString();
-                Log.w("[DEBUG INFO]", "Ready to send: ["+footprintDetailJSONString+"]");
-                mCallback.passData(footprintDetailJSONString);
             }
         });
 

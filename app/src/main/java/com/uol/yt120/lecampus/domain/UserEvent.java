@@ -8,6 +8,7 @@ import android.arch.persistence.room.PrimaryKey;
 public class UserEvent {
     @PrimaryKey(autoGenerate = true)
     private Integer id;
+
     private String holdBy;      // University, Community, Personal or Organization
     private String eventType;   // Lecture, Seminar or Social Event
     private String eventTitle;  // 'Cryptography and Internet Security' or 'Neon Night: Riders vs Rocks'
@@ -27,7 +28,7 @@ public class UserEvent {
     private String startTime;
     private String endTime;
     private String duration;
-    private Integer weekDay;    // '1' Monday, '2' Tuesday ..
+    private String weekDay;    // '1' Monday, '2' Tuesday ..
 
     private String host;        // Lecturer or Organizer in name
     private String email;
@@ -45,7 +46,7 @@ public class UserEvent {
     }
 
     @Ignore
-    public UserEvent(String holdBy, String eventType, String eventTitle, String eventDesc, String eventCode, String location, String address, String postCode, String city, String region, String country, String lat, String lon, String startTime, String endTime, String duration, Integer weekDay, String host, String email) {
+    public UserEvent(String holdBy, String eventType, String eventTitle, String eventDesc, String eventCode, String location, String address, String postCode, String city, String region, String country, String lat, String lon, String startTime, String endTime, String duration, String weekDay, String host, String email) {
         this.holdBy = holdBy;
         this.eventType = eventType;
         this.eventTitle = eventTitle;
@@ -203,11 +204,11 @@ public class UserEvent {
         this.duration = duration;
     }
 
-    public Integer getWeekDay() {
+    public String getWeekDay() {
         return weekDay;
     }
 
-    public void setWeekDay(Integer weekDay) {
+    public void setWeekDay(String weekDay) {
         this.weekDay = weekDay;
     }
 

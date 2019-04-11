@@ -30,6 +30,10 @@ public class NavigationActivity extends AppCompatActivity
     public static final String FRAGMENT_MAPBOX_MAPS = "MapBoxMapsFragment";
     public static final String FRAGMENT_NEARBY = "NearbyFragment";
     public static final String FRAGMENT_TIMETABLE = "TimetableFragment";
+    public static final String FRAGMENT_CHILD_TIMETABLE_DAY = "TimetableDayChildFragment";
+    public static final String FRAGMENT_CHILD_TIMETABLE_MONTH = "TimetableMonthChildFragment";
+    public static final String FRAGMENT_CHILD_TIMETABLE_WEEK = "TimetableWeekChildFragment";
+    public static final String FRAGMENT_USEREVENT_DETAIL = "UserEventDetailFragment";
 
 
     @Override
@@ -37,7 +41,7 @@ public class NavigationActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.acitvity_tool_bar);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -166,6 +170,16 @@ public class NavigationActivity extends AppCompatActivity
                     footprintEditFragment.setArguments(args2);
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.fragment_container, footprintEditFragment).commit();
+                    break;
+
+                case FRAGMENT_USEREVENT_DETAIL:
+                    UserEventDetailFragment userEventDetailFragment = new UserEventDetailFragment();
+
+                    Bundle args3 = new Bundle();
+                    args3.putString(UserEventDetailFragment.KEY_USEREVENT_DATA_RECEIVED, data);
+                    userEventDetailFragment.setArguments(args3);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, userEventDetailFragment).commit();
                     break;
 
             }

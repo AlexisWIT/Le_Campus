@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginTop="56dp">
+    android:layout_height="match_parent">
 
     <android.support.design.widget.TabLayout
         android:id="@+id/tabLayout_timetable"
@@ -14,7 +13,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <android.support.design.widget.TabItem
+        <!--<android.support.design.widget.TabItem
             android:id="@+id/tab_label_timetable_day"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,21 +29,18 @@
             android:id="@+id/tab_label_timetable_month"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Month" />
+            android:text="Month" />-->
     </android.support.design.widget.TabLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/timetable_item_list"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewpager_timetable"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="60dp"
-        android:scrollbars="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tabLayout_timetable"
-        tools:listitem="@layout/fragment_timetable_day_item">
+        app:layout_constraintTop_toBottomOf="@+id/tabLayout_timetable" />
 
-    </android.support.v7.widget.RecyclerView>
 
 </android.support.constraint.ConstraintLayout>

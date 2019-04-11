@@ -20,42 +20,58 @@ public class TimeCalculator {
         if (date == null) {
             return null;
         }
-        long diff = new Date().getTime() - date.getTime();
+        long difference = new Date().getTime() - date.getTime();
+        long diffInAbs = Math.abs(difference);
         long r = 0;
-        if (diff > year) {
-            r = (diff / year);
-            if (r == 1)
-                return r + " year ago";
-            else
-                return r + " years ago";
+        if (diffInAbs > year) {
+            r = (diffInAbs / year);
+            if (r == 1) {
+                if (difference>0) return r + " year ago";
+                else return "in " +r + " year";
+            } else {
+                if (difference>0) return r + " years ago";
+                else return "in " +r + " years";
+            }
         }
-        if (diff > month) {
-            r = (diff / month);
-            if (r == 1)
-                return r + " month ago";
-            else
-                return r + " months ago";
+        if (diffInAbs > month) {
+            r = (diffInAbs / month);
+            if (r == 1) {
+                if (difference>0) return r + " month ago";
+                else return "in " +r + " month";
+            } else {
+                if (difference>0) return r + " months ago";
+                else return "in " +r + " months";
+            }
         }
-        if (diff > day) {
-            r = (diff / day);
-            if (r == 1)
-                return r + " day ago";
-            else
-                return r + " days ago";
+        if (diffInAbs > day) {
+            r = (diffInAbs / day);
+            if (r == 1) {
+                if (difference>0) return "Yesterday";
+                else return "Tomorrow";
+            } else {
+                if (difference>0) return r + " days ago";
+                else return "in " +r + " days";
+            }
         }
-        if (diff > hour) {
-            r = (diff / hour);
-            if (r == 1)
-                return r + " hour ago";
-            else
-                return r + " hours ago";
+        if (diffInAbs > hour) {
+            r = (diffInAbs / hour);
+            if (r == 1) {
+                if (difference>0) return r + " hour ago";
+                else return "in " +r + " hour";
+            } else {
+                if (difference>0) return r + " hours ago";
+                else return "in " +r + " hours";
+            }
         }
-        if (diff > minute) {
-            r = (diff / minute);
-            if (r == 1)
-                return r + " minute ago";
-            else
-                return r + " minutes ago";
+        if (diffInAbs > minute) {
+            r = (diffInAbs / minute);
+            if (r == 1) {
+                if (difference > 0) return r + " minute ago";
+                else return "in " + r + " minute";
+            } else {
+                if (difference > 0) return r + " minutes ago";
+                else return "in " + r + " minutes";
+            }
         }
         return "Just now";
     }

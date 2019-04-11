@@ -13,7 +13,7 @@ import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.domain.UserEvent;
 
-@Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 1)
+@Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 2)
 public abstract class LocalDatabase extends RoomDatabase {
 
     private static LocalDatabase instance;
@@ -82,27 +82,27 @@ public abstract class LocalDatabase extends RoomDatabase {
                 "populous in the United Kingdom.";
 
         String example_nodeList =
-                "[{\"lon\":-1.131445,\"index\":1,\"time\":\"2019/04/10 03:00:20\",\"lat\":52.634439,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.131700,\"index\":2,\"time\":\"2019/04/10 03:02:20\",\"lat\":52.634621,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.131987,\"index\":3,\"time\":\"2019/04/10 03:04:20\",\"lat\":52.634849,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.132210,\"index\":4,\"time\":\"2019/04/10 03:06:20\",\"lat\":52.635078,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.132427,\"index\":5,\"time\":\"2019/04/10 03:08:20\",\"lat\":52.635326,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.132568,\"index\":6,\"time\":\"2019/04/10 03:10:20\",\"lat\":52.635438,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.132855,\"index\":7,\"time\":\"2019/04/10 03:12:20\",\"lat\":52.635349,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.133155,\"index\":8,\"time\":\"2019/04/10 03:14:20\",\"lat\":52.635279,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.133506,\"index\":9,\"time\":\"2019/04/10 03:16:20\",\"lat\":52.635140,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.133773,\"index\":10,\"time\":\"2019/04/10 03:18:20\",\"lat\":52.634888,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.133882,\"index\":11,\"time\":\"2019/04/10 03:20:20\",\"lat\":52.634675,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.133971,\"index\":12,\"time\":\"2019/04/10 03:22:20\",\"lat\":52.634458,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.134201,\"index\":13,\"time\":\"2019/04/10 03:24:20\",\"lat\":52.634304,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.134488,\"index\":14,\"time\":\"2019/04/10 03:26:20\",\"lat\":52.634195,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.134749,\"index\":15,\"time\":\"2019/04/10 03:28:20\",\"lat\":52.634133,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.134915,\"index\":16,\"time\":\"2019/04/10 03:26:20\",\"lat\":52.634292,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.135145,\"index\":17,\"time\":\"2019/04/10 03:28:20\",\"lat\":52.634431,\"allInfo\":\"\"}," +
-                "{\"lon\":-1.135560,\"index\":18,\"time\":\"2019/04/10 03:30:20\",\"lat\":52.634381,\"allInfo\":\"\"}]";
+                "[{\"lon\":-1.131445,\"index\":1,\"time\":\"2019-04-10 03:00:20\",\"lat\":52.634439,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.131700,\"index\":2,\"time\":\"2019-04-10 03:02:20\",\"lat\":52.634621,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.131987,\"index\":3,\"time\":\"2019-04-10 03:04:20\",\"lat\":52.634849,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.132210,\"index\":4,\"time\":\"2019-04-10 03:06:20\",\"lat\":52.635078,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.132427,\"index\":5,\"time\":\"2019-04-10 03:08:20\",\"lat\":52.635326,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.132568,\"index\":6,\"time\":\"2019-04-10 03:10:20\",\"lat\":52.635438,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.132855,\"index\":7,\"time\":\"2019-04-10 03:12:20\",\"lat\":52.635349,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.133155,\"index\":8,\"time\":\"2019-04-10 03:14:20\",\"lat\":52.635279,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.133506,\"index\":9,\"time\":\"2019-04-10 03:16:20\",\"lat\":52.635140,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.133773,\"index\":10,\"time\":\"2019-04-10 03:18:20\",\"lat\":52.634888,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.133882,\"index\":11,\"time\":\"2019-04-10 03:20:20\",\"lat\":52.634675,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.133971,\"index\":12,\"time\":\"2019-04-10 03:22:20\",\"lat\":52.634458,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.134201,\"index\":13,\"time\":\"2019-04-10 03:24:20\",\"lat\":52.634304,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.134488,\"index\":14,\"time\":\"2019-04-10 03:26:20\",\"lat\":52.634195,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.134749,\"index\":15,\"time\":\"2019-04-10 03:28:20\",\"lat\":52.634133,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.134915,\"index\":16,\"time\":\"2019-04-10 03:26:20\",\"lat\":52.634292,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.135145,\"index\":17,\"time\":\"2019-04-10 03:28:20\",\"lat\":52.634431,\"allInfo\":\"\"}," +
+                "{\"lon\":-1.135560,\"index\":18,\"time\":\"2019-04-10 03:30:20\",\"lat\":52.634381,\"allInfo\":\"\"}]";
 
         String example_createTime =
-                "2019/04/10 03:46:20";
+                "2019-04-10 03:46:20";
 
         example_footprint = new Footprint(example_title, example_desc, example_nodeList, example_createTime);
 

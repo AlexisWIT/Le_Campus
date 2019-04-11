@@ -3,6 +3,7 @@ package com.uol.yt120.lecampus;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
@@ -32,6 +33,9 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.uol.yt120.lecampus.domain.UserEvent;
+import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -71,6 +75,8 @@ public class AccountFragment extends Fragment {
     private String prefixAddress;
     private String detailAddress;
     private String timetableAddress;
+
+    private UserEventViewModel userEventViewModel;
 
     volatile boolean userAccountObtained = false;
     volatile boolean loginSuccessful = false;
@@ -445,6 +451,43 @@ public class AccountFragment extends Fragment {
         try {
             JSONObject json = new JSONObject(eventList);
             JSONArray jArray = json.getJSONArray("timetable");
+
+            for (int i=0; i<jArray.length(); i++) {
+                userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
+                JSONObject eventJSON = jArray.getJSONObject(i);
+
+                String holdBy = "University";
+                String eventType = eventJSON.getString("moduleType");
+                String eventTitle = eventJSON.getString("moduleName");
+                String eventDesc = eventJSON.getString("description");
+                String eventCode = eventJSON.getString("moduleID");
+
+                String location = eventJSON.getString("building");
+                String address = eventJSON.getString("moduleRoom");
+                String postCode = "LE1 7RH";
+                String city = "Leicester";
+                String region = "East Midland";
+                String country = "United Kingdom";
+
+                String lat = eventJSON.getString("buildingLatitude");
+                String lon = eventJSON.getString("buildingLongitude");
+
+                String startTime = eventJSON.getString("start");
+                String endTime = eventJSON.getString("end");
+                String duration = eventJSON.getString("eventDuration");
+                String weekDay = eventJSON.getString("moduleWeekDay");
+
+                String host = eventJSON.getString("lecturer");
+                String email = "Not provided";
+
+                UserEvent userEvent =
+                        new UserEvent(holdBy, eventType, eventTitle, eventDesc, eventCode,
+                                    location, address, postCode, city, region, country,
+                                lat, lon, startTime, endTime, duration, weekDay, host, email);
+
+                userEventViewModel.insert(userEvent);
+            }
+
             writeIntoFile(mContext, eventList, "timetable.json", "timetable");
             timetableSuccessful = true;
 

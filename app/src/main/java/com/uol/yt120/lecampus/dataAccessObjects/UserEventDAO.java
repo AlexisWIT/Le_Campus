@@ -30,4 +30,7 @@ public interface UserEventDAO {
     @Query("SELECT * FROM userevent_table WHERE id = :id LIMIT 1")
     LiveData<UserEvent> getUserEventById(int id);
 
+    @Query("SELECT * FROM userevent_table WHERE startTime = :time")
+    LiveData<List<UserEvent>> getAllUserEventsByDate(String time);
+
 }

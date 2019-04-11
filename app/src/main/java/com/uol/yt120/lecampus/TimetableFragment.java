@@ -5,8 +5,10 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +20,8 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
+
+import com.uol.yt120.lecampus.adapter.TimetablePagerAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,49 +48,12 @@ public class TimetableFragment extends Fragment {
     String timetableFolderName = "timetable";
     String timetableContent = "";
 
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        String internalFilePath = mContext.getFilesDir()+ File.separator+timetableFolderName;
-        String externalFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(timetableFolderName)).getAbsolutePath();
-
-        File internalFolder = new File(internalFilePath);
-        File externalFolder = new File(externalFilePath);
-
-        File internalFile = new File(internalFolder, timetableFileName);
-        File externalFile = new File(externalFolder, timetableFileName);
-
-        if (!externalFile.exists() || externalFile==null) {
-            Log.i("[Timetable Fragmt]", "Timetable file in external storage not found");
-            externalFileFound = false;
-        } else {
-            Log.i("[Timetable Fragmt]", "Found Timetable file in external storage");
-            externalFileFound = true;
-        }
-
-        if (!internalFile.exists() || internalFile==null) {
-            Log.i("[Timetable Fragmt]", "Timetable file in internal storage not found");
-            internalFileFound = false;
-        } else {
-            Log.i("[Timetable Fragmt]", "Found timetable file in internal storage");
-            internalFileFound = true;
-        }
-
-        if (externalFileFound) {
-            timetableObtained = true;
-            timetableContent = readFromFile(externalFilePath+File.separator+timetableFileName);
-
-        } else if (internalFileFound) {
-            timetableObtained = true;
-            timetableContent = readFromFile(internalFilePath+File.separator+timetableFileName);
-
-        } else {
-            timetableObtained = false;
-            timetableContent = "";
-        }
+        checkFilePath();
 
         Log.i("[Timetable Fragmt]", "Timetable Fragment created");
     }
@@ -98,12 +65,14 @@ public class TimetableFragment extends Fragment {
         getActivity().setTitle(getString(R.string.title_fragment_timetable));
 
         if (timetableObtained) {
+            View timetableView = inflater.inflate(R.layout.fragment_timetable, container, false);
 
-            final SimpleAdapter contentAdapter = loadTimetableIntoAdapter(timetableContent);
+            ViewPager viewPager = (ViewPager) timetableView.findViewById(R.id.viewpager_timetable);
+            setupViewPager(viewPager);
 
-            View timetableView = mActivity.getLayoutInflater().inflate(R.layout.fragment_timetable,null);
-            ListView timetableListView = (ListView) timetableView.findViewById(R.id.timetable_item_list);
-            timetableListView.setAdapter(contentAdapter);
+            TabLayout tabs = (TabLayout) timetableView.findViewById(R.id.tabLayout_timetable);
+            tabs.setupWithViewPager(viewPager);
+
 
             Log.i("[Timetable Fragmt]", "Timetable loaded");
             return timetableView;
@@ -116,6 +85,15 @@ public class TimetableFragment extends Fragment {
         }
 
     }
+
+    private void setupViewPager(ViewPager viewPager) {
+        TimetablePagerAdapter adapter = new TimetablePagerAdapter(getChildFragmentManager());
+        adapter.addFragment(new TimetableDayChildFragment(), "Today");
+        adapter.addFragment(new TimetableWeekChildFragment(), "Week");
+        adapter.addFragment(new TimetableMonthChildFragment(), "Month");
+        viewPager.setAdapter(adapter);
+    }
+
 
     /**
      * Read timetable info from timetable.json
@@ -259,7 +237,46 @@ public class TimetableFragment extends Fragment {
 
     public void refreshTimetable() {
 
+    }
 
+    private void checkFilePath() {
+        String internalFilePath = mContext.getFilesDir()+ File.separator+timetableFolderName;
+        String externalFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(timetableFolderName)).getAbsolutePath();
+
+        File internalFolder = new File(internalFilePath);
+        File externalFolder = new File(externalFilePath);
+
+        File internalFile = new File(internalFolder, timetableFileName);
+        File externalFile = new File(externalFolder, timetableFileName);
+
+        if (!externalFile.exists() || externalFile==null) {
+            Log.i("[Timetable Fragmt]", "Timetable file in external storage not found");
+            externalFileFound = false;
+        } else {
+            Log.i("[Timetable Fragmt]", "Found Timetable file in external storage");
+            externalFileFound = true;
+        }
+
+        if (!internalFile.exists() || internalFile==null) {
+            Log.i("[Timetable Fragmt]", "Timetable file in internal storage not found");
+            internalFileFound = false;
+        } else {
+            Log.i("[Timetable Fragmt]", "Found timetable file in internal storage");
+            internalFileFound = true;
+        }
+
+        if (externalFileFound) {
+            timetableObtained = true;
+            timetableContent = readFromFile(externalFilePath+File.separator+timetableFileName);
+
+        } else if (internalFileFound) {
+            timetableObtained = true;
+            timetableContent = readFromFile(internalFilePath+File.separator+timetableFileName);
+
+        } else {
+            timetableObtained = false;
+            timetableContent = "";
+        }
     }
 
 

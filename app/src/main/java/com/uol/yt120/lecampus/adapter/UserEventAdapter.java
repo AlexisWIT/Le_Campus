@@ -22,11 +22,13 @@ public class UserEventAdapter extends RecyclerView.Adapter<UserEventAdapter.User
     private List<UserEvent> userEventList = new ArrayList<>();
     private UserEvent userEvent = new UserEvent();
     private OnItemClickListener listener;
-    private String adapterMode;
+    private String adapterMode = "load_eventlist";
 
     @NonNull
     @Override
     public UserEventHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
+
+        int layoutId;
         View itemView = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.fragment_timetable_day_item, viewGroup, false);
         return new UserEventHolder(itemView);

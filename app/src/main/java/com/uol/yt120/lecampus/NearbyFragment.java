@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,6 +12,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import com.uol.yt120.lecampus.adapter.ImageViewAdapter;
 
 public class NearbyFragment extends Fragment {
 
@@ -26,6 +29,9 @@ public class NearbyFragment extends Fragment {
 
         getActivity().setTitle(getString(R.string.title_fragment_nearby));
         View nearbyView = inflater.inflate(R.layout.fragment_nearby, container, false);
+
+        ViewPager viewPager = nearbyView.findViewById(R.id.viewPager_image);
+        ImageViewAdapter adapter = new ImageViewAdapter(getActivity());
         return nearbyView;
     }
 
