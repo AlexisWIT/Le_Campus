@@ -76,5 +76,8 @@ dependencies {
         exclude module: 'support-v4'
     }
 
+    // Week view component
+    implementation 'com.github.thellmund:Android-Week-View:3.3'
+
     implementation 'org.apache.commons:commons-lang3:3.8.1'
 }

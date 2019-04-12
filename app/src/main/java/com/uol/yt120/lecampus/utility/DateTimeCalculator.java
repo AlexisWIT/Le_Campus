@@ -5,6 +5,7 @@ import android.util.Log;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DateTimeCalculator {
 
@@ -21,6 +22,8 @@ public class DateTimeCalculator {
     public static final String UNIT_YEAR = "year";
 
     private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
+    private TimeZone deviceTimeZone = TimeZone.getDefault();
+    private TimeZone serverTimeZone = TimeZone.getTimeZone("UTC");
 
     /**
      * Return time by text format
@@ -32,7 +35,7 @@ public class DateTimeCalculator {
         if (date == null) {
             return null;
         }
-        long difference = new Date().getTime() - date.getTime();
+        long difference = System.currentTimeMillis() - date.getTime();
         long diffInAbs = Math.abs(difference);
         long r = 0;
         if (diffInAbs > yearInMillis) {
@@ -90,6 +93,7 @@ public class DateTimeCalculator {
 
     public String getToday(boolean includeTime) {
         Calendar calendar = Calendar.getInstance();
+        calendar.setTimeZone(deviceTimeZone);
         Date date=calendar.getTime();
 
         if (!includeTime) {
@@ -113,7 +117,7 @@ public class DateTimeCalculator {
      *                get new date from current date
      *
      */
-    public String getNewDateBy(int amount, String unit, @Nullable Date oldDate) {
+    public Date getNewDateBy(int amount, String unit, @Nullable Date oldDate) {
         Calendar calendar = Calendar.getInstance();
 
         if (oldDate != null) {
@@ -142,7 +146,7 @@ public class DateTimeCalculator {
         }
 
         Date date = calendar.getTime();
-        return dateTimeFormatter.formatDateToString(date, "default");
+        return date;
     }
 
 }

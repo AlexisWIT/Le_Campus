@@ -53,6 +53,11 @@ public class UserEventRepository {
         return userEventDAO.getUserEventListByDate(date);
     }
 
+    public LiveData<List<UserEvent>> getUserEventListByDateRange(String startDate, String endDate) {
+        Log.w("[DEBUG INFO]", "Date Range received in Repository: From ["+ startDate +"] to ["+endDate+"]");
+        return userEventDAO.getUserEventListByDateRange(startDate, endDate);
+    }
+
     // Make this class static to prevent memory leak
     private static class InsertUserEventAsyncTask extends AsyncTask<UserEvent, Void, Void> {
         private UserEventDAO userEventDAO;

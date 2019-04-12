@@ -5,6 +5,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 public class DateTimeFormatter {
 
@@ -14,6 +17,8 @@ public class DateTimeFormatter {
     private final String UNI_DATE_PATTERN = "dd/MMM/yyyy";
 
     private Locale zoneLocale = Locale.UK;
+    private TimeZone deviceTimeZone = TimeZone.getDefault();
+    private TimeZone serverTimeZone = TimeZone.getTimeZone("UTC");
 
     public String formatDateToString(Date date, String pattern) {
         DateFormat dateFormat;

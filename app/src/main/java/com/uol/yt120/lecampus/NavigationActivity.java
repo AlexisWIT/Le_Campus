@@ -35,6 +35,9 @@ public class NavigationActivity extends AppCompatActivity
     public static final String FRAGMENT_CHILD_TIMETABLE_WEEK = "TimetableWeekChildFragment";
     public static final String FRAGMENT_USEREVENT_DETAIL = "UserEventDetailFragment";
 
+    private long backPressedTime;
+    private Toast backToast;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,11 +82,23 @@ public class NavigationActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
         }
+
+        if (backPressedTime + 2000 > System.currentTimeMillis()) {
+            backToast.cancel();
+            super.onBackPressed();
+            return;
+        } else {
+            backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
+            backToast.show();
+        }
+
+        backPressedTime = System.currentTimeMillis();
     }
 
     @Override
@@ -190,6 +205,5 @@ public class NavigationActivity extends AppCompatActivity
         }
 
     }
-
 
 }

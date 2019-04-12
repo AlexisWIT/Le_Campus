@@ -8,12 +8,26 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="LeicesterStyleTheme" parent="AppTheme" />
-
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="LeicesterStyleTheme" parent="AppTheme" >
+
+
+    </style>
+
+    <style name="CustomSplashTheme" parent="AppTheme.NoActionBar">
+
+
+    </style>
+
+    <style name="CustomCalendarTheme" parent="android:Widget.CalendarView">
+
+
+    </style>
+
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 

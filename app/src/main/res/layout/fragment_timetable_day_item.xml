@@ -19,7 +19,8 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:text="(CO3016) Personal Project Meeting"
-            android:textSize="14sp"
+            android:textSize="16sp"
+            android:ellipsize="end"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -31,7 +32,8 @@
             android:layout_marginBottom="8dp"
             android:text="15:00 PM - Lecture - ATT LT3 - 60 mins"
             android:textAlignment="textEnd"
-            android:textSize="10sp"
+            android:textSize="12sp"
+            android:ellipsize="end"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
     </android.support.constraint.ConstraintLayout>

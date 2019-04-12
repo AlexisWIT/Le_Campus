@@ -47,7 +47,12 @@ public class UserEventViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<UserEvent>> getUserEventListByDate(String date) {
-        Log.w("[DEBUG INFO]", "Date received in ViewModel: ["+ date +"]");
+        //Log.w("[DEBUG INFO]", "Date received in ViewModel: ["+ date +"]");
         return userEventRepository.getUserEventListByDate(date);
+    }
+
+    public LiveData<List<UserEvent>> getUserEventListByDateRange(String startDate, String endDate) {
+        //Log.w("[DEBUG INFO]", "Date Range received in ViewModel: From ["+ startDate +"] to ["+endDate+"]");
+        return userEventRepository.getUserEventListByDateRange(startDate, endDate);
     }
 }

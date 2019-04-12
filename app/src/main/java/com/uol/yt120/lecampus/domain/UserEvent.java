@@ -4,8 +4,14 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
+import com.alamkanak.weekview.WeekViewDisplayable;
+import com.alamkanak.weekview.WeekViewEvent;
+import com.uol.yt120.lecampus.utility.UserEventConverter;
+
+import org.jetbrains.annotations.NotNull;
+
 @Entity(tableName = "userevent_table")
-public class UserEvent {
+public class UserEvent implements WeekViewDisplayable<UserEvent>{
     @PrimaryKey(autoGenerate = true)
     private Integer id;
 
@@ -265,5 +271,14 @@ public class UserEvent {
 
     public void setOffers(String offers) {
         this.offers = offers;
+    }
+
+    @NotNull
+    @Override
+    public WeekViewEvent<UserEvent> toWeekViewEvent() {
+        UserEventConverter userEventConverter = new UserEventConverter();
+//        UserEvent event =
+//                new UserEvent(id, eventTitle, startTime, endTime, location, eventType)
+        return null;
     }
 }

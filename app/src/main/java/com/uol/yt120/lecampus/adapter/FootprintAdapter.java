@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.uol.yt120.lecampus.*;
 import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.utility.DateTimeCalculator;
+import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.utility.ObjectComparetor;
 
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ public class FootprintAdapter extends ListAdapter<Footprint, FootprintAdapter.Fo
     //private Footprint footprint = new Footprint();
     private OnItemClickListener listener;
     private static ObjectComparetor objectComparetor;
+    private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
+    private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
 
     public FootprintAdapter() {
         super(DIFF_CALLBACK);

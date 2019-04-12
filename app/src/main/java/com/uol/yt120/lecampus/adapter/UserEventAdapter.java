@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.uol.yt120.lecampus.*;
 import com.uol.yt120.lecampus.domain.UserEvent;
+import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.utility.TextValidator;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class UserEventAdapter extends RecyclerView.Adapter<UserEventAdapter.User
     private OnItemClickListener listener;
     private String adapterMode = "load_eventlist";
     private TextValidator textValidator = new TextValidator();
+    private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
 
     @NonNull
     @Override

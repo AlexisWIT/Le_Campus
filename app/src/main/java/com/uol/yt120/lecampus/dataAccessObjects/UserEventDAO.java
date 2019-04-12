@@ -30,8 +30,10 @@ public interface UserEventDAO {
     @Query("SELECT * FROM userevent_table WHERE id = :id LIMIT 1")
     LiveData<UserEvent> getUserEventById(int id);
 
-    @Query("SELECT * FROM userevent_table WHERE starttime "+
-            "LIKE '%' || :date || '%' ORDER BY startTime ASC")
+    @Query("SELECT * FROM userevent_table WHERE starttime LIKE :date || '%' ORDER BY startTime ASC")
     LiveData<List<UserEvent>> getUserEventListByDate(String date);
+
+    @Query("SELECT * FROM userevent_table WHERE starttime >= :startDate || ' 00:00:00' AND starttime < :endDate || ' 00:00:00' ORDER BY startTime ASC")
+    LiveData<List<UserEvent>> getUserEventListByDateRange(String startDate, String endDate);
 
 }

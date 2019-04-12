@@ -69,7 +69,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private Activity mActivity;
     private Context mContext;
 
-    Calendar calendar = Calendar.getInstance();
+    //Calendar calendar = Calendar.getInstance();
     DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
 
     Marker prevMarker;
@@ -290,7 +290,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
                         HashMap<String, Object> trackpoint = new HashMap<>();
                         trackpoint.put("index", index);
-                        trackpoint.put("time", dateTimeFormatter.formatDateToString(calendar.getTime(), "default"));
+                        Date trackpointDate = new Date(System.currentTimeMillis());
+                        trackpoint.put("time", dateTimeFormatter.formatDateToString(trackpointDate, "default"));
                         trackpoint.put("lat", location1.getLatitude());
                         trackpoint.put("lon", location1.getLongitude());
                         trackpoint.put("allInfo", location1.toString());
@@ -456,7 +457,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 public void onClick(DialogInterface dialog, int id) {
                     // User approved the operation, footprint tracking stopped, save footprint
                     enableFootprintTrack = false;
-                    Date saveTime = calendar.getTime();
+                    //Date saveTime = calendar.getTime();
+                    Date saveTime = new Date(System.currentTimeMillis());
                     Log.w("DEBUG", "SAVE DATE: "+saveTime.toString());
 
 

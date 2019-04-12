@@ -34,8 +34,8 @@ public class TimetableDayChildFragment extends Fragment {
     private UserEventViewModel userEventViewModel;
     private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
 
-    private String currentDateWithTime = dateTimeCalculator.getToday(true);
-    private String currentDate = dateTimeCalculator.getToday(false);
+    private String currentDateWithTime;
+    private String currentDate;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,11 +54,13 @@ public class TimetableDayChildFragment extends Fragment {
 
         final UserEventAdapter userEventAdapter = new UserEventAdapter();
         recyclerView.setAdapter(userEventAdapter);
+        currentDateWithTime = dateTimeCalculator.getToday(true);
+        currentDate = dateTimeCalculator.getToday(false);
         String currentDateQuery = "2019-08-29";
 
         Log.w("[DEBUG INFO]", "Today: ["+ currentDate +"]" + currentDateWithTime);
         userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
-        userEventViewModel.getUserEventListByDate(currentDateQuery).observe(this, new Observer<List<UserEvent>>() {
+        userEventViewModel.getUserEventListByDate(currentDate).observe(this, new Observer<List<UserEvent>>() {
             @Override
             public void onChanged(@Nullable List<UserEvent> userEventList) {
                 Log.w("[DEBUG INFO]", "Got Event List: ["+ userEventList.toString() +"]");

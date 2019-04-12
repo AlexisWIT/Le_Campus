@@ -74,7 +74,7 @@ public class TimetableFragment extends Fragment {
             tabs.setupWithViewPager(viewPager);
 
 
-            Log.i("[Timetable Fragmt]", "Timetable loaded");
+            //Log.i("[Timetable Fragmt]", "Timetable loaded");
             return timetableView;
 
         } else {
@@ -88,11 +88,14 @@ public class TimetableFragment extends Fragment {
 
     private void setupViewPager(ViewPager viewPager) {
         TimetablePagerAdapter adapter = new TimetablePagerAdapter(getChildFragmentManager());
-        adapter.addFragment(new TimetableDayChildFragment(), "Today");
+        adapter.addFragment(new TimetableDayChildFragment(), "Day");
         adapter.addFragment(new TimetableWeekChildFragment(), "Week");
         adapter.addFragment(new TimetableMonthChildFragment(), "Month");
         viewPager.setAdapter(adapter);
     }
+
+
+
 
 
     /**
