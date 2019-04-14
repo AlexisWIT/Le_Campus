@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.alamkanak.weekview.WeekView;
 import com.uol.yt120.lecampus.adapter.TimetablePagerAdapter;
 
 import org.json.JSONArray;
@@ -93,6 +94,9 @@ public class TimetableFragment extends Fragment {
         adapter.addFragment(new TimetableMonthChildFragment(), "Month");
         viewPager.setAdapter(adapter);
     }
+
+
+
 
 
 
@@ -238,10 +242,6 @@ public class TimetableFragment extends Fragment {
         return finalResult;
     }
 
-    public void refreshTimetable() {
-
-    }
-
     private void checkFilePath() {
         String internalFilePath = mContext.getFilesDir()+ File.separator+timetableFolderName;
         String externalFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(timetableFolderName)).getAbsolutePath();
@@ -280,6 +280,10 @@ public class TimetableFragment extends Fragment {
             timetableObtained = false;
             timetableContent = "";
         }
+    }
+
+    private void refreshTimetable() {
+        //WeekView weekView = getChildFragmentManager().findFragmentByTag()
     }
 
 

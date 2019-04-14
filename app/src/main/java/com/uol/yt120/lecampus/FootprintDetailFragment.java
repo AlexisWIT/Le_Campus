@@ -1,6 +1,7 @@
 package com.uol.yt120.lecampus;
 
 import android.app.Activity;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
@@ -71,7 +72,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 
     private GoogleMap gMap;
     MapView mapView;
-    int footprintId;
+    int footprintId = 0;
 
 
     @Override
@@ -95,6 +96,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+        updateView();
         return view;
     }
 
@@ -116,6 +118,21 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    private void updateView() {
+        if (footprintId != 0) {
+            FootprintViewModel footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
+            footprintViewModel.getFootprintById(footprintId).observe(this, new Observer<Footprint>() {
+                @Override
+                public void onChanged(@Nullable Footprint footprint) {
+                    footprintTitleView.setText(footprint.getTitle());
+                    footprintDescView.setText(footprint.getDescription());
+                    footprintTimeCreated.setText(footprint.getCreateTime());
+                    footprintPublisher.setText("default");
+                }
+            });
+        }
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.recyclerview.extensions.ListAdapter;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,30 +19,14 @@ import com.uol.yt120.lecampus.utility.ObjectComparetor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FootprintAdapter extends ListAdapter<Footprint, FootprintAdapter.FootprintHolder> {
+public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.FootprintHolder> {
 
-    //private List<Footprint> footprintList = new ArrayList<>();
+    private List<Footprint> footprintList = new ArrayList<>();
     //private Footprint footprint = new Footprint();
     private OnItemClickListener listener;
-    private static ObjectComparetor objectComparetor;
+
     private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
     private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
-
-    public FootprintAdapter() {
-        super(DIFF_CALLBACK);
-    }
-
-    private static final DiffUtil.ItemCallback<Footprint> DIFF_CALLBACK = new DiffUtil.ItemCallback<Footprint>() {
-        @Override
-        public boolean areItemsTheSame(@NonNull Footprint oldFootprint, @NonNull Footprint newFootprint) {
-            return oldFootprint.getId() == newFootprint.getId();
-        }
-
-        @Override
-        public boolean areContentsTheSame(@NonNull Footprint oldFootprint, @NonNull Footprint newFootprint) {
-            return objectComparetor.areSameFootprints(oldFootprint, newFootprint);
-        }
-    };
 
     @NonNull
     @Override
@@ -53,7 +38,9 @@ public class FootprintAdapter extends ListAdapter<Footprint, FootprintAdapter.Fo
 
     @Override
     public void onBindViewHolder(@NonNull FootprintHolder footprintHolder, int position) {
-        Footprint currentFootprint = getItem(position);
+
+        Footprint currentFootprint = footprintList.get(position);
+        Log.w("[Footprint Adapter]", "Current Footprint: "+currentFootprint.toString());
         footprintHolder.textViewTitle.setText(currentFootprint.getTitle());
         footprintHolder.textViewDesc.setText(currentFootprint.getDescription());
         footprintHolder.textViewDate.setText(currentFootprint.getCreateTime());
@@ -62,9 +49,19 @@ public class FootprintAdapter extends ListAdapter<Footprint, FootprintAdapter.Fo
 
     }
 
+    @Override
+    public int getItemCount(){
+        return footprintList.size();
+    }
+
+    public void setFootprintList(List<Footprint> fprintList) {
+        this.footprintList = fprintList;
+        notifyDataSetChanged();
+    }
+
 
     public Footprint getFootprintAt(int position) {
-        return getItem(position);
+        return footprintList.get(position);
     }
 
 
@@ -84,7 +81,7 @@ public class FootprintAdapter extends ListAdapter<Footprint, FootprintAdapter.Fo
                 public void onClick(View view) {
                     int position = getAdapterPosition();
                     if (listener != null && position != RecyclerView.NO_POSITION) {
-                        listener.onItemClick(getItem(position));
+                        listener.onItemClick(footprintList.get(position));
                     }
                 }
             });
@@ -98,5 +95,17 @@ public class FootprintAdapter extends ListAdapter<Footprint, FootprintAdapter.Fo
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
     }
+
+    /**
+     *  This method has to be override simply because
+     *  the dev is sleepy when they create the original method.
+     * @param list new (or not?) list to update on UI
+     */
+//    @Override
+//    public void submitList(final List<Footprint> list) {
+//        Log.w("[Footprint Adapter]", "Current Footprint: "+list.get(0).toString());
+//        super.submitList(list != null ? new ArrayList<>(list) : null);
+//
+//    }
 
 }

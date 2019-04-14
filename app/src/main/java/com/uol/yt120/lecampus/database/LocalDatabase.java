@@ -13,7 +13,7 @@ import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.domain.UserEvent;
 
-@Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 1)
+@Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 2)
 public abstract class LocalDatabase extends RoomDatabase {
 
     private static LocalDatabase instance;
@@ -27,6 +27,7 @@ public abstract class LocalDatabase extends RoomDatabase {
                     LocalDatabase.class, "app_database")
                     .fallbackToDestructiveMigration() // Tell Room the migration stratege when version number increased
                     .addCallback(roomCallback)
+                    .allowMainThreadQueries()
                     .build();
 
         }

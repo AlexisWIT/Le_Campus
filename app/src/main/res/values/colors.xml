@@ -3,4 +3,22 @@
     <color name="colorPrimary">#c4002b</color>
     <color name="colorPrimaryDark">#920020</color>
     <color name="colorAccent">#5b6670</color>
+
+    <color name="event_color_lecture">#59dbe0</color>
+    <color name="event_color_surgery">#f57f68</color>
+    <color name="event_color_computer_class">#87d288</color>
+    <color name="event_color_test">#f8b552</color>
+    <color name="event_color_workshop">#8559da</color>
+    <color name="event_color_seminar">#63a4ff</color>
+
+    <color name="color_text_dark">#37474f</color>
+
+    <color name="deep_purple_light">#8559da</color>
+    <color name="regular_blue_light">#63a4ff</color>
+    <color name="deep_purple_dark">#512da8</color>
+    <color name="regular_blue">#1976d2</color>
+    <color name="cyan_light">#62ebff</color>
+    <color name="cyan_primary">#00838f</color>
+    <color name="deep_light_green">#33691e</color>
+    <color name="orange">#f57f17</color>
 </resources>

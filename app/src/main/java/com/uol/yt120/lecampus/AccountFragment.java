@@ -437,12 +437,13 @@ public class AccountFragment extends Fragment {
                 String lon = eventJSON.getString("buildingLongitude");
 
                 String startTime =
-                        dateTimeCalculator.getNewDateBy(5, "month",
-                                dateTimeFormatter.parseStringToDate(eventJSON.getString("start"),"default"));
+                        dateTimeFormatter.formatDateToString(dateTimeCalculator.getNewDateBy(5, "month",
+                                dateTimeFormatter.parseStringToDate(eventJSON.getString("start"),"default")), "default");
 
                 String endTime =
-                        dateTimeCalculator.getNewDateBy(5, "month",
-                                dateTimeFormatter.parseStringToDate(eventJSON.getString("end"),"default"));
+                        dateTimeFormatter.formatDateToString(dateTimeCalculator.getNewDateBy(5, "month",
+                                dateTimeFormatter.parseStringToDate(eventJSON.getString("end"),"default")), "default");
+
 
                 String duration = eventJSON.getString("eventDuration");
                 String weekDay = eventJSON.getString("moduleWeekDay");
@@ -711,7 +712,7 @@ public class AccountFragment extends Fragment {
 
     public void showTimetable() {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, new TimetableFragment()).commit();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, new TimetableFragment(), "TimetableFragment").commit();
 
     }
 
@@ -788,8 +789,6 @@ public class AccountFragment extends Fragment {
                     FragmentTransaction fragTransaction = getActivity().getSupportFragmentManager().beginTransaction();
                     fragTransaction.detach(currentFragment);
                     fragTransaction.attach(currentFragment);
-
-
 
                     fragTransaction.commit();}
 

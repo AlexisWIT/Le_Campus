@@ -6,13 +6,12 @@ import com.uol.yt120.lecampus.domain.UserEvent;
 
 import org.jetbrains.annotations.NotNull;
 
-public class UserEventConverter implements WeekViewDisplayable<UserEvent> {
+public class UserEventConverter{
 
-    @NotNull
-    @Override
-    public WeekViewEvent<UserEvent> toWeekViewEvent() {
-        //return WeekViewEvent.Builder<UsesrEvent>();
-        return null;
-    }
+//    @NotNull
+//    @Override
+//    public WeekViewEvent<UserEvent> toWeekViewEvent(int id, String startTime) {
+//        return null;
+//    }
 
 }

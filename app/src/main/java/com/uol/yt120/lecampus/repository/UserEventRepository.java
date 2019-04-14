@@ -49,13 +49,17 @@ public class UserEventRepository {
     }
 
     public LiveData<List<UserEvent>> getUserEventListByDate(String date) {
-        Log.w("[DEBUG INFO]", "Date received in Repository: ["+ date +"]");
+        Log.w("[UserEventRepository]", "Date received in Repository: ["+ date +"]");
         return userEventDAO.getUserEventListByDate(date);
     }
 
     public LiveData<List<UserEvent>> getUserEventListByDateRange(String startDate, String endDate) {
-        Log.w("[DEBUG INFO]", "Date Range received in Repository: From ["+ startDate +"] to ["+endDate+"]");
+        Log.w("[UserEventRepository]", "Date Range received in Repository: From ["+ startDate +"] to ["+endDate+"]");
         return userEventDAO.getUserEventListByDateRange(startDate, endDate);
+    }
+
+    public List<UserEvent> getNonLiveUserEventListByDateRange(String startDate, String endDate) {
+        return userEventDAO.getNonLiveUserEventListByDateRange(startDate, endDate);
     }
 
     // Make this class static to prevent memory leak

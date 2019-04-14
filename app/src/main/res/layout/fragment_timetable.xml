@@ -12,24 +12,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
-        <!--<android.support.design.widget.TabItem
-            android:id="@+id/tab_label_timetable_day"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Day" />
-
-        <android.support.design.widget.TabItem
-            android:id="@+id/tab_label_timetable_week"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Week" />
-
-        <android.support.design.widget.TabItem
-            android:id="@+id/tab_label_timetable_month"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Month" />-->
     </android.support.design.widget.TabLayout>
 
     <android.support.v4.view.ViewPager

@@ -1,6 +1,7 @@
 package com.uol.yt120.lecampus;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -37,6 +38,9 @@ public class NavigationActivity extends AppCompatActivity
 
     private long backPressedTime;
     private Toast backToast;
+    DrawerLayout drawerLayout;
+    Toolbar toolbar;
+    ActionBarDrawerToggle actionBarDrawerToggle;
 
 
     @Override
@@ -44,14 +48,16 @@ public class NavigationActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.acitvity_tool_bar);
+        toolbar = (Toolbar) findViewById(R.id.acitvity_tool_bar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        actionBarDrawerToggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -66,7 +72,7 @@ public class NavigationActivity extends AppCompatActivity
             Toast.makeText(this, "Fetching account information... ", Toast.LENGTH_SHORT).show();
             getSupportFragmentManager().beginTransaction().replace(
                     R.id.fragment_container, new AccountFragment(),"accountFrag").addToBackStack(null).commit();
-            drawer.closeDrawer(GravityCompat.START);
+            drawerLayout.closeDrawer(GravityCompat.START);
         });
 
         // set default screen
@@ -89,16 +95,23 @@ public class NavigationActivity extends AppCompatActivity
             super.onBackPressed();
         }
 
-        if (backPressedTime + 2000 > System.currentTimeMillis()) {
-            backToast.cancel();
-            super.onBackPressed();
-            return;
-        } else {
-            backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
-            backToast.show();
+        Fragment currentFrag = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        int backStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
+        if (currentFrag instanceof GoogleMapsFragment || currentFrag instanceof MapBoxMapsFragment) {
+            if (backStackEntryCount == 0) {
+                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                    backToast.cancel();
+                    super.onBackPressed();
+                    return;
+                } else {
+                    backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
+                    backToast.show();
+                }
+
+                backPressedTime = System.currentTimeMillis();
+            }
         }
 
-        backPressedTime = System.currentTimeMillis();
     }
 
     @Override
@@ -155,6 +168,18 @@ public class NavigationActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    public void resetToolBar(boolean childAction, int drawerMode)
+    {
+        if (childAction) {
+            // [Undocumented?] trick to get up button icon to show
+            actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
+            toolbar.setNavigationIcon(R.drawable.ic_action_back);
+        } else {
+            actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+        }
+        drawerLayout.setDrawerLockMode(drawerMode);
     }
 
     @Override

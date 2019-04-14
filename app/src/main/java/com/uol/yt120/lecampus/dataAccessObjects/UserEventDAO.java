@@ -36,4 +36,7 @@ public interface UserEventDAO {
     @Query("SELECT * FROM userevent_table WHERE starttime >= :startDate || ' 00:00:00' AND starttime < :endDate || ' 00:00:00' ORDER BY startTime ASC")
     LiveData<List<UserEvent>> getUserEventListByDateRange(String startDate, String endDate);
 
+    @Query("SELECT * FROM userevent_table WHERE starttime >= :startDate || ' 00:00:00' AND starttime < :endDate || ' 00:00:00' ORDER BY startTime ASC")
+    List<UserEvent> getNonLiveUserEventListByDateRange(String startDate, String endDate);
+
 }

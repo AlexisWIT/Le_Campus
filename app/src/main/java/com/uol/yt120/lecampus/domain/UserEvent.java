@@ -3,15 +3,30 @@ package com.uol.yt120.lecampus.domain;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.content.Context;
+import android.graphics.Color;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.alamkanak.weekview.WeekViewDisplayable;
 import com.alamkanak.weekview.WeekViewEvent;
+import com.alamkanak.weekview.WeekViewEvent.Style;
+import com.alamkanak.weekview.WeekViewEvent.Style.Builder;
+import com.uol.yt120.lecampus.R;
+import com.uol.yt120.lecampus.utility.DateTimeCalculator;
+import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.utility.UserEventConverter;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+
 @Entity(tableName = "userevent_table")
 public class UserEvent implements WeekViewDisplayable<UserEvent>{
+
+
     @PrimaryKey(autoGenerate = true)
     private Integer id;
 
@@ -35,6 +50,8 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
     private String endTime;
     private String duration;
     private String weekDay;     // '1' Monday, '2' Tuesday ..
+    private Integer isAllDay = 0;   // '1' all-day event. '0' not
+    private Integer isDisabled = 0; // '1' disabled (completed or cancelled). '0' not
 
     private String host;        // Lecturer or Organizer in name
     private String email;
@@ -225,6 +242,14 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         this.weekDay = weekDay;
     }
 
+    public Integer getIsAllDay() { return isAllDay; }
+
+    public void setIsAllDay(Integer isAllDay) { this.isAllDay = isAllDay; }
+
+    public Integer getIsDisabled() { return isDisabled; }
+
+    public void setIsDisabled(Integer isDisabled) { this.isDisabled = isDisabled; }
+
     public String getHost() {
         return host;
     }
@@ -257,9 +282,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         this.detailUrl = detailUrl;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
+    public String getImageUrl() { return imageUrl; }
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
@@ -273,12 +296,210 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         this.offers = offers;
     }
 
+
+    @Ignore
+    private Context context;
+    @Ignore
+    private Calendar startTimeWeekView;
+    @Ignore
+    private Calendar endTimeWeekView;
+    @Ignore
+    private boolean allDay;
+    @Ignore
+    private int color;
+    @Ignore
+    private boolean cancelled;
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
+    public Calendar getStartTimeWeekView() {
+        return startTimeWeekView;
+    }
+
+    public void setStartTimeWeekView(Calendar startTimeWeekView) {
+        this.startTimeWeekView = startTimeWeekView;
+    }
+
+    public Calendar getEndTimeWeekView() {
+        return endTimeWeekView;
+    }
+
+    public void setEndTimeWeekView(Calendar endTimeWeekView) {
+        this.endTimeWeekView = endTimeWeekView;
+    }
+
+    public Boolean getAllDay() {
+        return allDay;
+    }
+
+    public void setAllDay(Boolean allDay) {
+        this.allDay = allDay;
+    }
+
+    public boolean isAllDay() {
+        return allDay;
+    }
+
+    public void setAllDay(boolean allDay) {
+        this.allDay = allDay;
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
+    /**
+     * This constructor is for weekView item, I know this is
+     * very messy but if I have time to do refactoring I will do it
+     *
+     * @param id
+     * @param eventTitle
+     * @param location
+     * @param startTimeWeekView
+     * @param endTimeWeekView
+     * @param allDay
+     * @param color
+     * @param cancelled
+     */
+    public UserEvent(Integer id, String eventTitle, String location, Calendar startTimeWeekView, Calendar endTimeWeekView, boolean allDay, int color, boolean cancelled) {
+        this.id = id;
+        this.eventTitle = eventTitle;
+        this.location = location;
+        this.startTimeWeekView = startTimeWeekView;
+        this.endTimeWeekView = endTimeWeekView;
+        this.allDay = allDay;
+        this.color = color;
+        this.cancelled = cancelled;
+    }
+
+    @NonNull
+    //@Override
+    public UserEvent toWeekViewEvent(Context context){
+        //this.context = context;
+        DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
+        DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
+        Calendar startDate = Calendar.getInstance();
+        Calendar endDate = Calendar.getInstance();
+        Integer allday = this.isAllDay;
+        boolean isAllDay = allday == 1;
+        Integer cancelled = this.isDisabled;
+        boolean isCancelled = cancelled == 1;
+
+        try {
+            startDate.setTime(dateTimeFormatter.parseStringToDate(this.startTime, "default"));
+            endDate.setTime(dateTimeFormatter.parseStringToDate(this.endTime, "default"));
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+            //return null;
+        }
+        int viewStyle = getColor(this.context);
+
+        UserEvent userEvent = new UserEvent();
+        userEvent.setId(this.id);
+        userEvent.setEventTitle(this.eventTitle);
+        userEvent.setStartTimeWeekView(startDate);
+        userEvent.setEndTimeWeekView(endDate);
+        userEvent.setLocation(this.location);
+        userEvent.setAllDay(isAllDay);
+        userEvent.setColor(viewStyle);
+        userEvent.setCancelled(isCancelled);
+
+        return userEvent;
+    }
+
+    private int getColor(Context context) {
+        String type = getEventType();
+
+        final int color_lecture = context.getResources().getColor(R.color.event_color_lecture);
+        final int color_surgery = context.getResources().getColor(R.color.event_color_surgery);
+        final int color_computer_class = context.getResources().getColor(R.color.event_color_computer_class);
+        final int color_test = context.getResources().getColor(R.color.event_color_test);
+        final int color_seminar = context.getResources().getColor(R.color.event_color_seminar);
+        final int color_workshop = context.getResources().getColor(R.color.event_color_workshop);
+        final int color_text = context.getResources().getColor(R.color.color_text_dark);
+
+        int bgColor;
+        int defaultColor = Color.WHITE;
+
+        boolean isEnd = isDisabled == 1;
+        int borderWidth = !isEnd ? 0 : 2;
+
+
+        switch (type) {
+            case "Lecture":
+                bgColor = color_lecture;
+                break;
+            case "Surgery":
+                bgColor = color_surgery;
+                break;
+            case "Computer Class":
+                bgColor = color_computer_class;
+                break;
+            case "Test":
+                bgColor = color_test;
+                break;
+            case "Workshop":
+                bgColor = color_workshop;
+                break;
+            case "Seminar":
+                bgColor = color_seminar;
+                break;
+            default:
+                bgColor = defaultColor;
+                break;
+        }
+
+        return bgColor;
+    }
+
     @NotNull
     @Override
     public WeekViewEvent<UserEvent> toWeekViewEvent() {
-        UserEventConverter userEventConverter = new UserEventConverter();
-//        UserEvent event =
-//                new UserEvent(id, eventTitle, startTime, endTime, location, eventType)
-        return null;
+        //WeekViewEvent<UserEvent> result = toWeekViewEvent(getContext());
+        final int color_lecture = -500103;
+        final int color_surgery = -500040;
+        final int color_computer_class = -500071;
+        final int color_test = -500006;
+        final int color_seminar = -500133;
+        final int color_workshop = -500069;
+        final int color_text = -500145;
+
+        Integer cancelled = this.isDisabled;
+        boolean isCancelled = cancelled == 1;
+
+        Style style = new Builder().setBackgroundColor(color_lecture).setTextColor(color_text).setTextStrikeThrough(isCancelled).build();
+
+        WeekViewEvent<UserEvent> event = new WeekViewEvent.Builder<UserEvent>()
+                .setId(this.id)
+                .setTitle(this.eventTitle)
+                .setStartTime(this.startTimeWeekView)
+                .setEndTime(this.endTimeWeekView)
+                .setLocation(this.location)
+                .setAllDay(this.allDay)
+                .setStyle(style)
+                .setData(this)
+                .build();
+
+        Log.w("[UserEvent]", event.toString());
+        return event;
     }
 }

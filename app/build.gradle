@@ -77,7 +77,8 @@ dependencies {
     }
 
     // Week view component
-    implementation 'com.github.thellmund:Android-Week-View:3.3'
+    //implementation 'com.github.thellmund:Android-Week-View:3.3'
+    implementation 'com.github.AlexisWIT:Android-Week-View:3.4'
 
     implementation 'org.apache.commons:commons-lang3:3.8.1'
 }

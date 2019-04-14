@@ -69,7 +69,7 @@ public class FootprintFragment extends Fragment {
             public void onClick(View v) {
                 // Confirmation dialog pop out, Redirect to Google map fragment and start tracking
 
-                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                FragmentManager fragmentManager = getChildFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.fragment_container, new GoogleMapsFragment())
                         .addToBackStack(null)
@@ -80,19 +80,26 @@ public class FootprintFragment extends Fragment {
         });
 
         RecyclerView recyclerView = (RecyclerView)footprintView.findViewById(R.id.recycler_view_footprint);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
         recyclerView.setHasFixedSize(true);
 
         final FootprintAdapter footprintAdapter = new FootprintAdapter();
         recyclerView.setAdapter(footprintAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        //recyclerView.setItemAnimator();
 
         footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
         footprintViewModel.getAllFootprints().observe(this, new Observer<List<Footprint>>() {
             @Override
             public void onChanged(@Nullable List<Footprint> footprintList) {
                 // Update recycleView
-                footprintAdapter.submitList(footprintList);
-                Toast.makeText(getActivity(), "Footprints updated", Toast.LENGTH_SHORT).show();
+                if (footprintList.isEmpty()) {
+                    Toast.makeText(getActivity(), "No footprint to show.", Toast.LENGTH_SHORT).show();
+                }
+                //footprintAdapter.submitList(null);
+                footprintAdapter.setFootprintList(footprintList);
+                Log.w("[Footprint Fragment]", "First footprint in list:"+footprintList.get(0).toString());
+
             }
         });
 
@@ -114,40 +121,12 @@ public class FootprintFragment extends Fragment {
         footprintAdapter.setOnItemClickListener(new FootprintAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Footprint footprint) {
-                JSONObject footprintDetailJSON = new JSONObject();
-
                 Integer footprintId = footprint.getId();
-                String title = footprint.getTitle();
-                String desc = footprint.getDescription();
-                String timeCreated = footprint.getCreateTime();
-                //String publisher = footprint.getUsername();
-                String publisher = "default";
-                String trackpointList = footprint.getNodeList();
-//                ArrayList<HashMap<String, Object>> trackpointList = footprint.getNodeList();
-//
-//                JSONArray trackpointJSONArray = new JSONArray();
-//                for (HashMap<String, Object> trackpoint : trackpointList) {
-//                    JSONObject trackpointJSONElement = new JSONObject(trackpoint);
-//                    trackpointJSONArray.put(trackpointJSONElement);
-//                }
+                footprintViewModel.setFootprintMutableLiveData(footprint);
 
-                try {
-                    footprintDetailJSON.put("from", TAG);
-                    footprintDetailJSON.put("to", FootprintDetailFragment.TAG);
-                    footprintDetailJSON.put("footprintId", footprintId);
-                    footprintDetailJSON.put("title", title);
-                    footprintDetailJSON.put("desc", desc);
-                    footprintDetailJSON.put("timeCreated", timeCreated);
-                    footprintDetailJSON.put("publisher", publisher);
-                    footprintDetailJSON.put("footprint", trackpointList);
 
-                    String footprintDetailJSONString = footprintDetailJSON.toString();
-                    Log.w("[DEBUG INFO]", "Ready to send: ["+footprintDetailJSONString+"]");
-                    mCallback.passData(footprintDetailJSONString);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Toast.makeText(getActivity(), "Something went wrong, please try again.", Toast.LENGTH_SHORT).show();
-                }
+                //sendDateThroughActivity(footprint, footprintId);
+
             }
         });
 
@@ -183,6 +162,41 @@ public class FootprintFragment extends Fragment {
     }
 
 
+    private void sendDateThroughActivity(Footprint footprint, Integer id) {
+        JSONObject footprintDetailJSON = new JSONObject();
+
+        String title = footprint.getTitle();
+        String desc = footprint.getDescription();
+        String timeCreated = footprint.getCreateTime();
+        //String publisher = footprint.getUsername();
+        String publisher = "default";
+        String trackpointList = footprint.getNodeList();
+//        ArrayList<HashMap<String, Object>> currentTrackpointList = footprint.getNodeList();
+//
+//        JSONArray trackpointJSONArray = new JSONArray();
+//        for (HashMap<String, Object> trackpoint : trackpointList) {
+//            JSONObject trackpointJSONElement = new JSONObject(trackpoint);
+//            trackpointJSONArray.put(trackpointJSONElement);
+//        }
+
+        try {
+            footprintDetailJSON.put("from", TAG);
+            footprintDetailJSON.put("to", FootprintDetailFragment.TAG);
+            footprintDetailJSON.put("footprintId", id);
+            footprintDetailJSON.put("title", title);
+            footprintDetailJSON.put("desc", desc);
+            footprintDetailJSON.put("timeCreated", timeCreated);
+            footprintDetailJSON.put("publisher", publisher);
+            footprintDetailJSON.put("footprint", trackpointList);
+
+            String footprintDetailJSONString = footprintDetailJSON.toString();
+            Log.w("[DEBUG INFO]", "Ready to send: ["+footprintDetailJSONString+"]");
+            mCallback.passData(footprintDetailJSONString);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(getActivity(), "Something went wrong, please try again.", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public void onAttach(Context context) {

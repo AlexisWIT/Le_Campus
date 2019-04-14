@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.uol.yt120.lecampus.adapter.UserEventAdapter;
@@ -56,7 +57,9 @@ public class TimetableDayChildFragment extends Fragment {
         recyclerView.setAdapter(userEventAdapter);
         currentDateWithTime = dateTimeCalculator.getToday(true);
         currentDate = dateTimeCalculator.getToday(false);
-        String currentDateQuery = "2019-08-29";
+        TextView textView = timetableDayView.findViewById(R.id.label_timetable_day_date);
+        textView.setText(dateTimeCalculator.getTodayDate());
+        // Return "08-29"
 
         Log.w("[DEBUG INFO]", "Today: ["+ currentDate +"]" + currentDateWithTime);
         userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);

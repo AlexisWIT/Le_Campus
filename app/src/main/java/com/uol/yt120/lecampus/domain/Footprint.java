@@ -71,4 +71,13 @@ public class Footprint {
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
+
+    @Override
+    public String toString() {
+        return "Footprint{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", createTime='" + createTime + '\'' +
+                '}';
+    }
 }

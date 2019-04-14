@@ -55,4 +55,14 @@ public class UserEventViewModel extends AndroidViewModel {
         //Log.w("[DEBUG INFO]", "Date Range received in ViewModel: From ["+ startDate +"] to ["+endDate+"]");
         return userEventRepository.getUserEventListByDateRange(startDate, endDate);
     }
+
+    /**
+     * Very special case, this is not good but have to.
+     * @param startDate
+     * @param endDate
+     * @return non-live user event list
+     */
+    public List<UserEvent> getNonLiveUserEventListByDateRange(String startDate, String endDate) {
+        return userEventRepository.getNonLiveUserEventListByDateRange(startDate, endDate);
+    }
 }

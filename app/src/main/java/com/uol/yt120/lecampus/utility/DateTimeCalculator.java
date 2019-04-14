@@ -104,6 +104,18 @@ public class DateTimeCalculator {
     }
 
     /**
+     * Get Date only
+     * @return a date in format "MM-dd" (4-11)
+     */
+    public String getTodayDate(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeZone(deviceTimeZone);
+        Date date=calendar.getTime();
+
+        return dateTimeFormatter.formatDateToString(date,"no_year");
+    }
+
+    /**
      * Get new date by given condtions
      *
      * @param amount amount of change
