@@ -12,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
@@ -64,12 +66,16 @@ public class NavigationActivity extends AppCompatActivity
 
         // For account login function by pressing nav-hader
         View headerView = navigationView.getHeaderView(0);
-//            TextView username = (TextView) headerView.findViewById(R.id.username);
+            TextView username = (TextView) headerView.findViewById(R.id.account_Name_TextView);
+            TextView useremail = (TextView) headerView.findViewById(R.id.account_Email_TextView);
+            ImageView useravater = (ImageView) headerView.findViewById(R.id.account_Avatar_ImageView);
+
+
 //            username.setText("username")
 
         // Lambda expression for onClick method
         headerView.setOnClickListener(v -> {
-            Toast.makeText(this, "Fetching account information... ", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Fetching account information... ", Toast.LENGTH_SHORT).show();
             getSupportFragmentManager().beginTransaction().replace(
                     R.id.fragment_container, new AccountFragment(),"accountFrag").addToBackStack(null).commit();
             drawerLayout.closeDrawer(GravityCompat.START);

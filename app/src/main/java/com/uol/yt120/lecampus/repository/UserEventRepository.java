@@ -2,6 +2,7 @@ package com.uol.yt120.lecampus.repository;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -13,13 +14,16 @@ import java.util.List;
 
 public class UserEventRepository {
     private UserEventDAO userEventDAO;
-    private LiveData<UserEvent> userEventLiveData;
-    private LiveData<List<UserEvent>> allUserEventsLiveData;
+    private MutableLiveData<UserEvent> userEventLiveData;
+    private MutableLiveData<UserEvent> mutableUserEventLiveData;
+    private MutableLiveData<List<UserEvent>> mutableUserEventListByDateLiveData;
+    private MutableLiveData<List<UserEvent>> mutableUserEventListByDateRangeLiveData;
+    private LiveData<List<UserEvent>> allUserEventListLiveData;
 
     public UserEventRepository(Application application) {
         LocalDatabase database = LocalDatabase.getInstance(application);
         userEventDAO = database.userEventDAO();
-        allUserEventsLiveData = userEventDAO.getAllUserEvents();
+        allUserEventListLiveData = userEventDAO.getAllUserEvents();
     }
 
     // Room doesnt allow database operations to be run in the main thread
@@ -40,11 +44,13 @@ public class UserEventRepository {
         new DeleteAllUserEventsAsyncTask(userEventDAO).execute();
     }
 
-    public LiveData<List<UserEvent>> getAllUserEventsLiveData() {
-        return allUserEventsLiveData;
+    public LiveData<List<UserEvent>> getAllUserEventListLiveData() {
+        return allUserEventListLiveData;
     }
 
-    public LiveData<UserEvent> getFootprintById(int id) {
+
+    public LiveData<UserEvent> getUserEventById(int id) {
+        //new GetUserEventByIdAsyncTask(userEventDAO, id).execute();
         return userEventDAO.getUserEventById(id);
     }
 
@@ -59,8 +65,14 @@ public class UserEventRepository {
     }
 
     public List<UserEvent> getNonLiveUserEventListByDateRange(String startDate, String endDate) {
+        Log.w("[UserEventRepository]", "Date Range received in Repository: From ["+ startDate +"] to ["+endDate+"]");
         return userEventDAO.getNonLiveUserEventListByDateRange(startDate, endDate);
     }
+
+
+    /**
+     * Below are Asynctasks for database read and write
+     */
 
     // Make this class static to prevent memory leak
     private static class InsertUserEventAsyncTask extends AsyncTask<UserEvent, Void, Void> {
@@ -121,4 +133,42 @@ public class UserEventRepository {
             return null;
         }
     }
+
+    // Make this class static to prevent memory leak
+    private static class GetUserEventByIdAsyncTask extends AsyncTask<UserEvent, Void, Void> {
+        private UserEventDAO userEventDAO;
+        private int userEventId;
+        public GetUserEventByIdAsyncResponse response = null;
+
+        public interface GetUserEventByIdAsyncResponse {
+            void getUserEventByIdFinish(String output);
+        }
+
+        private GetUserEventByIdAsyncTask(UserEventDAO UserEventDAO, int id) {
+            this.userEventDAO = UserEventDAO;
+            this.userEventId = id;
+        }
+
+        @Override
+        protected Void doInBackground(UserEvent... userEvents) {
+
+            userEventDAO.getUserEventById(userEventId);
+            return null;
+        }
+    }
+
+    // Make this class static to prevent memory leak
+//    private static class DeleteAllUserEventsAsyncTask extends AsyncTask<UserEvent, Void, Void> {
+//        private UserEventDAO userEventDAO;
+//
+//        private DeleteAllUserEventsAsyncTask(UserEventDAO UserEventDAO) {
+//            this.userEventDAO = UserEventDAO;
+//        }
+//
+//        @Override
+//        protected Void doInBackground(UserEvent... userEvents) {
+//            //userEventLiveData userEventDAO.deleteAllUserEvents();
+//            return null;
+//        }
+//    }
 }

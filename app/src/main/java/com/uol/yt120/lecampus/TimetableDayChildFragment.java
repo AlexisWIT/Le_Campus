@@ -3,6 +3,7 @@ package com.uol.yt120.lecampus;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 
 import com.uol.yt120.lecampus.adapter.UserEventAdapter;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
+import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
 import com.uol.yt120.lecampus.domain.UserEvent;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
@@ -61,17 +63,7 @@ public class TimetableDayChildFragment extends Fragment {
         textView.setText(dateTimeCalculator.getTodayDate());
         // Return "08-29"
 
-        Log.w("[DEBUG INFO]", "Today: ["+ currentDate +"]" + currentDateWithTime);
-        userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
-        userEventViewModel.getUserEventListByDate(currentDate).observe(this, new Observer<List<UserEvent>>() {
-            @Override
-            public void onChanged(@Nullable List<UserEvent> userEventList) {
-                Log.w("[DEBUG INFO]", "Got Event List: ["+ userEventList.toString() +"]");
-                userEventAdapter.setUserEventList(userEventList);
-                Toast.makeText(getActivity(), "Timetable updated", Toast.LENGTH_SHORT).show();
-            }
-        });
-
+        Log.w("[DAY EVENT]", "Today: ["+ currentDate +"]" + currentDateWithTime);
 //        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
 //                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 //            @Override
@@ -106,6 +98,23 @@ public class TimetableDayChildFragment extends Fragment {
         });
         return timetableDayView;
 
+    }
+
+    private class UpdateMonthlyEventListAsyncTask extends AsyncTask<Void, Void, Void> {
+
+        private UserEventDAO userEventDAO;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+//            try {
+//                Thread.sleep(5000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            weekView.notifyDataSetChanged();
+            return null;
+        }
     }
 
     @Override

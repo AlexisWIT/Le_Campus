@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -68,12 +69,25 @@ public class TimetableFragment extends Fragment {
         if (timetableObtained) {
             View timetableView = inflater.inflate(R.layout.fragment_timetable, container, false);
 
-            ViewPager viewPager = (ViewPager) timetableView.findViewById(R.id.viewpager_timetable);
-            setupViewPager(viewPager);
+            /*
+            Setup fab;
+             */
+            FloatingActionButton buttonAddEvent = timetableView.findViewById(R.id.timetable_fab);
+            setupFloatingActionButton(buttonAddEvent);
 
+
+            /*
+            Setup viewpager for tab switch and fab;
+             */
+            ViewPager viewPager = (ViewPager) timetableView.findViewById(R.id.viewpager_timetable);
+            setupViewPager(viewPager, buttonAddEvent);
+
+
+            /*
+            Setup tab layout
+             */
             TabLayout tabs = (TabLayout) timetableView.findViewById(R.id.tabLayout_timetable);
             tabs.setupWithViewPager(viewPager);
-
 
             //Log.i("[Timetable Fragmt]", "Timetable loaded");
             return timetableView;
@@ -87,15 +101,67 @@ public class TimetableFragment extends Fragment {
 
     }
 
-    private void setupViewPager(ViewPager viewPager) {
+    private void setupViewPager(ViewPager viewPager, FloatingActionButton floatingActionButton) {
         TimetablePagerAdapter adapter = new TimetablePagerAdapter(getChildFragmentManager());
-        adapter.addFragment(new TimetableDayChildFragment(), "Day");
-        adapter.addFragment(new TimetableWeekChildFragment(), "Week");
-        adapter.addFragment(new TimetableMonthChildFragment(), "Month");
+
+        Fragment dayFrag = new TimetableDayChildFragment();
+        Fragment weekFrag = new TimetableWeekChildFragment();
+        Fragment monthFrag = new TimetableMonthChildFragment();
+
+        adapter.addFragment(dayFrag, "Day");
+        adapter.addFragment(weekFrag, "Week");
+        adapter.addFragment(monthFrag, "Month");
         viewPager.setAdapter(adapter);
+
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float posotionOffset, int positionOffsetPixels) {
+//                    Log.w("[TimetableFragment]", "Page pos:"+position+", offset: "+posotionOffset+", pixel:"+positionOffsetPixels);
+                if (positionOffsetPixels != 0) {
+                    floatingActionButton.hide();
+                } else {
+                    floatingActionButton.show();
+                }
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+//                    switch (position) {
+//                        case DAY_INDEX:
+//                            buttonAddEvent.show();
+//                            break;
+//
+//                        case WEEK_INDEX:
+//                            buttonAddEvent.show();
+//                            break;
+//
+//                        case MONTH_INDEX:
+//                            buttonAddEvent.show();
+//                            break;
+//
+//                        default:
+//                            buttonAddEvent.hide();
+//                            break;
+//                    }
+//                    Log.w("[TimetableFragment]", "CurrentPage index in ViewPager:"+viewPager.getCurrentItem()+", Current pos:"+position);
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+//                    Log.w("[TimetableFragment]", "CurrentPage state:"+state);
+            }
+        });
     }
 
+    private void setupFloatingActionButton(FloatingActionButton floatingActionButton) {
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+            }
+        });
+    }
 
 
 

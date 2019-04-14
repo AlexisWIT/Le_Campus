@@ -28,7 +28,7 @@ public interface UserEventDAO {
     LiveData<List<UserEvent>> getAllUserEvents();
 
     @Query("SELECT * FROM userevent_table WHERE id = :id LIMIT 1")
-    LiveData<UserEvent> getUserEventById(int id);
+    LiveData<UserEvent> getUserEventById(Integer id);
 
     @Query("SELECT * FROM userevent_table WHERE starttime LIKE :date || '%' ORDER BY startTime ASC")
     LiveData<List<UserEvent>> getUserEventListByDate(String date);

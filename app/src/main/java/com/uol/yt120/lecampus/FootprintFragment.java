@@ -125,6 +125,14 @@ public class FootprintFragment extends Fragment {
                 footprintViewModel.setFootprintMutableLiveData(footprint);
 
 
+
+
+
+
+
+
+
+
                 //sendDateThroughActivity(footprint, footprintId);
 
             }

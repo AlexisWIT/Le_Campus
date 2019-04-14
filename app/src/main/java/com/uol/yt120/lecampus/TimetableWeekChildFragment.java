@@ -1,10 +1,8 @@
 package com.uol.yt120.lecampus;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
+import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.graphics.RectF;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,9 +25,9 @@ import com.alamkanak.weekview.ScrollListener;
 import com.alamkanak.weekview.WeekView;
 import com.alamkanak.weekview.WeekViewDisplayable;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
-import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
-import com.uol.yt120.lecampus.database.LocalDatabase;
 import com.uol.yt120.lecampus.domain.UserEvent;
+import com.uol.yt120.lecampus.publicAsyncTasks.UpdateWeeklyEventListAsyncTask;
+import com.uol.yt120.lecampus.repository.UserEventRepository;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.utility.TextValidator;
@@ -39,18 +37,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 public class TimetableWeekChildFragment extends Fragment implements EventClickListener<UserEvent>, MonthChangeListener<UserEvent>,
-        EventLongPressListener<UserEvent>, EmptyViewLongPressListener {
+        EventLongPressListener<UserEvent>, EmptyViewLongPressListener, UpdateWeeklyEventListAsyncTask.Response {
 
     public static final String TAG = TimetableWeekChildFragment.class.getSimpleName();
     DataPassListener mCallback;
 
+    private UserEventRepository userEventRepository;
     private UserEventViewModel userEventViewModel;
+
     private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
     private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
     String currentDateWithTime = dateTimeCalculator.getToday(true);
@@ -60,9 +60,13 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
     private TextView dateTextView;
     private TextValidator textValidator = new TextValidator();
 
-
-    final int BOUND = 299;
-    final Object[] eventGroup= new Object[300];
+    private List<UserEvent> rawEventList1 = new ArrayList<>();
+    private List<UserEvent> rawEventList2 = new ArrayList<>();
+    List<WeekViewDisplayable<UserEvent>> updatedUserEventList = new ArrayList<>();
+//    final int BOUND = 299;
+//    final Object[] eventGroup= new Object[300];
+    private boolean requesting = false;
+    private ProgressDialog progressDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,7 +76,13 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        eventGroup[BOUND] = "NO";
+        //eventGroup[BOUND] = "NO";
+        userEventRepository = new UserEventRepository(getActivity().getApplication());
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.setMessage("Processing...");
+
         timetableWeekView = inflater.inflate(R.layout.fragment_timetable_week, container, false);
 
         dateTextView = timetableWeekView.findViewById(R.id.label_timetable_week_date);
@@ -85,6 +95,7 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
         weekView.setEmptyViewLongPressListener(this);
         weekView.setFirstDayOfWeek(Calendar.MONDAY);
         weekView.setEventCornerRadius(2);
+        //weekView.setWeekViewLoader();
 
         weekView.setScrollListener(new ScrollListener() {
             @Override
@@ -100,9 +111,10 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
         prevWeekAction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Calendar calendar = weekView.getFirstVisibleDay();
-                calendar.add(Calendar.DAY_OF_MONTH, -7);
-                weekView.goToDate(calendar);
+                Calendar calendar1 = Calendar.getInstance();
+                calendar1.setTime(weekView.getFirstVisibleDay().getTime());
+                calendar1.add(Calendar.DAY_OF_MONTH, -7);
+                weekView.goToDate(calendar1);
                 updateDateTextView();
             }
         });
@@ -111,9 +123,10 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
         nextWeekAction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Calendar calendar = weekView.getFirstVisibleDay();
-                calendar.add(Calendar.DAY_OF_MONTH, 7);
-                weekView.goToDate(calendar);
+                Calendar calendar2 = Calendar.getInstance();
+                calendar2.setTime(weekView.getFirstVisibleDay().getTime());
+                calendar2.add(Calendar.DAY_OF_MONTH, 7);
+                weekView.goToDate(calendar2);
                 updateDateTextView();
             }
         });
@@ -182,48 +195,57 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
     @Override
     public List<WeekViewDisplayable<UserEvent>> onMonthChange(@NotNull Calendar firstDate, @NotNull Calendar lastDate) {
         List<WeekViewDisplayable<UserEvent>> updatedUserEventList = new ArrayList<>();
-        userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
         String firstDateNoTime = dateTimeFormatter.formatDateToString(firstDate.getTime(), "no_time");
         String lastDateNoTime = dateTimeFormatter.formatDateToString(lastDate.getTime(), "no_time");
 
+        //new UpdateWeeklyEventListAsyncTask(userEventRepository, firstDateNoTime, lastDateNoTime, this).execute();
+        userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
         List<UserEvent> eventList = userEventViewModel.getNonLiveUserEventListByDateRange(firstDateNoTime, lastDateNoTime);
 
         for (UserEvent userEvent : eventList) {
             userEvent.setContext(getContext());
+            Log.w("[Async RESULT]", userEvent.toString());
+
             updatedUserEventList.add(userEvent.toWeekViewEvent(getContext()));
         }
 
-        Log.w("[Event List]", updatedUserEventList.toString());
-
-        //new UpdateMonthlyEventListAsyncTask().execute();
         return updatedUserEventList;
-
     }
+        //userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
+        //List<UserEvent> eventList = userEventViewModel.getNonLiveUserEventListByDateRange(firstDateNoTime, lastDateNoTime);
 
-    private class UpdateMonthlyEventListAsyncTask extends AsyncTask<Void, Void, Void> {
+    @Override
+    public void loadFinish(List<UserEvent> userEventListOutput) {
+        rawEventList1 = new ArrayList<>(userEventListOutput);
+        Log.w("[Async RESULT]", rawEventList1.toString());
 
-        private UserEventDAO userEventDAO;
+        if (!userEventListOutput.isEmpty()) {
 
-        @Override
-        protected Void doInBackground(Void... voids) {
+            if (rawEventList1.hashCode() != (rawEventList2.hashCode())) {
+                requesting = false;
+                weekView.notifyDataSetChanged();
+                rawEventList2 = new ArrayList<>(rawEventList1);
+                Log.w("[Async RESULT]", "Notified");
+            }
 
-//            try {
-//                Thread.sleep(5000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            weekView.notifyDataSetChanged();
-            return null;
+        } else {
+            requesting = false;
+            Log.w("[Async RESULT]", "No Event found");
         }
+
+
     }
 
+    //@Override
     private void updateDateTextView() {
         String firstDayThisWeek = dateTimeFormatter.formatDateToString(
                 weekView.getFirstVisibleDay().getTime(), "uni_date");
 
         String lastDayThisWeek = dateTimeFormatter.formatDateToString(
                 weekView.getLastVisibleDay().getTime(), "uni_date");
+
         String textToDisplay = firstDayThisWeek + " - " + lastDayThisWeek;
         dateTextView.setText(textToDisplay);
     }
+
 }

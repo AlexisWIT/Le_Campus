@@ -81,4 +81,7 @@ dependencies {
     implementation 'com.github.AlexisWIT:Android-Week-View:3.4'
 
     implementation 'org.apache.commons:commons-lang3:3.8.1'
+
+    // Month view component
+    implementation 'com.applandeo:material-calendar-view:1.0.1'
 }

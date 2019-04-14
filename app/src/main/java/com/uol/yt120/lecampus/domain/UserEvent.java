@@ -499,7 +499,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
                 .setData(this)
                 .build();
 
-        Log.w("[UserEvent]", event.toString());
+        //Log.w("[UserEvent]", event.toString());
         return event;
     }
 }
