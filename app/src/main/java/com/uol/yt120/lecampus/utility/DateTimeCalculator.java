@@ -109,7 +109,7 @@ public class DateTimeCalculator {
      */
     public String getTodayDate(){
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeZone(deviceTimeZone);
+        //calendar.setTimeZone(deviceTimeZone);
         Date date=calendar.getTime();
 
         return dateTimeFormatter.formatDateToString(date,"no_year");

@@ -8,6 +8,8 @@ import android.arch.persistence.room.PrimaryKey;
 public class User {
     @PrimaryKey(autoGenerate = true)
     private Integer id;
+    private Integer serverId;
+    private String password;
 
     private String studentNumber;
     private String nickname;
@@ -16,6 +18,7 @@ public class User {
     private String preferedName;
     private String dateofbirth;
     private String uolEmail;
+    private String friendList; // JSONArray: [{"serverId", 15},{"serverId", 17}]
 
 //    private Integer tag_weight_art;
 //    private Integer tag_weight_sport;
@@ -24,8 +27,10 @@ public class User {
     public User() { }
 
     @Ignore
-    public User(Integer id, String studentNumber, String nickname, String ucasNumber, String realname, String preferedName, String dateofbirth, String uolEmail) {
+    public User(Integer id, Integer serverId, String password, String studentNumber, String nickname, String ucasNumber, String realname, String preferedName, String dateofbirth, String uolEmail, String friendList) {
         this.id = id;
+        this.serverId = serverId;
+        this.password = password;
         this.studentNumber = studentNumber;
         this.nickname = nickname;
         this.ucasNumber = ucasNumber;
@@ -33,6 +38,7 @@ public class User {
         this.preferedName = preferedName;
         this.dateofbirth = dateofbirth;
         this.uolEmail = uolEmail;
+        this.friendList = friendList;
     }
 
     @Ignore
@@ -44,6 +50,22 @@ public class User {
         this.preferedName = preferedName;
         this.dateofbirth = dateofbirth;
         this.uolEmail = uolEmail;
+    }
+
+    public Integer getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(Integer serverId) {
+        this.serverId = serverId;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Integer getId() {
@@ -108,5 +130,13 @@ public class User {
 
     public void setUolEmail(String uolEmail) {
         this.uolEmail = uolEmail;
+    }
+
+    public String getFriendList() {
+        return friendList;
+    }
+
+    public void setFriendList(String friendList) {
+        this.friendList = friendList;
     }
 }

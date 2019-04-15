@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import com.uol.yt120.lecampus.dataAccessObjects.FootprintDAO;
 import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
 import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.domain.User;
 import com.uol.yt120.lecampus.domain.UserEvent;
 
 @Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 2)
@@ -55,8 +56,8 @@ public abstract class LocalDatabase extends RoomDatabase {
         protected Void doInBackground(Void... voids) {
 
             Footprint example_footprint = createExampleFootprint();
+            User defaultUser = createDefaultUser();
             //UserEvent example_userevent = createExampleUserEvent();
-
 
             // Default example footprint data in database
             footprintDAO.insert(example_footprint);
@@ -108,5 +109,11 @@ public abstract class LocalDatabase extends RoomDatabase {
         example_footprint = new Footprint(example_title, example_desc, example_nodeList, example_createTime);
 
         return example_footprint;
+    }
+
+    private static User createDefaultUser() {
+        User defaultUser;
+        defaultUser = new User(1, "123456789", "00000000", "Default User", "Default", "1970-01-02", "du001@student.le.ac.uk");
+        return defaultUser;
     }
 }

@@ -1,5 +1,24 @@
+/*
+ * Copyright 2019 yt120@student.le.ac.uk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.uol.yt120.lecampus;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -21,6 +40,12 @@ import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ *
+ *
+ *
+ *
+ */
 
 public class NavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DataPassListener {
@@ -37,6 +62,8 @@ public class NavigationActivity extends AppCompatActivity
     public static final String FRAGMENT_CHILD_TIMETABLE_MONTH = "TimetableMonthChildFragment";
     public static final String FRAGMENT_CHILD_TIMETABLE_WEEK = "TimetableWeekChildFragment";
     public static final String FRAGMENT_USEREVENT_DETAIL = "UserEventDetailFragment";
+
+    public static final String CHANNEL_ID = "Security_Service_Channel";
 
     private long backPressedTime;
     private Toast backToast;
@@ -66,9 +93,9 @@ public class NavigationActivity extends AppCompatActivity
 
         // For account login function by pressing nav-hader
         View headerView = navigationView.getHeaderView(0);
-            TextView username = (TextView) headerView.findViewById(R.id.account_Name_TextView);
-            TextView useremail = (TextView) headerView.findViewById(R.id.account_Email_TextView);
-            ImageView useravater = (ImageView) headerView.findViewById(R.id.account_Avatar_ImageView);
+        TextView username = (TextView) headerView.findViewById(R.id.account_Name_TextView);
+        TextView useremail = (TextView) headerView.findViewById(R.id.account_Email_TextView);
+        ImageView useravater = (ImageView) headerView.findViewById(R.id.account_Avatar_ImageView);
 
 
 //            username.setText("username")
@@ -77,7 +104,7 @@ public class NavigationActivity extends AppCompatActivity
         headerView.setOnClickListener(v -> {
             //Toast.makeText(this, "Fetching account information... ", Toast.LENGTH_SHORT).show();
             getSupportFragmentManager().beginTransaction().replace(
-                    R.id.fragment_container, new AccountFragment(),"accountFrag").addToBackStack(null).commit();
+                    R.id.fragment_container, new AccountFragment(), "accountFrag").addToBackStack(null).commit();
             drawerLayout.closeDrawer(GravityCompat.START);
         });
 
@@ -176,8 +203,7 @@ public class NavigationActivity extends AppCompatActivity
         return true;
     }
 
-    public void resetToolBar(boolean childAction, int drawerMode)
-    {
+    public void resetToolBar(boolean childAction, int drawerMode) {
         if (childAction) {
             // [Undocumented?] trick to get up button icon to show
             actionBarDrawerToggle.setDrawerIndicatorEnabled(false);
@@ -192,10 +218,10 @@ public class NavigationActivity extends AppCompatActivity
     public void passData(String data) {
         try {
             JSONObject dataJSON = new JSONObject(data);
-            String from = (String)dataJSON.get("from");
-            String destination = (String)dataJSON.get("to");
-            Log.i("NavigationActivity", "Data Transmission: ["+from+"] -> ["+destination+"]");
-            Log.w("[DEBUG INFO]", "Ready to relay: ["+data+"]");
+            String from = (String) dataJSON.get("from");
+            String destination = (String) dataJSON.get("to");
+            Log.i("NavigationActivity", "Data Transmission: [" + from + "] -> [" + destination + "]");
+            Log.w("[DEBUG INFO]", "Ready to relay: [" + data + "]");
 
             switch (destination) {
                 case FRAGMENT_FOOTPRINT_DETAIL:
@@ -235,6 +261,16 @@ public class NavigationActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
+    }
+
+    private void setupNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel securityServiceChannel = new NotificationChannel(
+                    CHANNEL_ID, "Security Service Channel", NotificationManager.IMPORTANCE_HIGH
+            );
+        }
+//        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+//        notificationManager.createNotificationChannel(securityServiceChannel);
     }
 
 }

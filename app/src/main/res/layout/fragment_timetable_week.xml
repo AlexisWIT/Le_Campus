@@ -48,7 +48,6 @@
         android:layout_marginTop="16dp"
         app:columnGap="1dp"
         app:dayBackgroundColor="#05000000"
-        app:eventTextColor="@android:color/white"
         app:headerRowBackgroundColor="#ffefefef"
         app:headerRowPadding="12dp"
         app:horizontalScrollingEnabled="false"

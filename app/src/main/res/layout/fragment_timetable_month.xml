@@ -10,13 +10,28 @@
 
     <com.applandeo.materialcalendarview.CalendarView
         android:id="@+id/timetable_month_calendar"
+        android:layout_width="0dp"
+        android:layout_height="390dp"
+        app:forwardButtonSrc="@drawable/ic_timetable_next_week"
+        app:headerColor="@color/common_google_signin_btn_text_dark_default"
+        app:headerLabelColor="@color/color_text_dark"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:previousButtonSrc="@drawable/ic_timetable_prev_week">
+
+    </com.applandeo.materialcalendarview.CalendarView>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/timetable_list_month"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" >
-
-    </com.applandeo.materialcalendarview.CalendarView>
+        app:layout_constraintTop_toBottomOf="@+id/timetable_month_calendar"
+        tools:listitem="@layout/fragment_timetable_month_item"></android.support.v7.widget.RecyclerView>
 
 </android.support.constraint.ConstraintLayout>

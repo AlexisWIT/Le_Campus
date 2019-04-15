@@ -24,4 +24,7 @@ public interface UserDAO {
 
     @Query("SELECT * FROM user_table WHERE id = :id LIMIT 1")
     LiveData<User> getUserById(int id);
+
+    @Query("SELECT * FROM user_table WHERE serverId = :serverId LIMIT 1")
+    LiveData<User> getUserByServerId(int serverId);
 }
