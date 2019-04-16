@@ -43,6 +43,33 @@
 
     </LinearLayout>
 
+    <FrameLayout
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp">
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/recording_notification"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            app:cardBackgroundColor="@color/common_google_signin_btn_text_light_default"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="3dp" >
+
+            <TextView
+                android:id="@+id/recording_notification_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Recording your footprint..."
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/light_gray_white"/>
+        </android.support.v7.widget.CardView>
+    </FrameLayout>
+
 
 </FrameLayout>
 

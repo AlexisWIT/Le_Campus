@@ -167,8 +167,8 @@ public class AccountFragment extends Fragment {
                     if (user != null) {
                         text_username.setText(user.getRealname());
                         text_useremail.setText(user.getUolEmail());
-                        text_header_name.setText(user.getRealname());
-                        text_header_name.setText(user.getUolEmail());
+//                        text_header_name.setText(user.getRealname());
+//                        text_header_name.setText(user.getUolEmail());
                     }
                 }
             });
@@ -836,7 +836,7 @@ public class AccountFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.action_log_out:
+            case R.id.action_log_out_account:
                 logoutAccount();
                 Toast.makeText(getActivity(), "You have been logged out.", Toast.LENGTH_SHORT).show();
                 Fragment currentFragment = getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container);
@@ -849,7 +849,7 @@ public class AccountFragment extends Fragment {
 
                 return true;
 
-            case R.id.action_settings:
+            case R.id.action_settings_account:
                 Toast.makeText(getActivity(), "This function is temporarily unavailable", Toast.LENGTH_SHORT).show();
                 return true;
 

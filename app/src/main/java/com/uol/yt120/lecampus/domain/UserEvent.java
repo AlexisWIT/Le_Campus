@@ -424,6 +424,8 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         userEvent.setColor(viewStyle);
         userEvent.setCancelled(isCancelled);
 
+        Log.w("[User Event]", "User event to Weekview event");
+
         return userEvent;
     }
 
@@ -476,18 +478,20 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
     @Override
     public WeekViewEvent<UserEvent> toWeekViewEvent() {
         //WeekViewEvent<UserEvent> result = toWeekViewEvent(getContext());
-        final int color_lecture = -500103;
-        final int color_surgery = -500040;
-        final int color_computer_class = -500071;
-        final int color_test = -500006;
-        final int color_seminar = -500133;
-        final int color_workshop = -500069;
-        final int color_text = -500145;
+        final int color_lecture = Color.LTGRAY;
+        final int color_surgery = Color.YELLOW;
+        final int color_computer_class = Color.CYAN;
+        final int color_test = Color.GREEN;
+        final int color_seminar = Color.MAGENTA;
+        final int color_workshop = Color.BLUE;
+        final int color_text = Color.BLACK;
 
         Integer cancelled = this.isDisabled;
         boolean isCancelled = cancelled == 1;
+        int bgColor;
 
-        Style style = new Builder().setBackgroundColor(color_lecture).setTextColor(color_text).setTextStrikeThrough(isCancelled).build();
+
+        Style style = new Builder().setBackgroundColor(this.color).setTextColor(color_text).setTextStrikeThrough(isCancelled).build();
 
         WeekViewEvent<UserEvent> event = new WeekViewEvent.Builder<UserEvent>()
                 .setId(this.id)
@@ -500,6 +504,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
                 .setData(this)
                 .build();
 
+        //Log.w("[User Event]", "Weekview event to Weekview event");
         //Log.w("[UserEvent]", event.toString());
         return event;
     }

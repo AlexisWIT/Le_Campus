@@ -109,7 +109,6 @@ public class NavigationActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_navigation);
 
-
         toolbar = (Toolbar) findViewById(R.id.acitvity_tool_bar);
         setSupportActionBar(toolbar);
 
@@ -128,20 +127,7 @@ public class NavigationActivity extends AppCompatActivity
         useremail = (TextView) headerView.findViewById(R.id.header_account_email);
         useravater = (ImageView) headerView.findViewById(R.id.header_account_avatar);
 
-
-        UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
-        userViewModel.getUserLiveDataById(1).observe(this, new Observer<User>() {
-            @Override
-            public void onChanged(@Nullable User user) {
-                if (user != null) {
-                    setupHeaderInfo(user.getRealname(), user.getUolEmail());
-                }
-            }
-        });
-
 //            username.setText("username")
-
-
 
         headerView.setOnClickListener(v -> {
             Fragment currentFrag = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
@@ -424,6 +410,20 @@ public class NavigationActivity extends AppCompatActivity
             actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
         }
         drawerLayout.setDrawerLockMode(drawerMode);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        userViewModel.getUserLiveDataById(1).observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(@Nullable User user) {
+                if (user != null) {
+                    setupHeaderInfo(user.getRealname(), user.getUolEmail());
+                }
+            }
+        });
     }
 
     @Override

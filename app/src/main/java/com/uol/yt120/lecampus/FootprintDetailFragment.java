@@ -25,6 +25,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,6 +52,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.viewModel.FootprintDetailViewModel;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 
 import org.json.JSONArray;
@@ -81,10 +83,12 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     String footprintDataForEdit;
     JSONArray trackpointJSONArray;
 
-    TextView footprintTitleView;
-    TextView footprintDescView;
-    TextView footprintTimeCreated;
-    TextView footprintPublisher;
+    private TextView footprintTitleView;
+    private TextView footprintDescView;
+    private TextView footprintTimeCreated;
+    private TextView footprintPublisher;
+    private FootprintDetailViewModel footprintDetailViewModel;
+    private FloatingActionButton buttonStartFootprint;
 
     private GoogleMap gMap;
     MapView mapView;
@@ -102,6 +106,14 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         getActivity().setTitle("Footprint Detail");
         View view = inflater.inflate(R.layout.fragment_footprint_detail, container, false);
+        buttonStartFootprint = view.findViewById(R.id.button_footprint_detail_direction);
+        buttonStartFootprint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
 
         footprintTitleView = (TextView) view.findViewById(R.id.text_footprint_detail_title);
         footprintDescView = (TextView) view.findViewById(R.id.text_footprint_detail_description);
@@ -137,64 +149,77 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     }
 
     private void updateView() {
+        footprintDetailViewModel = ViewModelProviders.of(getActivity()).get(FootprintDetailViewModel.class);
+        footprintDetailViewModel.getSelectedFootprint().observe(this, new Observer<Footprint>() {
+            @Override
+            public void onChanged(@Nullable Footprint footprint) {
+                footprintTitleView.setText(footprint.getTitle());
+                footprintDescView.setText(footprint.getDescription());
+                footprintTimeCreated.setText(footprint.getCreateTime());
+                footprintPublisher.setText("default");
+                try {
+                    trackpointJSONArray = new JSONArray(footprint.getNodeList());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
         if (footprintId != 0) {
             FootprintViewModel footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
             footprintViewModel.getFootprintById(footprintId).observe(this, new Observer<Footprint>() {
                 @Override
                 public void onChanged(@Nullable Footprint footprint) {
-                    footprintTitleView.setText(footprint.getTitle());
-                    footprintDescView.setText(footprint.getDescription());
-                    footprintTimeCreated.setText(footprint.getCreateTime());
-                    footprintPublisher.setText("default");
+
                 }
             });
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        Bundle args = getArguments();
-        if (args != null) {
-            String dataReceived = args.getString(KEY_FOOTPRINT_DATA_RECEIVED);
-            Log.w("[DEBUG INFO]", "Data received: ["+dataReceived+"]");
-            footprintDetailData = dataReceived;
-
-            try {
-                JSONObject footprintDetailJSON = new JSONObject(footprintDetailData);
-                footprintId = footprintDetailJSON.getInt("footprintId");
-
-                footprintTitleView.setText(footprintDetailJSON.getString("title"));
-                footprintDescView.setText(footprintDetailJSON.getString("desc"));
-                footprintTimeCreated.setText(footprintDetailJSON.getString("timeCreated"));
-                footprintPublisher.setText(footprintDetailJSON.getString("publisher"));
-                trackpointJSONArray = new JSONArray(footprintDetailJSON.getString("footprint"));
-
-                JSONObject footprintDataForEditJSON = footprintDetailJSON;
-                try {
-                    footprintDataForEditJSON.put("from", TAG);
-                    footprintDataForEditJSON.put("to", FootprintEditFragment.TAG);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                footprintDataForEdit = footprintDataForEditJSON.toString();
-
-
-            } catch (JSONException e) {
-                Log.e(FootprintDetailFragment.TAG, "Invalid incoming JSON data.");
-                e.printStackTrace();
-            }
-
-        }
-        Log.i("FootprintDetailFragment", "No new data received.");
-    }
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//        Bundle args = getArguments();
+//        if (args != null) {
+//            String dataReceived = args.getString(KEY_FOOTPRINT_DATA_RECEIVED);
+//            Log.w("[DEBUG INFO]", "Data received: ["+dataReceived+"]");
+//            footprintDetailData = dataReceived;
+//
+//            try {
+//                JSONObject footprintDetailJSON = new JSONObject(footprintDetailData);
+//                footprintId = footprintDetailJSON.getInt("footprintId");
+//
+//                footprintTitleView.setText(footprintDetailJSON.getString("title"));
+//                footprintDescView.setText(footprintDetailJSON.getString("desc"));
+//                footprintTimeCreated.setText(footprintDetailJSON.getString("timeCreated"));
+//                footprintPublisher.setText(footprintDetailJSON.getString("publisher"));
+//                trackpointJSONArray = new JSONArray(footprintDetailJSON.getString("footprint"));
+//
+//                JSONObject footprintDataForEditJSON = footprintDetailJSON;
+//                try {
+//                    footprintDataForEditJSON.put("from", TAG);
+//                    footprintDataForEditJSON.put("to", FootprintEditFragment.TAG);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//                footprintDataForEdit = footprintDataForEditJSON.toString();
+//
+//
+//            } catch (JSONException e) {
+//                Log.e(FootprintDetailFragment.TAG, "Invalid incoming JSON data.");
+//                e.printStackTrace();
+//            }
+//
+//        }
+//        Log.i("FootprintDetailFragment", "No new data received.");
+//    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap = googleMap;
         boolean isCorrectData = true;
         Location lastLocation;
-        Integer lastIndex = 0;
+        Integer prevIndex = 0;
         Integer currentIndex = null;
 
         Polyline polyline;
@@ -227,14 +252,14 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 
             for (int i=0; i<nodeJSONArray.length(); i++) {
                 if (currentLatLng != null) { lastLatLng = currentLatLng; }
-                if (currentIndex != null) { lastIndex = currentIndex; }
+                if (currentIndex != null) { prevIndex = currentIndex; }
 
                 JSONObject nodeJSON = nodeJSONArray.getJSONObject(i);
                 currentIndex = nodeJSON.getInt("index");
                 String dateTime = nodeJSON.getString("time");
                 String locationInfo = (String)nodeJSON.get("allInfo");
 
-                if (currentIndex == lastIndex+1) {
+                if (currentIndex == prevIndex+1) {
 
                     if (currentIndex == 1) {
                         // Add marker as start point

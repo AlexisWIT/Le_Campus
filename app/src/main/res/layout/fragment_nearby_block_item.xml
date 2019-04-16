@@ -11,7 +11,7 @@
         android:layout_height="match_parent">
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/image_nearby_block_item"
             android:layout_width="0dp"
             android:layout_height="85dp"
             android:scaleType="centerCrop"
@@ -33,7 +33,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+            app:layout_constraintTop_toBottomOf="@+id/image_nearby_block_item" />
 
         <TextView
             android:id="@+id/text_nearby_block_item_supply"
@@ -50,7 +50,7 @@
             app:layout_constraintTop_toBottomOf="@+id/text_nearby_block_item_title" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/text_nearby_block_item_desc"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"

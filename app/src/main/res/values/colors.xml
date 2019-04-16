@@ -21,4 +21,5 @@
     <color name="cyan_primary">#00838f</color>
     <color name="deep_light_green">#33691e</color>
     <color name="orange">#f57f17</color>
+    <color name="light_gray_white">#fafafa</color>
 </resources>

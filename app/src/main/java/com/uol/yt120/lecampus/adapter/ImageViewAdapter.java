@@ -12,8 +12,7 @@ import com.uol.yt120.lecampus.R;
 public class ImageViewAdapter extends PagerAdapter {
 
     private Context mContext;
-    private int[] mImageIds =
-            new int[] {R.drawable.pad, R.drawable.jfl, R.drawable.mv};
+    private int[] mImageIds = new int[] {R.drawable.pad, R.drawable.jfl, R.drawable.mv};
 
     public ImageViewAdapter(Context context) {
         mContext = context;
@@ -39,9 +38,8 @@ public class ImageViewAdapter extends PagerAdapter {
         return imageView;
     }
 
-    //@Override
-    public void destoryItem(ViewGroup container, int position, Object object) {
-        //super.destroyItem();
+    @Override
+    public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView((ImageView) object);
     }
 

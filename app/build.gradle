@@ -41,6 +41,8 @@ dependencies {
     def lifecycle_version = "1.1.1"
     def room_version = "1.1.1"
 
+    implementation 'org.apache.commons:commons-lang3:3.8.1'
+
     // Lifecycle components
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
     annotationProcessor "android.arch.lifecycle:compiler:$lifecycle_version"
@@ -76,11 +78,12 @@ dependencies {
         exclude module: 'support-v4'
     }
 
+    // Image Slider
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
     // Week view component
     //implementation 'com.github.thellmund:Android-Week-View:3.3'
     implementation 'com.github.AlexisWIT:Android-Week-View:3.4'
-
-    implementation 'org.apache.commons:commons-lang3:3.8.1'
 
     // Month view component
     implementation 'com.applandeo:material-calendar-view:1.0.1'

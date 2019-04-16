@@ -18,10 +18,11 @@ public class Footprint {
     private String nodeList;  // String of JSONArray [ArrayList<HashMap<String, Object>>]
     private String createTime;
 
-//    private String creator;       Author username
-//    private String length;        in metre
-//    private Integer totalTime;    in millisec
-//    private Integer privacy;      0-private, 1-open to public, 2-open to friends only
+    private String creator;       // Author username
+    private String length;        // in metre
+    private Long totalTime;    // in millisec
+    private Integer privacy;      // 0-private, 1-open to public, 2-open to friends only
+
     public Footprint() { }
 
     @Ignore
@@ -30,6 +31,19 @@ public class Footprint {
         this.description = description;
         this.nodeList = nodeList;
         this.createTime = createTime;
+    }
+
+    @Ignore
+    public Footprint(Integer id, String title, String description, String nodeList, String createTime, String creator, String length, Long totalTime, Integer privacy) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.nodeList = nodeList;
+        this.createTime = createTime;
+        this.creator = creator;
+        this.length = length;
+        this.totalTime = totalTime;
+        this.privacy = privacy;
     }
 
     public void setId(Integer id) {
@@ -70,6 +84,38 @@ public class Footprint {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getLength() {
+        return length;
+    }
+
+    public void setLength(String length) {
+        this.length = length;
+    }
+
+    public Long getTotalTime() {
+        return totalTime;
+    }
+
+    public void setTotalTime(Long totalTime) {
+        this.totalTime = totalTime;
+    }
+
+    public Integer getPrivacy() {
+        return privacy;
+    }
+
+    public void setPrivacy(Integer privacy) {
+        this.privacy = privacy;
     }
 
     @Override

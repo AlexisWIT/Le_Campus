@@ -220,9 +220,10 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
 
         for (UserEvent userEvent : eventList) {
             userEvent.setContext(getContext());
-            Log.w("[Async RESULT]", userEvent.toString());
-
+            //Log.w("[Weekview Event RESULT]", userEvent.toString());
             updatedUserEventList.add(userEvent.toWeekViewEvent(getContext()));
+
+            //updatedUserEventList.add(userEvent);
         }
 
         return updatedUserEventList;
