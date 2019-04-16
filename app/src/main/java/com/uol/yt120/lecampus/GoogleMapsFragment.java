@@ -16,6 +16,7 @@
 
 package com.uol.yt120.lecampus;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
@@ -57,6 +58,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
@@ -129,6 +131,18 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         enableFootprintTrack = false;
 
         return googleMapViewLayout;
+    }
+
+    private void rxPermissionStart(RxPermissions rp) {
+        rp.request(android.Manifest.permission_group.LOCATION);
+        rp.request(Manifest.permission.ACCESS_FINE_LOCATION).subscribe(granted -> {
+            if (granted) { // Always true pre-M
+                Log.w("[Activity]", "Permission Granted");
+            } else {
+                Log.w("[Activity]", "Permission Denied");
+                rxPermissionStart(rp);
+            }
+        });
     }
 
     @Override
@@ -216,8 +230,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             e.printStackTrace();
             if (getActivity() != null) {
                 AlertDialog alertDialog1 = new AlertDialog.Builder(getActivity())
-                        .setTitle("Location Service Unavailable")
-                        .setMessage(e.getMessage())
+                        .setTitle("Location Service Unavailable #0100")
+                        .setMessage("Please try again later. \nDEBUG INFO:"+e.getMessage())
                         .setPositiveButton("OK", (dialog, which) ->
                                 Timber.d(this.getContext().toString()))
                         .show();
@@ -228,15 +242,20 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
     }
 
+    Location location1;
+    Location location2;
+    double ACCURACY1;
+    double accuracy2;
+
     @SuppressLint("MissingPermission")
     public void updateLocation(Location locationForUpdate) {
 
         if (getActivity()!= null) { updateContext(getContext()); }
 
-        Location location1 = locationForUpdate;
-        Location location2 = null;
-        double ACCURACY1 = 500.0;
-        double accuracy2 = 500.0;
+        location1 = locationForUpdate;
+        location2 = null;
+        ACCURACY1 = 500.0;
+        accuracy2 = 500.0;
 
         try {
             LocationManager locationManager2 = (LocationManager) Objects.requireNonNull(mContext).getSystemService(Context.LOCATION_SERVICE);
@@ -245,8 +264,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             e.printStackTrace();
             if (getActivity() != null) {
                 AlertDialog alertDialog2 = new AlertDialog.Builder(getActivity())
-                        .setTitle("Network Unavailable")
-                        .setMessage(e.getMessage())
+                        .setTitle("Network Unavailable #2703")
+                        .setMessage("Please try again later. \nDEBUG INFO:"+e.getMessage())
                         .setPositiveButton("OK", (dialog, which) ->
                                 Timber.d(this.getContext().toString()))
                         .show();
@@ -265,6 +284,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         if (ACCURACY1 > accuracy2) {
             location1 = location2;
+
         } else {
             location1 = locationForUpdate;
         }
@@ -355,8 +375,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 e.printStackTrace();
                 if (getActivity() != null) {
                     AlertDialog alertDialog3 = new AlertDialog.Builder(getActivity())
-                            .setTitle("Unable to update your location")
-                            .setMessage(e.getMessage())
+                            .setTitle("Unable to update your location #0340")
+                            .setMessage("Please try again later. \nDEBUG INFO:"+e.getMessage())
                             .setPositiveButton("OK", (dialog, which) ->
                                     Timber.d(this.getContext().toString()))
                             .show();

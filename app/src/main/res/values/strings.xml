@@ -8,6 +8,7 @@
     <string name="title_fragment_timetable">Timetable</string>
     <string name="title_fragment_nearby">Nearby</string>
     <string name="title_fragment_footprint">Footprint</string>
+    <string name="title_fragment_security">Security</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -16,7 +17,7 @@
     <string name="nav_button_timetable">Timetable</string>
     <string name="nav_button_nearby">Nearby</string>
     <string name="nav_button_footprint">Footprint</string>
-    <string name="nav_button_more">More…</string>
+    <string name="nav_button_more">Security</string>
 
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>

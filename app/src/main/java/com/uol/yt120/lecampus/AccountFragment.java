@@ -18,12 +18,14 @@ package com.uol.yt120.lecampus;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Application;
 import android.app.ProgressDialog;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -39,21 +41,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.uol.yt120.lecampus.domain.User;
 import com.uol.yt120.lecampus.domain.UserEvent;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
+import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
+import com.uol.yt120.lecampus.viewModel.UserViewModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -62,13 +64,10 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -78,8 +77,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import timber.log.Timber;
-
-import static android.os.Environment.MEDIA_MOUNTED;
 
 public class AccountFragment extends Fragment {
 
@@ -95,6 +92,8 @@ public class AccountFragment extends Fragment {
     private String timetableAddress;
 
     private UserEventViewModel userEventViewModel;
+    private UserViewModel userViewModel;
+    private FootprintViewModel footprintViewModel;
     private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
     private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
 
@@ -111,15 +110,20 @@ public class AccountFragment extends Fragment {
     String profileFileName = "profile.json";
     String profileContent = "";
 
+    private TextView text_username;
+    private TextView text_useremail;
+    private TextView text_footprintNum;
+    private TextView text_footprintDistance;
+    private TextView text_eventNum;
+    private TextView text_header_name;
+    private TextView text_header_email;
+
     LoadingDialog loadingDialog = new LoadingDialog();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         checkFilePath();
-
-        Log.i("[Account Fragmt]", "Account Fragment created");
 
     }
 
@@ -137,15 +141,40 @@ public class AccountFragment extends Fragment {
         prefixAddress = getString(R.string.prefix_web_address);
 
         getActivity().setTitle(getString(R.string.title_fragment_account));
+        //checkIfloggedIn(1);
 
+        Log.i("[Account Fragmt]","User Account Obtained: "+userAccountObtained);
         if (userAccountObtained) {
             setHasOptionsMenu(true);
-            final SimpleAdapter contentAdapter = loadUserProfileIntoAdapter(profileContent);
+            //final SimpleAdapter contentAdapter = loadUserProfileIntoAdapter(profileContent);
 
-            View userProfileView = mActivity.getLayoutInflater().inflate(R.layout.fragment_account,null);
-            ListView profileListView = userProfileView.findViewById(R.id.account_item_list);
+            View userProfileView = mActivity.getLayoutInflater().inflate(R.layout.fragment_account, container, false);
+            text_username = userProfileView.findViewById(R.id.text_account_username);
+            text_useremail = userProfileView.findViewById(R.id.text_account_useremail);
+            text_footprintNum = userProfileView.findViewById(R.id.label_account_footprint_num);
+            text_footprintDistance = userProfileView.findViewById(R.id.label_account_user_footprint_total_distance);
+            text_eventNum = userProfileView.findViewById(R.id.label_account_user_event_interest);
 
-            profileListView.setAdapter(contentAdapter);
+
+            text_header_name = getActivity().findViewById(R.id.header_account_name);
+            text_header_email = getActivity().findViewById(R.id.header_account_email);
+
+            //ListView profileListView = userProfileView.findViewById(R.id.account_item_list);
+            userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
+            userViewModel.getUserLiveDataById(1).observe(this, new Observer<User>() {
+                @Override
+                public void onChanged(@Nullable User user) {
+                    if (user != null) {
+                        text_username.setText(user.getRealname());
+                        text_useremail.setText(user.getUolEmail());
+                        text_header_name.setText(user.getRealname());
+                        text_header_name.setText(user.getUolEmail());
+                    }
+                }
+            });
+
+
+            //profileListView.setAdapter(contentAdapter);
             return userProfileView;
 
         } else {
@@ -184,8 +213,6 @@ public class AccountFragment extends Fragment {
                 @Override
                 public void onPageStarted(WebView view, String url, Bitmap favicon) {
                     Log.i("[Account Fragmt]","Start loading, current URL: "+url);
-                    Timber.tag("[Account Fragmt]").i("Start loading, current URL: "+url);
-
                 }
 
                 /**
@@ -194,6 +221,7 @@ public class AccountFragment extends Fragment {
                  * @param url
                  * @param isReload
                  */
+                @SuppressLint("LogNotTimber")
                 @Override
                 public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
                     super.doUpdateVisitedHistory(view, url, isReload);
@@ -205,9 +233,10 @@ public class AccountFragment extends Fragment {
                     Log.i("[Account Fragmt]","Hash/URL changed, current URL: "+url);
 
                     if(!loginSuccessful) {
-
+                        webView.setVisibility(View.VISIBLE);
 
                     } else {
+                        webView.setVisibility(View.INVISIBLE);
 
                         while (!timetableSuccessful && !detailSuccessful && loginSuccessful) {
 
@@ -255,6 +284,13 @@ public class AccountFragment extends Fragment {
                                 }
 
                                 Log.i("[Account Fragmt]","Current URL for user detail: "+url);
+//                                handler=new Handler();
+//                                Runnable r=new Runnable() {
+//                                    public void run() {
+//                                        //Will be done after 10 seconds delay.
+//                                    }
+//                                };
+//                                handler.postDelayed(r, 3000);
                                 view.loadUrl("javascript:window.java_obj.showDetailSource('<head>'+" +
                                         "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
 
@@ -282,12 +318,8 @@ public class AccountFragment extends Fragment {
                     // handler.handleMessage(null);
                 }
 
-//            @Override
-//            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-//                view.loadUrl(url);
-//                return true; // load url in current webview
-//            }
 
+                @SuppressLint("LogNotTimber")
                 @Override
                 public void onPageFinished(WebView view, String url) {
                     super.onPageFinished(view, url);
@@ -295,21 +327,15 @@ public class AccountFragment extends Fragment {
                     CookieManager.getInstance().flush();
 
                     Log.i("[Account Fragmt]","Current URL: "+url+", Login address: "+loginAddress);
-                    Timber.tag("[Account Fragmt]").i("Current URL: "+url+", Login address: "+loginAddress);
 
                     if(url.equals(loginAddress) || url.equals(loginAddressFailed)) {
                         loginSuccessful = false;
                         // Login failed
                         Log.i("[Account Fragmt]","Not Logged in");
-                        Timber.tag("[Account Fragmt]").i("Not Logged in");
 
                     } else {
 
                         if (!loginSuccessful) {
-//                            loadingDialog.setMessage(mActivity.getString(R.string.progress_dialog_check_login_status));
-//                            loadingDialog.setCancelable(false);
-//                            loadingDialog.setCanceledOnTouchOutside(false);
-//                            loadingDialog.show();
 
                             loadingDialog.init(mContext);
                             loadingDialog.setTitle(mActivity.getString(R.string.progress_dialog_check_login_status));
@@ -321,7 +347,6 @@ public class AccountFragment extends Fragment {
 //                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');};");
 
                             Log.i("[Account Fragmt]","Processing login...");
-                            Timber.tag("[Account Fragmt]").i("Processing login...");
                             super.onPageFinished(view, url);
                         }
 
@@ -377,9 +402,10 @@ public class AccountFragment extends Fragment {
     }
 
     /**
-     * Getting welcome page content
-     * @param html
+     * Getting welcome page content to verify if successfully logged in
+     * @param html string content of html page
      */
+    @SuppressLint("LogNotTimber")
     private void getWelcomeContent(final String html){
         Log.i("[Account Fragmt]", "1. Start getting welcome page content");
         Timber.tag("[Account Fragmt]").i("1. Start getting welcome page content");
@@ -390,11 +416,9 @@ public class AccountFragment extends Fragment {
         if (welcomeInfo.contains("Welcome to MyStudentRecord")) {
 
             Log.i("[Account Fragmt]", "Login successful");
-            Timber.tag("[Account Fragmt]").i("Login successful");
 
             timetableAddress = document.select("a[id=smTTABLE]").get(0).attr("href");
             Log.i("[Account Fragmt]", "Timetable Address: " + timetableAddress);
-            Timber.tag("[Account Fragmt]").i("Timetable Address: " + timetableAddress);
 
             loginSuccessful = true;
 
@@ -411,9 +435,9 @@ public class AccountFragment extends Fragment {
      * Getting timetable content and save it to local file
      * @param html
      */
+    @SuppressLint("LogNotTimber")
     private void getTimetableContent(final String html){
         Log.i("[Account Fragmt]", "2. Start getting timetable info");
-        Timber.tag("[Account Fragmt]").i("2. Start getting timetable info");
 
         Document document = Jsoup.parse(html);
         String timetableInfo = document.select("h1#sitsportalpagetitle").get(0).text();
@@ -426,7 +450,6 @@ public class AccountFragment extends Fragment {
 
         detailAddress = document.select("a[id=PORT_1]").get(0).attr("href");
         Log.i("[Account Fragmt]", "Detail Address: " + detailAddress);
-        Timber.tag("[Account Fragmt]").i("Detail Address: " + detailAddress);
 
         try {
             JSONObject json = new JSONObject(eventList);
@@ -435,6 +458,15 @@ public class AccountFragment extends Fragment {
             for (int i=0; i<jArray.length(); i++) {
                 userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
                 JSONObject eventJSON = jArray.getJSONObject(i);
+
+                /*
+                    Some value are hard-coded because the timetable
+                    data are from university website and can only be
+                    retrieved by logging to student account.
+
+                    This seems to be the only way to add some info before
+                    saving them to local SQLite database.
+                 */
 
                 String holdBy = "University";
                 String eventType = eventJSON.getString("moduleType");
@@ -475,7 +507,7 @@ public class AccountFragment extends Fragment {
                 userEventViewModel.insert(userEvent);
             }
 
-            writeIntoFile(mContext, eventList, "timetable.json", "timetable");
+            //writeIntoFile(mContext, eventList, "timetable.json", "timetable");
             timetableSuccessful = true;
 
         } catch (Exception e) {
@@ -489,9 +521,9 @@ public class AccountFragment extends Fragment {
      * Getting detail content
      * @param html
      */
+    @SuppressLint("LogNotTimber")
     private void getDetailContent(final String html){
         Log.i("[Account Fragmt]", "3. Start getting user detail");
-        Timber.tag("[Account Fragmt]").i("3. Start getting user detail");
 
         Document document = Jsoup.parse(html);
         Map<String, String> detailHashmap = new HashMap<String, String>();
@@ -504,31 +536,32 @@ public class AccountFragment extends Fragment {
 
         String studentNum = infoBox.select("span.data").get(0).text();
         Log.i("[Account Fragmt]", "Student Number: "+studentNum);
-        Timber.tag("[Account Fragmt]").i("Student Number: "+studentNum);
 
         String ucasNum = document.select("span.data").get(1).text();
         Log.i("[Account Fragmt]", "UCAS Number: "+ucasNum);
-        Timber.tag("[Account Fragmt]").i("UCAS Number: "+ucasNum);
 
         String surName = document.select("span.data").get(2).text();
         Log.i("[Account Fragmt]", "Surname: "+surName);
-        Timber.tag("[Account Fragmt]").i("Surname: "+surName);
 
         String foreName = document.select("span.data").get(3).text();
         Log.i("[Account Fragmt]", "Forename: "+foreName);
-        Timber.tag("[Account Fragmt]").i("Forename: "+foreName);
 
         String prefName = document.select("span.data").get(4).text();
         Log.i("[Account Fragmt]", "Perffered First Name: "+prefName);
-        Timber.tag("[Account Fragmt]").i("Perffered First Name: "+prefName);
 
         String dob = document.select("span.data").get(5).text();
         Log.i("[Account Fragmt]", "Date of Birth: "+dob);
-        Timber.tag("[Account Fragmt]").i("Date of Birth: "+dob);
 
         String uolEmail = document.select("span.data").get(6).text();
         Log.i("[Account Fragmt]", "UoL Email: "+uolEmail);
-        Timber.tag("[Account Fragmt]").i("UoL Email: "+uolEmail);
+
+        User user = new User(studentNum, ucasNum, foreName+" "+surName, prefName, dob, uolEmail);
+
+        userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
+        userViewModel.deleteAllUser();
+        userViewModel.insert(user);
+        userAccountObtained = true;
+        syncNavHeader(foreName+" "+surName, uolEmail);
 
         detailHashmap.put("Student_Number", studentNum);
         detailHashmap.put("UCAS_Number", ucasNum);
@@ -594,6 +627,7 @@ public class AccountFragment extends Fragment {
      * @param folderName Name of the folder the file will be stored in.
      * @return
      */
+    @SuppressLint("LogNotTimber")
     public File writeIntoFile (Context context, String content, String fileName, String folderName) {
 
         String filePath = getFilePath(context, folderName);
@@ -622,7 +656,7 @@ public class AccountFragment extends Fragment {
     }
 
     /**
-     *
+     *  Using viewModel instead of this
      * @param profileContent
      * @return
      */
@@ -630,7 +664,7 @@ public class AccountFragment extends Fragment {
 
         SimpleAdapter finalAdapter = null;
         String[] from = {"Name", "UoL_Email"};
-        int[] to = {R.id.user_name, R.id.user_email};
+        //int[] to = {R.id.user_name, R.id.user_email};
         ArrayList<HashMap<String, String>> profileArrayList = new ArrayList<HashMap<String, String>>();
         HashMap<String, String> profileHashmap;
 
@@ -670,8 +704,8 @@ public class AccountFragment extends Fragment {
 
             }
 
-            SimpleAdapter adapter = new SimpleAdapter(mContext, profileArrayList, R.layout.fragment_account_item, from, to);
-            finalAdapter = adapter;
+            //SimpleAdapter adapter = new SimpleAdapter(mContext, profileArrayList, R.layout.fragment_account_item, from, to);
+            //finalAdapter = adapter;
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -687,6 +721,7 @@ public class AccountFragment extends Fragment {
      * @param subDir The indicated folder name under 'files' dir
      * @return
      */
+    @SuppressLint("LogNotTimber")
     public static String getFilePath(Context context, String subDir) {
         String filePath = "";
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ) {
@@ -732,6 +767,7 @@ public class AccountFragment extends Fragment {
 
     }
 
+    @SuppressLint("LogNotTimber")
     public void logoutAccount() {
         String finalResult = "";
         String resultEx1 = "";
@@ -775,6 +811,9 @@ public class AccountFragment extends Fragment {
             resultIn2 = "User Profile in Internal Storage deleted";
             Log.i("[Account Fragmt]", resultIn2);
         }
+
+        userViewModel.deleteAllUser();
+        userEventViewModel.deleteAll();
 
         externalFileFound = false;
         internalFileFound = false;
@@ -896,16 +935,43 @@ public class AccountFragment extends Fragment {
 
         if (externalFileFound) {
             userAccountObtained = true;
-            profileContent = readFromFile(externalFilePath+File.separator+profileFileName);
+            //profileContent = readFromFile(externalFilePath+File.separator+profileFileName);
 
         } else if (internalFileFound) {
             userAccountObtained = true;
-            profileContent = readFromFile(internalFilePath+File.separator+profileFileName);
+            //profileContent = readFromFile(internalFilePath+File.separator+profileFileName);
 
         } else {
             userAccountObtained = false;
-            profileContent = "";
+            //profileContent = "";
         }
+    }
+
+    private void checkIfloggedIn(int userId) {
+        try {
+            userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
+            LiveData<User> user = userViewModel.getUserLiveDataById(userId);
+            if (user != null) {
+                Log.w("[Login status]", "found user logged in: ["+user.getValue().getRealname()+"]");
+                userAccountObtained = true;
+            } else {
+                Log.w("[Login status]", "No user logged in");
+                userAccountObtained = false;
+            }
+        } catch (Exception e) {
+            Log.w("[Login status]", "==================== Exception ========================");
+            e.printStackTrace();
+            userAccountObtained = false;
+        }
+    }
+
+    public void syncNavHeader(String name, String email) {
+        try {
+            ((NavigationActivity)getActivity()).setupHeaderInfo(name, email);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

@@ -249,7 +249,6 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
             Log.w("[Async RESULT]", "No Event found");
         }
 
-
     }
 
     //@Override

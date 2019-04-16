@@ -9,18 +9,20 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.uol.yt120.lecampus.dataAccessObjects.FootprintDAO;
+import com.uol.yt120.lecampus.dataAccessObjects.UserDAO;
 import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.domain.User;
 import com.uol.yt120.lecampus.domain.UserEvent;
 
-@Database(entities = {Footprint.class, UserEvent.class}, exportSchema = false, version = 2)
+@Database(entities = {Footprint.class, UserEvent.class, User.class}, exportSchema = false, version = 2)
 public abstract class LocalDatabase extends RoomDatabase {
 
     private static LocalDatabase instance;
 
     public abstract FootprintDAO footprintDAO();
     public abstract UserEventDAO userEventDAO();
+    public abstract UserDAO userDAO();
 
     public static synchronized LocalDatabase getInstance(Context context) {
         if (instance == null) {
@@ -46,20 +48,23 @@ public abstract class LocalDatabase extends RoomDatabase {
     private static class PopulateDatabaseAsyncTask extends AsyncTask<Void, Void, Void> {
         private FootprintDAO footprintDAO;
         private UserEventDAO userEventDAO;
+        private UserDAO userDAO;
 
         private PopulateDatabaseAsyncTask(LocalDatabase localDatabase) {
             footprintDAO = localDatabase.footprintDAO();
             userEventDAO = localDatabase.userEventDAO();
+            userDAO = localDatabase.userDAO();
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
 
             Footprint example_footprint = createExampleFootprint();
-            User defaultUser = createDefaultUser();
+            //User defaultUser = createDefaultUser();
             //UserEvent example_userevent = createExampleUserEvent();
 
             // Default example footprint data in database
+            //userDAO.insert(defaultUser);
             footprintDAO.insert(example_footprint);
             return null;
         }
@@ -113,7 +118,7 @@ public abstract class LocalDatabase extends RoomDatabase {
 
     private static User createDefaultUser() {
         User defaultUser;
-        defaultUser = new User(1, "123456789", "00000000", "Default User", "Default", "1970-01-02", "du001@student.le.ac.uk");
+        defaultUser = new User("123456789", "00000000", "Default User", "Default", "1970-01-02", "du001@student.le.ac.uk");
         return defaultUser;
     }
 }

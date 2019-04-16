@@ -21,7 +21,8 @@
             android:icon="@drawable/ic_menu_footprint"
             android:title="@string/nav_button_footprint" />
         <item
-            android:id="@+id/nav_more"
+            android:id="@+id/nav_security"
+            android:icon="@drawable/ic_menu_security"
             android:title="@string/nav_button_more" />
     </group>
 

@@ -13,7 +13,7 @@ public class ImageViewAdapter extends PagerAdapter {
 
     private Context mContext;
     private int[] mImageIds =
-            new int[] {R.drawable.md_rnb_bg};
+            new int[] {R.drawable.pad, R.drawable.jfl, R.drawable.mv};
 
     public ImageViewAdapter(Context context) {
         mContext = context;
@@ -39,7 +39,9 @@ public class ImageViewAdapter extends PagerAdapter {
         return imageView;
     }
 
+    //@Override
     public void destoryItem(ViewGroup container, int position, Object object) {
+        //super.destroyItem();
         container.removeView((ImageView) object);
     }
 

@@ -84,4 +84,7 @@ dependencies {
 
     // Month view component
     implementation 'com.applandeo:material-calendar-view:1.0.1'
+
+    // RxPermission Controller
+    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
 }

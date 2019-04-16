@@ -27,8 +27,8 @@ public class User {
     public User() { }
 
     @Ignore
-    public User(Integer id, Integer serverId, String password, String studentNumber, String nickname, String ucasNumber, String realname, String preferedName, String dateofbirth, String uolEmail, String friendList) {
-        this.id = id;
+    public User(Integer serverId, String password, String studentNumber, String nickname, String ucasNumber, String realname, String preferedName, String dateofbirth, String uolEmail, String friendList) {
+        //this.id = id;
         this.serverId = serverId;
         this.password = password;
         this.studentNumber = studentNumber;
@@ -42,8 +42,8 @@ public class User {
     }
 
     @Ignore
-    public User(Integer id, String studentNumber, String ucasNumber, String realname, String preferedName, String dateofbirth, String uolEmail) {
-        this.id = id;
+    public User(String studentNumber, String ucasNumber, String realname, String preferedName, String dateofbirth, String uolEmail) {
+        //this.id = id;
         this.studentNumber = studentNumber;
         this.ucasNumber = ucasNumber;
         this.realname = realname;

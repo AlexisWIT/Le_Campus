@@ -22,9 +22,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -61,6 +63,8 @@ public class FootprintFragment extends Fragment {
     public static final int VIEW_FOOTPRINT_REQUEST = 2;
     public static final int EDIT_FOOTPRINT_REQUEST = 3;
     private FootprintViewModel footprintViewModel;
+    private boolean deleteConfirmed = true;
+    private List<Footprint> currentFootprintList = new ArrayList<>();
 
     DataPassListener mCallback;
 
@@ -112,9 +116,10 @@ public class FootprintFragment extends Fragment {
                 if (footprintList.isEmpty()) {
                     Toast.makeText(getActivity(), "No footprint to show.", Toast.LENGTH_SHORT).show();
                 }
+                currentFootprintList = footprintList;
                 //footprintAdapter.submitList(null);
                 footprintAdapter.setFootprintList(footprintList);
-                Log.w("[Footprint Fragment]", "First footprint in list:"+footprintList.get(0).toString());
+                Log.w("[Footprint Fragment]", "First footprint in list:"+footprintList.toString());
 
             }
         });
@@ -128,7 +133,29 @@ public class FootprintFragment extends Fragment {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                footprintViewModel.delete(footprintAdapter.getFootprintAt(viewHolder.getAdapterPosition()));
+
+                Snackbar.make(footprintView, "Footprint deleted", Snackbar.LENGTH_LONG)
+                        .setDuration(3000)
+                        .setAction("UNDO", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                deleteConfirmed = false;
+                            }
+                        }).show();
+
+                Footprint footprint = footprintAdapter.getFootprintAt(viewHolder.getAdapterPosition());
+                Handler handler=new Handler();
+                Runnable r=new Runnable() {
+                    public void run() {
+                        if (deleteConfirmed) {
+                            footprintViewModel.delete(footprint);
+                        } else {
+                            footprintAdapter.setFootprintList(currentFootprintList);
+                        }
+                    }
+                };
+                handler.postDelayed(r, 3500);
+
                 Toast.makeText(getActivity(), "Footprint deleted", Toast.LENGTH_SHORT).show();
 
             }

@@ -58,7 +58,7 @@ public class TimetableFragment extends Fragment {
     private Activity mActivity;
     private Context mContext;
 
-    boolean timetableObtained = false;
+    boolean timetableObtained = true;
     boolean internalFileFound = false;
     boolean externalFileFound = false;
 
@@ -71,9 +71,9 @@ public class TimetableFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        checkFilePath();
+        //checkFilePath();
 
-        Log.i("[Timetable Fragmt]", "Timetable Fragment created");
+        //Log.i("[Timetable Fragmt]", "Timetable Fragment created");
     }
 
     @Nullable
@@ -142,30 +142,13 @@ public class TimetableFragment extends Fragment {
 
             @Override
             public void onPageSelected(int position) {
-//                    switch (position) {
-//                        case DAY_INDEX:
-//                            buttonAddEvent.show();
-//                            break;
-//
-//                        case WEEK_INDEX:
-//                            buttonAddEvent.show();
-//                            break;
-//
-//                        case MONTH_INDEX:
-//                            buttonAddEvent.show();
-//                            break;
-//
-//                        default:
-//                            buttonAddEvent.hide();
-//                            break;
-//                    }
-//                    Log.w("[TimetableFragment]", "CurrentPage index in ViewPager:"+viewPager.getCurrentItem()+", Current pos:"+position);
+
 
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-//                    Log.w("[TimetableFragment]", "CurrentPage state:"+state);
+
             }
         });
     }
@@ -352,17 +335,18 @@ public class TimetableFragment extends Fragment {
 
         if (externalFileFound) {
             timetableObtained = true;
-            timetableContent = readFromFile(externalFilePath+File.separator+timetableFileName);
+            //timetableContent = readFromFile(externalFilePath+File.separator+timetableFileName);
 
         } else if (internalFileFound) {
             timetableObtained = true;
-            timetableContent = readFromFile(internalFilePath+File.separator+timetableFileName);
+            //timetableContent = readFromFile(internalFilePath+File.separator+timetableFileName);
 
         } else {
             timetableObtained = false;
             timetableContent = "";
         }
     }
+
 
     private void refreshTimetable() {
         //WeekView weekView = getChildFragmentManager().findFragmentByTag()

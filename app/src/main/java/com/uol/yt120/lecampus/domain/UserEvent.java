@@ -370,7 +370,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
      * This constructor is for weekView item, I know this is
      * very messy but if I have time to do refactoring I will do it
      *
-     * @param id
+     * @param
      * @param eventTitle
      * @param location
      * @param startTimeWeekView
@@ -379,8 +379,9 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
      * @param color
      * @param cancelled
      */
-    public UserEvent(Integer id, String eventTitle, String location, Calendar startTimeWeekView, Calendar endTimeWeekView, boolean allDay, int color, boolean cancelled) {
-        this.id = id;
+    @Ignore
+    public UserEvent(String eventTitle, String location, Calendar startTimeWeekView, Calendar endTimeWeekView, boolean allDay, int color, boolean cancelled) {
+        //this.id = id;
         this.eventTitle = eventTitle;
         this.location = location;
         this.startTimeWeekView = startTimeWeekView;
