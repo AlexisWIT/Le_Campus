@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import com.alamkanak.weekview.WeekView;
 import com.uol.yt120.lecampus.adapter.TimetablePagerAdapter;
+import com.uol.yt120.lecampus.adapter.UserEventAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -350,6 +351,8 @@ public class TimetableFragment extends Fragment {
 
     private void refreshTimetable() {
         //WeekView weekView = getChildFragmentManager().findFragmentByTag()
+        UserEventAdapter userEventAdapter = new UserEventAdapter();
+        userEventAdapter.notifyDataSetChanged();
     }
 
 

@@ -15,22 +15,30 @@ public class Footprint {
     private Integer id;
     private String title;
     private String description;
-    private String nodeList;  // String of JSONArray [ArrayList<HashMap<String, Object>>]
+    private String nodeList;        // String of JSONArray [ArrayList<HashMap<String, Object>>]
     private String createTime;
 
     private String creator;       // Author username
     private String length;        // in metre
-    private Long totalTime;    // in millisec
-    private Integer privacy;      // 0-private, 1-open to public, 2-open to friends only
+    private Long totalTime;         // in millisec
+    private Integer privacy = 0;      // 0-private, 1-open to public, 2-open to friends only
 
     public Footprint() { }
 
     @Ignore
-    public Footprint(String title, String description, String nodeList, String createTime) {
+    public Footprint(String title, String description, Integer privacy) {
+        this.title = title;
+        this.description = description;
+        this.privacy = privacy;
+    }
+
+    @Ignore
+    public Footprint(String title, String description, String nodeList, String createTime, Integer privacy) {
         this.title = title;
         this.description = description;
         this.nodeList = nodeList;
         this.createTime = createTime;
+        this.privacy = privacy;
     }
 
     @Ignore

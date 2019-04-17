@@ -45,6 +45,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -149,6 +150,8 @@ public class AccountFragment extends Fragment {
             //final SimpleAdapter contentAdapter = loadUserProfileIntoAdapter(profileContent);
 
             View userProfileView = mActivity.getLayoutInflater().inflate(R.layout.fragment_account, container, false);
+            ImageView avatar = userProfileView.findViewById(R.id.avatar_account);
+            avatar.setImageResource(R.drawable.sample_avatar);
             text_username = userProfileView.findViewById(R.id.text_account_username);
             text_useremail = userProfileView.findViewById(R.id.text_account_useremail);
             text_footprintNum = userProfileView.findViewById(R.id.label_account_footprint_num);
@@ -236,7 +239,6 @@ public class AccountFragment extends Fragment {
                         webView.setVisibility(View.VISIBLE);
 
                     } else {
-                        webView.setVisibility(View.INVISIBLE);
 
                         while (!timetableSuccessful && !detailSuccessful && loginSuccessful) {
 
@@ -340,6 +342,7 @@ public class AccountFragment extends Fragment {
                             loadingDialog.init(mContext);
                             loadingDialog.setTitle(mActivity.getString(R.string.progress_dialog_check_login_status));
                             loadingDialog.run();
+                            webView.setVisibility(View.INVISIBLE);
 
                             view.loadUrl("javascript:window.java_obj.showWelcomeSource('<head>'+" +
                                     "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
@@ -576,6 +579,7 @@ public class AccountFragment extends Fragment {
             Log.i("[Account Fragmt]", "User JSON detail: "+userDetail);
             writeIntoFile(mContext, userDetail, profileFileName, profileFolderName);
 
+            webView.setVisibility(View.VISIBLE);
             loadingDialog.hide();
             detailSuccessful = true;
             showTimetable();

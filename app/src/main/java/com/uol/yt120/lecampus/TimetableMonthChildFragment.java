@@ -35,7 +35,6 @@ import com.applandeo.materialcalendarview.EventDay;
 import com.applandeo.materialcalendarview.listeners.OnDayClickListener;
 import com.uol.yt120.lecampus.adapter.UserEventAdapter;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
-import com.uol.yt120.lecampus.domain.User;
 import com.uol.yt120.lecampus.domain.UserEvent;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
@@ -44,7 +43,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 public class TimetableMonthChildFragment extends Fragment {
@@ -119,7 +117,7 @@ public class TimetableMonthChildFragment extends Fragment {
             @Override
             public void onItemClick(UserEvent userEvent) {
                 JSONObject userEventDetailJSON = new JSONObject();
-                Integer userEventId = userEvent.getId();
+                Integer userEventId = userEvent.getLocalId();
 
                 try {
                     userEventDetailJSON.put("from", TAG);

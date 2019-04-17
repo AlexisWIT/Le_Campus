@@ -522,8 +522,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             nodeJSONArray.put(nodeJSONElement);
         }
         String nodeListJSON = nodeJSONArray.toString();
+        Integer privacy = 0;
 
-        Footprint footprint = new Footprint(title, desc, nodeListJSON, timeCreated);
+        Footprint footprint = new Footprint(title, desc, nodeListJSON, timeCreated, privacy);
         footprintViewModel.insert(footprint);
         Toast.makeText(getActivity(), "Footprint saved - "+timeCreated, Toast.LENGTH_SHORT).show();
     }

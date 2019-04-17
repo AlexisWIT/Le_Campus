@@ -15,20 +15,18 @@ import com.alamkanak.weekview.WeekViewEvent.Style.Builder;
 import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
-import com.uol.yt120.lecampus.utility.UserEventConverter;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.util.Calendar;
-import java.util.Date;
 
 @Entity(tableName = "userevent_table")
 public class UserEvent implements WeekViewDisplayable<UserEvent>{
 
 
     @PrimaryKey(autoGenerate = true)
-    private Integer id;
+    private Integer localId;
 
     private String holdBy;      // University, Community, Personal or Organization
     private String eventType;   // Lecture, Seminar or Social Event
@@ -98,12 +96,12 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
 
 
 
-    public Integer getId() {
-        return id;
+    public Integer getLocalId() {
+        return localId;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setLocalId(Integer localId) {
+        this.localId = localId;
     }
 
     public String getHoldBy() {
@@ -381,7 +379,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
      */
     @Ignore
     public UserEvent(String eventTitle, String location, Calendar startTimeWeekView, Calendar endTimeWeekView, boolean allDay, int color, boolean cancelled) {
-        //this.id = id;
+        //this.localId = localId;
         this.eventTitle = eventTitle;
         this.location = location;
         this.startTimeWeekView = startTimeWeekView;
@@ -415,7 +413,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         int viewStyle = getColor(this.context);
 
         UserEvent userEvent = new UserEvent();
-        userEvent.setId(this.id);
+        userEvent.setLocalId(this.localId);
         userEvent.setEventTitle(this.eventTitle);
         userEvent.setStartTimeWeekView(startDate);
         userEvent.setEndTimeWeekView(endDate);
@@ -494,7 +492,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         Style style = new Builder().setBackgroundColor(this.color).setTextColor(color_text).setTextStrikeThrough(isCancelled).build();
 
         WeekViewEvent<UserEvent> event = new WeekViewEvent.Builder<UserEvent>()
-                .setId(this.id)
+                .setId(this.localId)
                 .setTitle(this.eventTitle)
                 .setStartTime(this.startTimeWeekView)
                 .setEndTime(this.endTimeWeekView)

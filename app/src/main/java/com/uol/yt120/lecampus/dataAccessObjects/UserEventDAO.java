@@ -27,7 +27,7 @@ public interface UserEventDAO {
     @Query("SELECT * FROM userevent_table ORDER BY startTime ASC") //Ascending
     LiveData<List<UserEvent>> getAllUserEvents();
 
-    @Query("SELECT * FROM userevent_table WHERE id = :id LIMIT 1")
+    @Query("SELECT * FROM userevent_table WHERE localId = :id LIMIT 1")
     LiveData<UserEvent> getUserEventById(Integer id);
 
     @Query("SELECT * FROM userevent_table WHERE starttime LIKE :date || '%' ORDER BY startTime ASC")

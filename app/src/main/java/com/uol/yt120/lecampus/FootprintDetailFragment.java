@@ -16,17 +16,16 @@
 
 package com.uol.yt120.lecampus;
 
-import android.app.Activity;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,7 +37,6 @@ import android.view.ViewGroup;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -52,8 +50,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
-import com.uol.yt120.lecampus.viewModel.FootprintDetailViewModel;
-import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
+import com.uol.yt120.lecampus.viewModel.FootprintCacheViewModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -87,8 +84,9 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     private TextView footprintDescView;
     private TextView footprintTimeCreated;
     private TextView footprintPublisher;
-    private FootprintDetailViewModel footprintDetailViewModel;
-    private FloatingActionButton buttonStartFootprint;
+    private FootprintCacheViewModel footprintCacheViewModel;
+    //private FootprintEditViewModel footprintEditViewModel;
+    private FloatingActionButton buttonStartFootprintDirection;
 
     private GoogleMap gMap;
     MapView mapView;
@@ -106,14 +104,15 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         getActivity().setTitle("Footprint Detail");
         View view = inflater.inflate(R.layout.fragment_footprint_detail, container, false);
-        buttonStartFootprint = view.findViewById(R.id.button_footprint_detail_direction);
-        buttonStartFootprint.setOnClickListener(new View.OnClickListener() {
+        buttonStartFootprintDirection = view.findViewById(R.id.button_footprint_detail_direction);
+
+        buttonStartFootprintDirection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
+
             }
         });
-
 
         footprintTitleView = (TextView) view.findViewById(R.id.text_footprint_detail_title);
         footprintDescView = (TextView) view.findViewById(R.id.text_footprint_detail_description);
@@ -124,7 +123,6 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        updateView();
         return view;
     }
 
@@ -139,7 +137,12 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.option_footprint_detail_edit:
-                mCallback.passData(footprintDataForEdit);
+                //footprintEditViewModel.setFootprintToEdit();
+                //mCallback.passData(footprintDataForEdit);
+                getChildFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.footprint_frame_container, new FootprintEditFragment())
+                        .addToBackStack(TAG)
+                        .commit();
                 return true;
 
             default:
@@ -148,37 +151,11 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 
     }
 
-    private void updateView() {
-        footprintDetailViewModel = ViewModelProviders.of(getActivity()).get(FootprintDetailViewModel.class);
-        footprintDetailViewModel.getSelectedFootprint().observe(this, new Observer<Footprint>() {
-            @Override
-            public void onChanged(@Nullable Footprint footprint) {
-                footprintTitleView.setText(footprint.getTitle());
-                footprintDescView.setText(footprint.getDescription());
-                footprintTimeCreated.setText(footprint.getCreateTime());
-                footprintPublisher.setText("default");
-                try {
-                    trackpointJSONArray = new JSONArray(footprint.getNodeList());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        if (footprintId != 0) {
-            FootprintViewModel footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
-            footprintViewModel.getFootprintById(footprintId).observe(this, new Observer<Footprint>() {
-                @Override
-                public void onChanged(@Nullable Footprint footprint) {
-
-                }
-            });
-        }
-    }
-
-//    @Override
-//    public void onStart() {
-//        super.onStart();
+    @Override
+    public void onStart() {
+        super.onStart();
+        //footprintEditViewModel = ViewModelProviders.of(getActivity()).get(FootprintEditViewModel.class);
+        updateView();
 //        Bundle args = getArguments();
 //        if (args != null) {
 //            String dataReceived = args.getString(KEY_FOOTPRINT_DATA_RECEIVED);
@@ -212,7 +189,36 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 //
 //        }
 //        Log.i("FootprintDetailFragment", "No new data received.");
-//    }
+    }
+
+    private void updateView() {
+        footprintCacheViewModel = ViewModelProviders.of(getActivity()).get(FootprintCacheViewModel.class);
+        footprintCacheViewModel.getSelectedFootprint().observe(this, new Observer<Footprint>() {
+            @Override
+            public void onChanged(@Nullable Footprint footprint) {
+                footprintTitleView.setText(footprint.getTitle());
+                footprintDescView.setText(footprint.getDescription());
+                footprintTimeCreated.setText(footprint.getCreateTime());
+                footprintPublisher.setText("default");
+                //footprintEditViewModel.setFootprintToEdit(footprint);
+                try {
+                    trackpointJSONArray = new JSONArray(footprint.getNodeList());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+//        if (footprintId != 0) {
+//            FootprintViewModel footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
+//            footprintViewModel.getFootprintById(footprintId).observe(this, new Observer<Footprint>() {
+//                @Override
+//                public void onChanged(@Nullable Footprint footprint) {
+//
+//                }
+//            });
+//        }
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {

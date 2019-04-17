@@ -8,11 +8,11 @@ import android.support.annotation.NonNull;
 
 import com.uol.yt120.lecampus.domain.Footprint;
 
-public class FootprintDetailViewModel extends AndroidViewModel {
+public class FootprintCacheViewModel extends AndroidViewModel {
 
     private MutableLiveData<Footprint> selectedFootprint = new MutableLiveData<>();
 
-    public FootprintDetailViewModel(@NonNull Application application) {
+    public FootprintCacheViewModel(@NonNull Application application) {
         super(application);
     }
 

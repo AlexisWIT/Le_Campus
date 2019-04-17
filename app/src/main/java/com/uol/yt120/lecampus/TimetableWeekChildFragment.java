@@ -103,15 +103,16 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
 
         dateTextView = timetableWeekView.findViewById(R.id.label_timetable_week_date);
         weekView = timetableWeekView.findViewById(R.id.timetable_week_view);
-        weekView.setNumberOfVisibleDays(7);
-        weekView.setEventTextSize(10);
+        //weekView.setNumberOfVisibleDays(7);
+        //weekView.setEventTextSize(10);
         weekView.setOnEventClickListener(this);
         weekView.setMonthChangeListener(this);
         weekView.setEventLongPressListener(this);
         weekView.setEmptyViewLongPressListener(this);
-        weekView.setFirstDayOfWeek(Calendar.MONDAY);
-        weekView.setEventCornerRadius(2);
-        //weekView.setWeekViewLoader();
+        //weekView.setFirstDayOfWeek(Calendar.MONDAY);
+        //weekView.setEventCornerRadius(2);
+
+        Log.w("[Async RESULT]", "First Day of Week ["+weekView.getFirstDayOfWeek()+"]");
 
         weekView.setScrollListener(new ScrollListener() {
             @Override
@@ -127,10 +128,11 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
         prevWeekAction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Calendar calendar1 = Calendar.getInstance();
-                calendar1.setTime(weekView.getFirstVisibleDay().getTime());
-                calendar1.add(Calendar.DAY_OF_MONTH, -7);
-                weekView.goToDate(calendar1);
+//                Calendar calendar1 = Calendar.getInstance();
+//                calendar1.setTime(weekView.getFirstVisibleDay().getTime());
+                Calendar prevCalendar = weekView.getFirstVisibleDay();
+                prevCalendar.add(Calendar.DAY_OF_MONTH, -7);
+                weekView.goToDate(prevCalendar);
                 updateDateTextView();
             }
         });
@@ -139,10 +141,11 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
         nextWeekAction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Calendar calendar2 = Calendar.getInstance();
-                calendar2.setTime(weekView.getFirstVisibleDay().getTime());
-                calendar2.add(Calendar.DAY_OF_MONTH, 7);
-                weekView.goToDate(calendar2);
+//                Calendar calendar2 = Calendar.getInstance();
+//                calendar2.setTime(weekView.getFirstVisibleDay().getTime());
+                Calendar nextCalendar = weekView.getFirstVisibleDay();
+                nextCalendar.add(Calendar.DAY_OF_MONTH, 7);
+                weekView.goToDate(nextCalendar);
                 updateDateTextView();
             }
         });

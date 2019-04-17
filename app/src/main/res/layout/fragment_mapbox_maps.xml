@@ -7,7 +7,7 @@
 
     <!-- MapBox View -->
 <!--<com.mapbox.mapboxsdk.maps.MapView
-    android:id="@+id/mapbox_map"
+    android:localId="@+localId/mapbox_map"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />-->
 

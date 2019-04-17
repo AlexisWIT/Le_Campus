@@ -172,7 +172,7 @@ public class NavigationActivity extends AppCompatActivity
         backStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
 
         /*
-            If current fragment is Root fragment (Map)
+            If current fragment is Root fragment (Map), notify exit message
          */
         if (currentFrag instanceof GoogleMapsFragment || currentFrag instanceof MapBoxMapsFragment) {
             if (backPressedTime + 2000 > System.currentTimeMillis()) { // Second press less than 2 sec
@@ -191,7 +191,7 @@ public class NavigationActivity extends AppCompatActivity
             backPressedTime = System.currentTimeMillis();
 
         /*
-            If current fragment is other main fragment (Account, Timetable, Nearby, Security)
+            If current fragment is other main fragment (Account, Timetable, Nearby, Security), back to map fragment
          */
         } else if (currentFrag instanceof AccountFragment || currentFrag instanceof TimetableFragment ||
                     currentFrag instanceof NearbyFragment || currentFrag instanceof SecurityFragment || currentFrag instanceof FootprintFragment) {
@@ -207,6 +207,19 @@ public class NavigationActivity extends AppCompatActivity
             navigationView.setCheckedItem(R.id.nav_map);
             super.onBackPressed();
             return;
+
+        /*
+            If current fragment is childFragment, or created by other main fragment
+         */
+        } else {
+
+            Log.w("[NavActivityBACK]", "Current Frag is Other Main Frag ["+currentFrag.getTag()+"], BackStack: "+backStackEntryCount);
+            if (backStackEntryCount != 0) {
+                getSupportFragmentManager().popBackStack();
+            } else {
+                getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.fragment_container, new GoogleMapsFragment(), FRAGMENT_GOOGLE_MAPS).commit();
+            }
 
         }
 

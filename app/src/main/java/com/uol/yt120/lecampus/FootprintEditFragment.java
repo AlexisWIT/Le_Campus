@@ -17,21 +17,20 @@
 package com.uol.yt120.lecampus;
 
 import android.app.Activity;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -40,6 +39,7 @@ import android.widget.Toast;
 
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.viewModel.FootprintCacheViewModel;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 
 import org.json.JSONException;
@@ -47,7 +47,13 @@ import org.json.JSONObject;
 
 
 /**
+ * Edit Footprint information
+ * Access the footprint data by FootprintCacheViewModel
  *
+ * Transaction:
+ *  - cancel: back to footprint detail page
+ *  - save: back to footprint list page
+ *  - failed to save: stay with notification
  */
 public class FootprintEditFragment extends Fragment {
     public static final String TAG = FootprintEditFragment.class.getSimpleName();
@@ -57,9 +63,16 @@ public class FootprintEditFragment extends Fragment {
     private EditText editTextTitle;
     private EditText editTextDescription;
 
+    //private FootprintEditViewModel footprintEditViewModel;
+    private FootprintCacheViewModel footprintCacheViewModel;
+
     DataPassListener mCallback;
-    String footprintDataForEdit;
-    JSONObject footprintDataForEditJSON;
+    private String footprintDataForEdit;
+    private JSONObject footprintDataForEditJSON;
+    private View footprintEditView;
+    private Switch privacySwitch;
+    private Button saveEditButton;
+    private boolean shareEnabled;
 
     Intent intent;
     int footprintId;
@@ -76,59 +89,71 @@ public class FootprintEditFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         getActivity().setTitle("Edit Footprint");
-        View view = inflater.inflate(R.layout.fragment_footprint_edit, container, false);
 
-        editTextTitle = view.findViewById(R.id.text_footprint_edit_title);
-        editTextDescription = view.findViewById(R.id.text_footprint_edit_desc);
+        footprintEditView = inflater.inflate(R.layout.fragment_footprint_edit, container, false);
 
-        Switch privacySwitch = view.findViewById(R.id.switch_footprint_edit_privacy);
+        editTextTitle = footprintEditView.findViewById(R.id.text_footprint_edit_title);
+        editTextDescription = footprintEditView.findViewById(R.id.text_footprint_edit_desc);
 
-        Button saveEditButton = view.findViewById(R.id.button_footprint_edit_save);
-        saveEditButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hideSoftKeyboard(getActivity());
-                saveEditedFootprint();
-            }
+        privacySwitch = footprintEditView.findViewById(R.id.switch_footprint_edit_privacy);
+        privacySwitch.setChecked(false);
+        privacySwitch.setOnCheckedChangeListener((switchView, isChecked) -> {
+            shareEnabled = isChecked;
         });
 
-        return view;
+        saveEditButton = footprintEditView.findViewById(R.id.button_footprint_edit_save);
+        saveEditButton.setOnClickListener(buttonView -> {
+            hideSoftKeyboard(getActivity());
+            saveEditedFootprint();
+        });
+
+        return footprintEditView;
     }
 
-    private void saveEditedFootprint() {
+    private void saveEditedFootprint(){
         String title = editTextTitle.getText().toString();
         String description = editTextDescription.getText().toString();
         String timeCreated = null;
         String nodeList = null;
-        try {
-            timeCreated = footprintDataForEditJSON.getString("timeCreated");
-            nodeList = footprintDataForEditJSON.getString("footprint");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.w("[DEBUG INFO]", "Unexpected data in JSON for edit.");
-            return;
-        }
+        Integer editedPrivacy = shareEnabled ? 1 : 0;
+
+//        try {
+//            timeCreated = footprintDataForEditJSON.getString("timeCreated");
+//            nodeList = footprintDataForEditJSON.getString("footprint");
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//            Log.w("[DEBUG INFO]", "Unexpected data in JSON for edit.");
+//            return;
+//        }
 
         if (title.trim().isEmpty() || description.trim().isEmpty()) {
-            Toast.makeText(getContext(), "Please insert a title and description.", Toast.LENGTH_SHORT);
+            Toast.makeText(getContext(), "Please insert a title and description.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+
         FootprintViewModel footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
-        Footprint footprint = new Footprint(title, description, nodeList, timeCreated);
-        footprint.setId(footprintId);
-        footprintViewModel.update(footprint);
-        Toast.makeText(getContext(), "Footprint saved.", Toast.LENGTH_SHORT);
+        //Footprint footprint = new Footprint(title, description, nodeList, timeCreated);
+        Footprint editedFootprint = new Footprint(title, description, editedPrivacy);
+        editedFootprint.setId(footprintId);
 
-        JSONObject dataEditCompleteJSON = footprintDataForEditJSON;
-        try {
-            dataEditCompleteJSON.put("title", title);
-            dataEditCompleteJSON.put("desc", description);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        // Update footprint info in local database
+        footprintViewModel.update(editedFootprint);
 
-        updateFootprintDetail(dataEditCompleteJSON);
+        // Update footprint info in cache ViewModel
+        footprintCacheViewModel.setSelectedFootprint(editedFootprint);
+
+        Toast.makeText(getContext(), "Footprint saved.", Toast.LENGTH_SHORT).show();
+
+//        JSONObject dataEditCompleteJSON = footprintDataForEditJSON;
+//        try {
+//            dataEditCompleteJSON.put("title", title);
+//            dataEditCompleteJSON.put("desc", description);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+
+        //updateFootprintDetail(dataEditCompleteJSON);
 
     }
 
@@ -145,23 +170,49 @@ public class FootprintEditFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        Bundle args = getArguments();
-        if (args != null) {
-            String dataReceived = args.getString(KEY_FOOTPRINT_EDIT_DATA_RECEIVED);
-            Log.w("[DEBUG INFO]", "Data for edit received: ["+dataReceived+"]");
+        loadFootprintInfoForEdit();
 
-            try {
-                footprintDataForEditJSON = new JSONObject(dataReceived);
-                footprintId = footprintDataForEditJSON.getInt("footprintId");
+//        Bundle args = getArguments();
+//        if (args != null) {
+//            String dataReceived = args.getString(KEY_FOOTPRINT_EDIT_DATA_RECEIVED);
+//            Log.w("[DEBUG INFO]", "Data for edit received: ["+dataReceived+"]");
+//
+//            try {
+//                footprintDataForEditJSON = new JSONObject(dataReceived);
+//                footprintId = footprintDataForEditJSON.getInt("footprintId");
+//
+//                editTextTitle.setText((String) footprintDataForEditJSON.get("title"));
+//                editTextDescription.setText((String) footprintDataForEditJSON.get("desc"));
+//
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }
+    }
 
-                editTextTitle.setText((String) footprintDataForEditJSON.get("title"));
-                editTextDescription.setText((String) footprintDataForEditJSON.get("desc"));
+    private void loadFootprintInfoForEdit(){
+        try {
+            footprintCacheViewModel = ViewModelProviders.of(getActivity()).get(FootprintCacheViewModel.class);
+            footprintCacheViewModel.getSelectedFootprint().observe(this, new Observer<Footprint>() {
+                @Override
+                public void onChanged(@Nullable Footprint footprint) {
+                    assert footprint != null;
+                    boolean isSharedFootprint = footprint.getPrivacy() == 1;
+                    editTextTitle.setText("");
+                    editTextDescription.setText("");
+                    editTextTitle.setText(footprint.getTitle());
+                    editTextDescription.setText(footprint.getDescription());
+                    footprintId = footprint.getId();
+                    privacySwitch.setChecked(isSharedFootprint);
 
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+                }
+            });
 
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
 

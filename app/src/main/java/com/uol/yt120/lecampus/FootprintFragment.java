@@ -18,10 +18,7 @@ package com.uol.yt120.lecampus;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.arch.persistence.room.Transaction;
 import android.content.Context;
-import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -46,18 +43,14 @@ import android.widget.Toast;
 import com.uol.yt120.lecampus.adapter.FootprintAdapter;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
-import com.uol.yt120.lecampus.viewModel.FootprintDetailViewModel;
+import com.uol.yt120.lecampus.viewModel.FootprintCacheViewModel;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import static android.app.Activity.RESULT_OK;
 
 public class FootprintFragment extends Fragment {
     public static final String TAG = FootprintFragment.class.getSimpleName();
@@ -66,7 +59,7 @@ public class FootprintFragment extends Fragment {
     public static final int VIEW_FOOTPRINT_REQUEST = 2;
     public static final int EDIT_FOOTPRINT_REQUEST = 3;
     private FootprintViewModel footprintViewModel;
-    private FootprintDetailViewModel footprintDetailViewModel;
+    private FootprintCacheViewModel footprintCacheViewModel;
 
     private boolean deleteConfirmed = true;
     private List<Footprint> currentFootprintList = new ArrayList<>();
@@ -141,7 +134,7 @@ public class FootprintFragment extends Fragment {
 
                 Snackbar.make(footprintView, "Footprint deleted", Snackbar.LENGTH_LONG)
                         .setDuration(3000)
-                        .setAction("UNDO", new View.OnClickListener() {
+                        .setAction("Undo", new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 deleteConfirmed = false;
@@ -170,12 +163,12 @@ public class FootprintFragment extends Fragment {
                 buttonAddFootprint.hide();
                 Integer footprintId = footprint.getId();
                 //footprintViewModel.setFootprintMutableLiveData(footprint);
-                footprintDetailViewModel = ViewModelProviders.of(getActivity()).get(FootprintDetailViewModel.class);
-                footprintDetailViewModel.setSelectedFootprint(footprint);
+                footprintCacheViewModel = ViewModelProviders.of(getActivity()).get(FootprintCacheViewModel.class);
+                footprintCacheViewModel.setSelectedFootprint(footprint);
 
                 getChildFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .replace(R.id.footprint_frame_container, new FootprintDetailFragment())
-                        .addToBackStack("FootprintFragment")
+                        .addToBackStack(TAG)
                         .commit();
                 //sendDataThroughActivity(footprint, footprintId);
             }

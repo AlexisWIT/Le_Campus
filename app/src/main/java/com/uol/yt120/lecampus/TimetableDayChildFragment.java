@@ -30,7 +30,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.uol.yt120.lecampus.adapter.UserEventAdapter;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
@@ -104,7 +103,7 @@ public class TimetableDayChildFragment extends Fragment {
             @Override
             public void onItemClick(UserEvent userEvent) {
                 JSONObject userEventDetailJSON = new JSONObject();
-                Integer userEventId = userEvent.getId();
+                Integer userEventId = userEvent.getLocalId();
 
                 try {
                     userEventDetailJSON.put("from", TAG);
