@@ -111,7 +111,7 @@ public abstract class LocalDatabase extends RoomDatabase {
         String example_createTime =
                 "2019-04-10 03:46:20";
 
-        example_footprint = new Footprint(example_title, example_desc, example_nodeList, example_createTime);
+        example_footprint = new Footprint(example_title, example_desc, example_nodeList, example_createTime, 0);
 
         return example_footprint;
     }

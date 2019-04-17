@@ -119,6 +119,11 @@ public class AccountFragment extends Fragment {
     private TextView text_header_name;
     private TextView text_header_email;
 
+//    private static final String default_username = "NO LOGIN";
+//    private static final String default_useremail = "";
+//    private String login_username;
+//    private String login_email;
+
     LoadingDialog loadingDialog = new LoadingDialog();
 
     @Override
@@ -136,7 +141,8 @@ public class AccountFragment extends Fragment {
 
         //loadingDialog = new ProgressDialog(mContext);
         //LoadingDialog loadingDialog = new LoadingDialog();
-
+        userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
+        userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
         loginAddress = getString(R.string.login_web_address);
         loginAddressFailed = getString(R.string.login_web_address_failed);
         prefixAddress = getString(R.string.prefix_web_address);
@@ -149,7 +155,7 @@ public class AccountFragment extends Fragment {
             setHasOptionsMenu(true);
             //final SimpleAdapter contentAdapter = loadUserProfileIntoAdapter(profileContent);
 
-            View userProfileView = mActivity.getLayoutInflater().inflate(R.layout.fragment_account, container, false);
+            View userProfileView = inflater.inflate(R.layout.fragment_account, container, false);
             ImageView avatar = userProfileView.findViewById(R.id.avatar_account);
             avatar.setImageResource(R.drawable.sample_avatar);
             text_username = userProfileView.findViewById(R.id.text_account_username);
@@ -158,12 +164,10 @@ public class AccountFragment extends Fragment {
             text_footprintDistance = userProfileView.findViewById(R.id.label_account_user_footprint_total_distance);
             text_eventNum = userProfileView.findViewById(R.id.label_account_user_event_interest);
 
-
             text_header_name = getActivity().findViewById(R.id.header_account_name);
             text_header_email = getActivity().findViewById(R.id.header_account_email);
 
             //ListView profileListView = userProfileView.findViewById(R.id.account_item_list);
-            userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
             userViewModel.getUserLiveDataById(1).observe(this, new Observer<User>() {
                 @Override
                 public void onChanged(@Nullable User user) {
@@ -172,18 +176,19 @@ public class AccountFragment extends Fragment {
                         text_useremail.setText(user.getUolEmail());
 //                        text_header_name.setText(user.getRealname());
 //                        text_header_name.setText(user.getUolEmail());
+                        syncNavHeader(user.getRealname(), user.getUolEmail());
                     }
                 }
             });
 
 
-            //profileListView.setAdapter(contentAdapter);
+
             return userProfileView;
 
         } else {
             setHasOptionsMenu(false);
-            View view=inflater.inflate(R.layout.fragment_account_web, container, false);
-            webView = view.findViewById(R.id.accountWebView);
+            View loginWebView = inflater.inflate(R.layout.fragment_account_web, container, false);
+            webView = loginWebView.findViewById(R.id.accountWebView);
             webView.loadUrl(loginAddress);
 
             webView.addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
@@ -236,7 +241,7 @@ public class AccountFragment extends Fragment {
                     Log.i("[Account Fragmt]","Hash/URL changed, current URL: "+url);
 
                     if(!loginSuccessful) {
-                        webView.setVisibility(View.VISIBLE);
+                        //webView.setVisibility(View.VISIBLE);
 
                     } else {
 
@@ -250,6 +255,13 @@ public class AccountFragment extends Fragment {
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
+//                                handler2=new Handler();
+//                                Runnable r2=new Runnable() {
+//                                    public void run() {
+//                                        //Will be done after 10 seconds delay.
+//                                    }
+//                                };
+//                                handler2.postDelayed(r2, 3000);
 
                             Log.i("[Account Fragmt]","Hash changed, current URL for timetable: "+url);
                             view.loadUrl("javascript:window.java_obj.showTimetableSource('<head>'+" +
@@ -286,13 +298,13 @@ public class AccountFragment extends Fragment {
                                 }
 
                                 Log.i("[Account Fragmt]","Current URL for user detail: "+url);
-//                                handler=new Handler();
-//                                Runnable r=new Runnable() {
+//                                handler3=new Handler();
+//                                Runnable r3=new Runnable() {
 //                                    public void run() {
 //                                        //Will be done after 10 seconds delay.
 //                                    }
 //                                };
-//                                handler.postDelayed(r, 3000);
+//                                handler3.postDelayed(r3, 3000);
                                 view.loadUrl("javascript:window.java_obj.showDetailSource('<head>'+" +
                                         "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
 
@@ -342,7 +354,7 @@ public class AccountFragment extends Fragment {
                             loadingDialog.init(mContext);
                             loadingDialog.setTitle(mActivity.getString(R.string.progress_dialog_check_login_status));
                             loadingDialog.run();
-                            webView.setVisibility(View.INVISIBLE);
+                            //webView.setVisibility(View.INVISIBLE);
 
                             view.loadUrl("javascript:window.java_obj.showWelcomeSource('<head>'+" +
                                     "document.getElementsByTagName('html')[0].innerHTML+'</head>');");
@@ -350,7 +362,6 @@ public class AccountFragment extends Fragment {
 //                                "document.getElementsByTagName('html')[0].innerHTML+'</head>');};");
 
                             Log.i("[Account Fragmt]","Processing login...");
-                            super.onPageFinished(view, url);
                         }
 
                         while (!loginSuccessful) {
@@ -376,7 +387,7 @@ public class AccountFragment extends Fragment {
 
             });
 
-            return view;
+            return loginWebView;
         }
 
     }
@@ -459,7 +470,6 @@ public class AccountFragment extends Fragment {
             JSONArray jArray = json.getJSONArray("timetable");
 
             for (int i=0; i<jArray.length(); i++) {
-                userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
                 JSONObject eventJSON = jArray.getJSONObject(i);
 
                 /*
@@ -535,36 +545,22 @@ public class AccountFragment extends Fragment {
         Log.i("[Account Fragmt]", detailInfo);
 
         Element infoBox = document.select("div.container").first();
-//        Log.i("[Account Fragmt]", "User Info Box: "+infoBox.html());
 
         String studentNum = infoBox.select("span.data").get(0).text();
         Log.i("[Account Fragmt]", "Student Number: "+studentNum);
 
         String ucasNum = document.select("span.data").get(1).text();
-        Log.i("[Account Fragmt]", "UCAS Number: "+ucasNum);
-
         String surName = document.select("span.data").get(2).text();
-        Log.i("[Account Fragmt]", "Surname: "+surName);
-
         String foreName = document.select("span.data").get(3).text();
-        Log.i("[Account Fragmt]", "Forename: "+foreName);
-
         String prefName = document.select("span.data").get(4).text();
-        Log.i("[Account Fragmt]", "Perffered First Name: "+prefName);
-
         String dob = document.select("span.data").get(5).text();
-        Log.i("[Account Fragmt]", "Date of Birth: "+dob);
-
         String uolEmail = document.select("span.data").get(6).text();
-        Log.i("[Account Fragmt]", "UoL Email: "+uolEmail);
 
         User user = new User(studentNum, ucasNum, foreName+" "+surName, prefName, dob, uolEmail);
 
-        userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
         userViewModel.deleteAllUser();
         userViewModel.insert(user);
         userAccountObtained = true;
-        syncNavHeader(foreName+" "+surName, uolEmail);
 
         detailHashmap.put("Student_Number", studentNum);
         detailHashmap.put("UCAS_Number", ucasNum);
@@ -579,13 +575,14 @@ public class AccountFragment extends Fragment {
             Log.i("[Account Fragmt]", "User JSON detail: "+userDetail);
             writeIntoFile(mContext, userDetail, profileFileName, profileFolderName);
 
-            webView.setVisibility(View.VISIBLE);
+            //webView.setVisibility(View.VISIBLE);
             loadingDialog.hide();
             detailSuccessful = true;
             showTimetable();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.i("[Account Fragmt]", "Webpage is not fully loaded, retry");
+            //e.printStackTrace();
             detailSuccessful = false;
         }
 
@@ -754,6 +751,7 @@ public class AccountFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         if (webView != null) {
             webView.loadDataWithBaseURL(null, "", "text/html", "utf-8", null);
             webView.clearHistory();
@@ -762,12 +760,14 @@ public class AccountFragment extends Fragment {
             webView.destroy();
             webView = null;
         }
-        super.onDestroy();
+
     }
 
     public void showTimetable() {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, new TimetableFragment(), "TimetableFragment").commit();
+        fragmentManager.beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .replace(R.id.fragment_container, new TimetableFragment(), TimetableFragment.TAG)
+                .commit();
 
     }
 
@@ -797,23 +797,23 @@ public class AccountFragment extends Fragment {
         if (externalTimetableFile.exists())
             externalTimetableFile.delete();
             resultEx1 = "Timetable file in External Storage deleted";
-            Log.i("[Account Fragmt]", resultEx1);
+            //Log.i("[Account Fragmt]", resultEx1);
 
         if (externalProfileFile.exists())
             externalProfileFile.delete();
             resultEx2 = "User Profile in External Storage deleted";
-            Log.i("[Account Fragmt]", resultEx2);
+            //Log.i("[Account Fragmt]", resultEx2);
 
         if (internalTimetableFile.exists()) {
             internalTimetableFile.delete();
             resultIn1 = "Timetable file in Internal Storage deleted";
-            Log.i("[Account Fragmt]", resultIn1);
+            //Log.i("[Account Fragmt]", resultIn1);
         }
 
         if (internalProfileFile.exists()) {
             internalProfileFile.delete();
             resultIn2 = "User Profile in Internal Storage deleted";
-            Log.i("[Account Fragmt]", resultIn2);
+            //Log.i("[Account Fragmt]", resultIn2);
         }
 
         userViewModel.deleteAllUser();
@@ -922,18 +922,18 @@ public class AccountFragment extends Fragment {
         File externalFile = new File(externalFolder, profileFileName);
 
         if (!externalFile.exists() || externalFile==null) {
-            Log.i("[Account Fragmt]", "User Profile in external storage not found");
+            //Log.i("[Account Fragmt]", "User Profile in external storage not found");
             externalFileFound = false;
         } else {
-            Log.i("[Account Fragmt]", "Found User Profile in external storage");
+            //Log.i("[Account Fragmt]", "Found User Profile in external storage");
             externalFileFound = true;
         }
 
         if (!internalFile.exists() || internalFile==null) {
-            Log.i("[Account Fragmt]", "User Profile in internal storage not found");
+            //Log.i("[Account Fragmt]", "User Profile in internal storage not found");
             internalFileFound = false;
         } else {
-            Log.i("[Account Fragmt]", "Found User Profile in internal storage");
+            //Log.i("[Account Fragmt]", "Found User Profile in internal storage");
             internalFileFound = true;
         }
 
@@ -953,7 +953,6 @@ public class AccountFragment extends Fragment {
 
     private void checkIfloggedIn(int userId) {
         try {
-            userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
             LiveData<User> user = userViewModel.getUserLiveDataById(userId);
             if (user != null) {
                 Log.w("[Login status]", "found user logged in: ["+user.getValue().getRealname()+"]");

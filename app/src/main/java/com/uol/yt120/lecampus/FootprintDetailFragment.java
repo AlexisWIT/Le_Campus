@@ -139,9 +139,9 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
             case R.id.option_footprint_detail_edit:
                 //footprintEditViewModel.setFootprintToEdit();
                 //mCallback.passData(footprintDataForEdit);
-                getChildFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                        .replace(R.id.footprint_frame_container, new FootprintEditFragment())
-                        .addToBackStack(TAG)
+                getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.footprint_frame_container, new FootprintEditFragment(), FootprintDetailFragment.TAG)
+                        .addToBackStack(FootprintDetailFragment.TAG)
                         .commit();
                 return true;
 

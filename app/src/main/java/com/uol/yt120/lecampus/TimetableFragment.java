@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class TimetableFragment extends Fragment {
+    public static final String TAG = TimetableFragment.class.getSimpleName();
 
     private Activity mActivity;
     private Context mContext;
