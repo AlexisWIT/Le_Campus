@@ -29,17 +29,17 @@ android {
 
 repositories {
     mavenCentral()
-    maven { url 'https://skyhookwireless.github.io/skyhook-context-android' }
 }
 
 configurations {
     cleanedAnnotations
-    compile.exclude group: 'org.jetbrains' , module:'annotations'
+    //compile.exclude group: 'org.jetbrains' , module:'annotations'
 }
 
 dependencies {
     def lifecycle_version = "1.1.1"
     def room_version = "1.1.1"
+    implementation files('libs/wpsapi.jar')
 
     implementation 'org.apache.commons:commons-lang3:3.8.1'
 
@@ -52,31 +52,29 @@ dependencies {
     annotationProcessor "android.arch.persistence.room:compiler:$room_version"
 
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:6.7.1'
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:28.0.0'
+
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:exifinterface:28.0.0'
+    implementation 'com.android.support:animated-vector-drawable:28.0.0'
     implementation 'com.android.support:support-v4:28.0.0'
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.android.support:cardview-v7:28.0.0'
+
     implementation 'com.google.android.gms:play-services-maps:16.1.0'
-    implementation 'com.google.maps.android:android-maps-utils:0.5+'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
+    implementation 'com.google.maps.android:android-maps-utils:0.5+'
 
     // Test components
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'com.squareup.okhttp3:okhttp:3.13.1'
-    implementation 'cn.finalteam:okhttpfinal:2.0.7'
+//    implementation 'com.squareup.okhttp3:okhttp:3.13.1'
+//    implementation 'cn.finalteam:okhttpfinal:2.0.7'
 
     // jsoup HTML parser library @https://jsoup.org/
     implementation 'org.jsoup:jsoup:1.11.3'
-
-    // Skyhook location service SDK
-    implementation ('com.skyhook.context:accelerator:2.1.2') {
-        exclude module: 'support-v4'
-    }
 
     // Image Slider
     implementation 'com.squareup.picasso:picasso:2.71828'
@@ -90,4 +88,5 @@ dependencies {
 
     // RxPermission Controller
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
+    implementation 'org.jetbrains:annotations:15.0'
 }

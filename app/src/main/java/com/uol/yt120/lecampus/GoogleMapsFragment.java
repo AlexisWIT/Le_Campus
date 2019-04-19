@@ -16,25 +16,25 @@
 
 package com.uol.yt120.lecampus;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
@@ -44,6 +44,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +53,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -58,40 +61,46 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.tbruyelle.rxpermissions2.RxPermissions;
+import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
+import com.uol.yt120.lecampus.viewModel.LocationDataCacheViewModel;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 import timber.log.Timber;
 
 
-public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, LocationListener {
+public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
 
-    private String googleAPIkey;
+    public static final String TAG = GoogleMapsFragment.class.getSimpleName();
+    public static final String KEY_GOOGLE_MAPS_DATA = "com.uol.yt120.lecampus.googlemapsfragment";
+    public static final String START_RECORDING_CODE = "rec_fprint";
+    public static final String VIEW_FOOTPRINT_CODE = "view_fprint";
+    public static final String VIEW_CRIME_CODE = "view_crime";
+
+    private DataPassListener mCallback;
+    private LocationDataCacheViewModel locationDataCacheViewModel;
+
     private GoogleMap gMap;
-    private Location location;
-    private boolean enableFootprintTrack;
+    private boolean footprintTrackEnabled;
     private FootprintViewModel footprintViewModel;
 
     private Activity mActivity;
     private Context mContext;
+    private boolean locationEnabled = false;
+    private FloatingActionButton googleLocateButton;
 
-    //Calendar calendar = Calendar.getInstance();
     DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
 
-    Marker prevMarker;
-    Marker currentMarker;
+    Marker currentMarker = null;
     LatLng prevLatLng;
     LatLng currentLatLng;
 
@@ -112,8 +121,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         if (getActivity()!= null) { updateContext(getContext()); }
 
         getActivity().setTitle(getString(R.string.title_fragment_campus_map));
-        googleAPIkey = getString(R.string.google_maps_key);
-        Log.w("[DEBUG INFO]", "Google API Key: ["+googleAPIkey+"]");
+        locationDataCacheViewModel = ViewModelProviders.of(getActivity()).get(LocationDataCacheViewModel.class);
 
         View googleMapViewLayout = inflater.inflate(R.layout.fragment_google_maps, container, false);
 
@@ -123,37 +131,24 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         mapFragment.getMapAsync(this);
 
         // Locating button - Google
-        FloatingActionButton googleLocateButton = (FloatingActionButton) googleMapViewLayout.findViewById(R.id.button_locate_google);
+        googleLocateButton = (FloatingActionButton) googleMapViewLayout.findViewById(R.id.button_locate_google);
         googleLocateButton.setOnClickListener(this::onClick);
 
         FloatingActionButton footprintTrackButton = (FloatingActionButton) googleMapViewLayout.findViewById(R.id.button_tracking_google);
         footprintTrackButton.setOnClickListener(this::onFootprintClick);
-        enableFootprintTrack = false;
+        footprintTrackEnabled = false;
 
         return googleMapViewLayout;
-    }
-
-    private void rxPermissionStart(RxPermissions rp) {
-        rp.request(android.Manifest.permission_group.LOCATION);
-        rp.request(Manifest.permission.ACCESS_FINE_LOCATION).subscribe(granted -> {
-            if (granted) { // Always true pre-M
-                Log.w("[Activity]", "Permission Granted");
-            } else {
-                Log.w("[Activity]", "Permission Denied");
-                rxPermissionStart(rp);
-            }
-        });
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap = googleMap;
+        gMap.getUiSettings().setMapToolbarEnabled(false);
 
         LatLng uniOfLeicester = new LatLng(52.6217, -1.1241);
 
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(uniOfLeicester,18));
-
-        gMap.getUiSettings().setMapToolbarEnabled(false);
 
         // Add marker to map location
 //        gMap.addMarker(new MarkerOptions().position(uniOfLeicester).title("Charles Wilson Building")
@@ -161,7 +156,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
 
     private void onFootprintClick(View view) {
-        if (!enableFootprintTrack) {
+        if (!footprintTrackEnabled) {
             //If footprint tracking is disabled, enable it
             showStartTrackingDialog();
 
@@ -172,99 +167,125 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
 
     //@Override Click button "locating"
-    @SuppressLint("MissingPermission")
     private void onClick(View view) {
 
- //       LocationServiceManager.setGoogleAPIKey(googleAPIkey);
-//        LocationServiceManager.onCreateGPS(getActivity().getApplication());
-        Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-
-        LocationManager locationManagerGPS = (LocationManager) Objects.requireNonNull(getActivity()).getSystemService(Context.LOCATION_SERVICE);
-        Log.i("[Google Map Fragmt]", "Location Manager for GPS defined: "+locationManagerGPS.getAllProviders().toString());
-
-        Criteria criteria = new Criteria();
-
-        criteria.setAltitudeRequired(true);
-        criteria.setCostAllowed(true);
-        criteria.setBearingRequired(true);
-
-        criteria.setPowerRequirement(Criteria.POWER_MEDIUM);
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-
-        double accuracy1 = 500.0;
-        double accuracy2 = 500.0;
-
-        try {
-            Log.i("[Google Map Fragmt]", "Default Service Provider Found: "+locationManagerGPS.getBestProvider(criteria, true));
-            String locationServiceProvider = locationManagerGPS.getBestProvider(criteria, true);
-
-            location = locationManagerGPS.getLastKnownLocation(locationServiceProvider);
-            Location location2 = locationManagerGPS.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-            if (location2 != null) {
-                Log.i("[Google Map Fragmt]", "Network - LAT: "+location2.getLatitude()+", LNG: "+location2.getLongitude()+", ALT: "+location2.getAltitude()+", ACC: "+location2.getAccuracy());
-                accuracy2 = location2.getAccuracy();
+        if (locationEnabled) {
+            locationEnabled = false;
+            googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_locate));
+            Snackbar.make(view, "Stop showing your location.", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            if (footprintTrackEnabled) {
+                showEndTrackingDialog();
             }
-
-            if (location != null) {
-                Log.i("[Google Map Fragmt]", "Default - LAT: "+ location.getLatitude()+ ", LNG: "+ location.getLongitude() + ", ALT: " + location.getAltitude()+", ACC: "+location.getAccuracy());
-                accuracy1 = location.getAccuracy();
-            }
-
-            if (location == null || (accuracy1 > accuracy2)) {
-                location = location2;
-            }
-
-            if (location != null) {
-                Log.i("[Google Map Fragmt]", "Final - LAT: "+location.getLatitude()+", LNG: "+location.getLongitude()+", ALT: "+location.getAltitude()+", ACC: "+location.getAccuracy());
-            }
-
-            //prevLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-            updateLocation(location);
-
-            // provider, minTime(ms), minDistance(metre), listener
-            locationManagerGPS.requestLocationUpdates(locationServiceProvider, 1000, 5, this);
-
-        } catch (Exception e) { // Location service permission error
-            e.printStackTrace();
-            if (getActivity() != null) {
-                AlertDialog alertDialog1 = new AlertDialog.Builder(getActivity())
-                        .setTitle("Location Service Unavailable #0100")
-                        .setMessage("Please try again later. \nDEBUG INFO:"+e.getMessage())
-                        .setPositiveButton("OK", (dialog, which) ->
-                                Timber.d(this.getContext().toString()))
-                        .show();
-            }
-
+        } else {
+            locationEnabled = true;
+            googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_location_disabled));
+            Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            ((NavigationActivity)getActivity()).startGoogleLocationService();
         }
 
+        locationDataCacheViewModel.getMutableLocationLiveData().observe(this, new Observer<Location>() {
+            @Override
+            public void onChanged(@Nullable Location location) {
+                if (location != null) {
+                    if (locationEnabled) {
+                        updateLocation(location);
+                    }
+                }
+            }
+        });
 
     }
 
-    Location location1;
-    Location location2;
-    double ACCURACY1;
-    double accuracy2;
-
-    @SuppressLint("MissingPermission")
     public void updateLocation(Location locationForUpdate) {
 
         if (getActivity()!= null) { updateContext(getContext()); }
 
-        location1 = locationForUpdate;
-        location2 = null;
-        ACCURACY1 = 500.0;
-        accuracy2 = 500.0;
-
         try {
-            LocationManager locationManager2 = (LocationManager) Objects.requireNonNull(mContext).getSystemService(Context.LOCATION_SERVICE);
-            location2 = locationManager2.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            double currentLatitude = locationForUpdate.getLatitude();
+            double currentLongitude = locationForUpdate.getLongitude();
+            double currentAltitude = locationForUpdate.getAltitude();
+            double currentAccuracy = locationForUpdate.getAccuracy();
+
+            Log.i("[Google Map Fragmt]", "Updated - LAT: "+currentLatitude+", LNG: "+currentLongitude+", ALT: "+currentAltitude+", ACC: "+currentAccuracy);
+
+            if (currentLatLng != null) {
+                prevLatLng = currentLatLng;
+            }
+
+            currentLatLng = new LatLng(currentLatitude, currentLongitude);
+
+            gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f), 4000, null);// Updated coordinate
+
+            if (currentMarker == null) {
+                currentMarker = gMap.addMarker(new MarkerOptions().position(currentLatLng).flat(true));
+            }
+
+
+            currentMarker.setTitle("LOCATION");
+            currentMarker.setSnippet("LAT: "+currentLatitude+"\nLNG: "+currentLongitude+"\nALT: "+currentAltitude);
+            currentMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker));
+
+            animateMarker(currentMarker, currentLatLng, false);
+
+            if (footprintTrackEnabled) {
+                if (prevLatLng != null && currentLatLng != null) {
+                    Polyline polyline = gMap.addPolyline((new PolylineOptions()).add(prevLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
+                    int index = trackpointIndex+1;
+
+                    HashMap<String, Object> trackpoint = new HashMap<>();
+                    trackpoint.put("index", index);
+                    Date trackpointDate = new Date(System.currentTimeMillis());
+                    trackpoint.put("time", dateTimeFormatter.formatDateToString(trackpointDate, "default"));
+                    trackpoint.put("lat", locationForUpdate.getLatitude());
+                    trackpoint.put("lon", locationForUpdate.getLongitude());
+                    trackpoint.put("allInfo", locationForUpdate.toString());
+
+                    trackpointList.add(trackpoint);
+                    Log.w("[DEBUG INFO]", "Current List: ["+trackpointList.toString()+"]");
+                    trackpointIndex = index;
+                    Log.w("[DEBUG INFO]", "Global Index: ["+trackpointIndex+"]");
+                    polylineList.add(polyline);
+                }
+            }
+
+            // Enable marker text shown in multiple lines
+            gMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+                @Override
+                public View getInfoWindow(Marker arg0) {
+                    return null;
+                }
+
+                @Override
+                public View getInfoContents(Marker marker) {
+
+                    LinearLayout info = new LinearLayout(getContext());
+                    info.setOrientation(LinearLayout.VERTICAL);
+
+                    TextView title = new TextView(getContext());
+                    title.setTextColor(Color.BLACK);
+                    title.setGravity(Gravity.CENTER);
+                    title.setTypeface(null, Typeface.BOLD);
+                    title.setText(marker.getTitle());
+
+                    TextView snippet = new TextView(getContext());
+                    snippet.setTextColor(Color.GRAY);
+                    snippet.setText(marker.getSnippet());
+
+                    info.addView(title);
+                    info.addView(snippet);
+
+                    return info;
+                }
+
+            });
         } catch (Exception e) {
             e.printStackTrace();
             if (getActivity() != null) {
-                AlertDialog alertDialog2 = new AlertDialog.Builder(getActivity())
-                        .setTitle("Network Unavailable #2703")
+                AlertDialog alertDialog3 = new AlertDialog.Builder(getActivity())
+                        .setTitle("Unable to update your location #0340")
                         .setMessage("Please try again later. \nDEBUG INFO:"+e.getMessage())
                         .setPositiveButton("OK", (dialog, which) ->
                                 Timber.d(this.getContext().toString()))
@@ -273,155 +294,17 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         }
 
-        if (location1 != null) {
-            Log.i("[Google Map Fragmt]", "Default [1] - LAT: "+location1.getLatitude()+", LNG: "+location1.getLongitude()+", ALT: "+location1.getAltitude()+", ACC: "+location1.getAccuracy());
-        }
-
-        if (location2 != null) {
-            Log.i("[Google Map Fragmt]", "Network [2] - LAT: "+location2.getLatitude()+", LNG: "+location2.getLongitude()+", ALT: "+location2.getAltitude()+", ACC: "+location2.getAccuracy());
-            accuracy2 = location2.getAccuracy();
-        }
-
-        if (ACCURACY1 > accuracy2) {
-            location1 = location2;
-
-        } else {
-            location1 = locationForUpdate;
-        }
-
-        try {
-            ACCURACY1 = location1.getAccuracy();
-        } catch (Exception e) {
-
-        }
-
-        String statusMsg;
-        if (location1 != null && ACCURACY1 <= 40) {
-            try {
-                double currentLatitude = location1.getLatitude();
-                double currentLongitude = location1.getLongitude();
-                double currentAltitude = location1.getAltitude();
-                double currentAccuracy = location1.getAccuracy();
-                Log.i("[Google Map Fragmt]", "Updated - LAT: "+currentLatitude+", LNG: "+currentLongitude+", ALT: "+currentAltitude+", ACC: "+currentAccuracy);
-
-                if (currentLatLng != null) {
-                    prevLatLng = currentLatLng;
-                }
-
-                currentLatLng = new LatLng(currentLatitude, currentLongitude);
-
-                gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f), 4000, null);// Updated coordinate
-
-                if (currentMarker != null) {
-                    currentMarker.remove();
-                }
-                currentMarker = gMap.addMarker(new MarkerOptions().position(currentLatLng).flat(true)
-                        .title("LOCATION").snippet("LAT: "+currentLatitude+"\nLNG: "+currentLongitude+"\nALT: "+currentAltitude)
-                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
-
-                if (enableFootprintTrack) {
-                    if (prevLatLng != null && currentLatLng != null) {
-                        Polyline polyline = gMap.addPolyline((new PolylineOptions()).add(prevLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
-                        int index = trackpointIndex+1;
-
-                        HashMap<String, Object> trackpoint = new HashMap<>();
-                        trackpoint.put("index", index);
-                        Date trackpointDate = new Date(System.currentTimeMillis());
-                        trackpoint.put("time", dateTimeFormatter.formatDateToString(trackpointDate, "default"));
-                        trackpoint.put("lat", location1.getLatitude());
-                        trackpoint.put("lon", location1.getLongitude());
-                        trackpoint.put("allInfo", location1.toString());
-
-                        trackpointList.add(trackpoint);
-                        Log.w("[DEBUG INFO]", "Current List: ["+trackpointList.toString()+"]");
-                        trackpointIndex = index;
-                        Log.w("[DEBUG INFO]", "Global Index: ["+trackpointIndex+"]");
-                        polylineList.add(polyline);
-                    }
-                }
-
-                // Enable marker text shown in multiple lines
-                gMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-
-                    @Override
-                    public View getInfoWindow(Marker arg0) {
-                        return null;
-                    }
-
-                    @Override
-                    public View getInfoContents(Marker marker) {
-
-                        LinearLayout info = new LinearLayout(getContext());
-                        info.setOrientation(LinearLayout.VERTICAL);
-
-                        TextView title = new TextView(getContext());
-                        title.setTextColor(Color.BLACK);
-                        title.setGravity(Gravity.CENTER);
-                        title.setTypeface(null, Typeface.BOLD);
-                        title.setText(marker.getTitle());
-
-                        TextView snippet = new TextView(getContext());
-                        snippet.setTextColor(Color.GRAY);
-                        snippet.setText(marker.getSnippet());
-
-                        info.addView(title);
-                        info.addView(snippet);
-
-                        return info;
-                    }
-
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (getActivity() != null) {
-                    AlertDialog alertDialog3 = new AlertDialog.Builder(getActivity())
-                            .setTitle("Unable to update your location #0340")
-                            .setMessage("Please try again later. \nDEBUG INFO:"+e.getMessage())
-                            .setPositiveButton("OK", (dialog, which) ->
-                                    Timber.d(this.getContext().toString()))
-                            .show();
-                }
-
-            }
-
-
-        } else {
-            if (locationForUpdate != null) {
-                Log.i("[Google Map Fragmt]", "Discarded - LAT: "+locationForUpdate.getLatitude()+", LNG: "+locationForUpdate.getLongitude()+", ALT: "+locationForUpdate.getAltitude()+", ACC: "+locationForUpdate.getAccuracy());
-            }
-            Snackbar.make(Objects.requireNonNull(getActivity()).findViewById(R.id.button_locate_google),
-                    "Unable to get your current location due to low data accuracy.", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-        }
-
     }
 
-    @Override
-    public void onLocationChanged(Location location)
-    {
-        updateLocation(location);
-    }
+//    @Override
+//    public void onPrepareOptionsMenu(Menu menu) {
+//        menu.clear();
+//        super.onPrepareOptionsMenu(menu);
+//    }
 
-    @Override
-    public void onProviderDisabled(String provider)
-    {
-        updateLocation(null);
-    }
-
-    @Override
-    public void onProviderEnabled(String arg0)
-    {
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras)
-    {
-    }
-
-
-    // Options specifically for Nearby fragment
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
         inflater.inflate(R.menu.menu_fragment_google_maps, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -435,7 +318,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, new MapBoxMapsFragment())
+                        .replace(R.id.fragment_container, new MapBoxMapsFragment(), MapBoxMapsFragment.TAG)
                         .commit();
 
                 return true;
@@ -455,14 +338,14 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the operation
-                        enableFootprintTrack = false;
+                        footprintTrackEnabled = false;
                         trackpointIndex = 0;
                     }
                 })
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User approved the operation
-                        enableFootprintTrack = true;
+                        footprintTrackEnabled = true;
                         trackpointIndex = 0;
                     }
                 });
@@ -477,7 +360,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         builder.setNeutralButton("Discard", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // User cancelled the operation, stop tracking, clear existing footprint
-                    enableFootprintTrack = false;
+                    footprintTrackEnabled = false;
                     trackpointIndex = 0;
                     clearAllTrackpoints();
                     clearAllPolylines();
@@ -486,13 +369,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             .setNegativeButton("Keep Recording", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // User cancelled the operation, continue tracking
-                    enableFootprintTrack = true;
+                    footprintTrackEnabled = true;
                 }
             })
             .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // User approved the operation, footprint tracking stopped, save footprint
-                    enableFootprintTrack = false;
+                    footprintTrackEnabled = false;
                     //Date saveTime = calendar.getTime();
                     Date saveTime = new Date(System.currentTimeMillis());
                     Log.w("DEBUG", "SAVE DATE: "+saveTime.toString());
@@ -544,6 +427,40 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         }
     }
 
+    public void animateMarker(final Marker marker, final LatLng targetLocation,
+                              final boolean hideMarker) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = gMap.getProjection();
+        android.graphics.Point startPoint = proj.toScreenLocation(marker.getPosition());
+        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+        final long duration = 500;
+        final Interpolator interpolator = new LinearInterpolator();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed
+                        / duration);
+                double lng = t * targetLocation.longitude + (1 - t)
+                        * startLatLng.longitude;
+                double lat = t * targetLocation.latitude + (1 - t)
+                        * startLatLng.latitude;
+                marker.setPosition(new LatLng(lat, lng));
+                if (t < 1.0) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 16);
+                } else {
+                    if (hideMarker) {
+                        marker.setVisible(false);
+                    } else {
+                        marker.setVisible(true);
+                    }
+                }
+            }
+        });
+    }
+
     /**
      * Due to the different lifecycle, Activity may be recycled
      * by the system with the Fragment still existed. To prevent the
@@ -570,6 +487,11 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     public void onAttach(Context context) {
         super.onAttach(context);
         updateContext(context);
+        try {
+            mCallback = (DataPassListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()+ " did not implement DataPassListener");
+        }
     }
 
     @Override

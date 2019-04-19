@@ -17,17 +17,28 @@
 package com.uol.yt120.lecampus;
 
 import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
+import android.app.AlertDialog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -42,9 +53,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.User;
+import com.uol.yt120.lecampus.service.GoogleLocationService;
+import com.uol.yt120.lecampus.service.SkyhookLocationService;
+import com.uol.yt120.lecampus.serviceReceiver.GoogleLocationServiceReceiver;
+import com.uol.yt120.lecampus.serviceReceiver.SkyhookLocationServiceReceiver;
+import com.uol.yt120.lecampus.utility.LocationDataProcessor;
+import com.uol.yt120.lecampus.utility.LocationServiceController;
+import com.uol.yt120.lecampus.viewModel.LocationDataCacheViewModel;
 import com.uol.yt120.lecampus.viewModel.UserViewModel;
 
 import org.json.JSONException;
@@ -54,14 +71,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- *
- *
- *
+ * This is the only main activity in this application which is hosting several fragments
+ * this activity is responsible for:
+ *  - the interaction of navigation drawer
+ *  - communicating between fragment and service/receiver, fragment and other fragment
+ *  - managing the logic of back button (backstack)
  */
-
-public class NavigationActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, DataPassListener {
+public class NavigationActivity extends AppCompatActivity implements
+        NavigationView.OnNavigationItemSelectedListener, DataPassListener, SharedPreferences.OnSharedPreferenceChangeListener {
+    public static final String TAG = NavigationActivity.class.getSimpleName();
 
     public static final String ACTIVITY_NAVIGATION = "NavigationActivity";
     public static final String FRAGMENT_ACCOUNT = "AccountFragment";
@@ -79,13 +97,22 @@ public class NavigationActivity extends AppCompatActivity
     public static final String FRAGMENT_USEREVENT_DETAIL = "UserEventDetailFragment";
 
     public static final String BACKSTACK_CLEAN_ALL = "all";
-    public static final String BACKSTACK_CLEAN_LIMIT = "default"; // Clean backstack when achieved given limit
+    public static final String BACKSTACK_CLEAN_LIMIT = "default";
     public static final int BACKSTACK_LIMIT = 5;
 
-    public static final String CHANNEL_ID = "Security_Service_Channel";
+    private static final int REQUEST_PERMISSION_CODE = 123;
+
+    private GoogleLocationServiceReceiver gleReceiver;
+    private SkyhookLocationServiceReceiver shkReceiver;
+
+    private GoogleLocationService gleService = null;
+    private SkyhookLocationService shkService = null;
+
+    private boolean isBoundToGoogleService = false;
+    private boolean isBoundToSkyhookService = false; // Use startService() to start Skyhook rather than binder;
 
     private long backPressedTime;
-    private Toast backToast;
+
     private NavigationView navigationView;
     private Intent backIntent;
     private List<Fragment> fragmentList = new ArrayList<>();
@@ -93,22 +120,47 @@ public class NavigationActivity extends AppCompatActivity
     private TextView username;
     private TextView useremail;
     private ImageView useravater;
+    private int backStackEntryCount = 0;
+
+    private LocationDataCacheViewModel locationDataCacheViewModel;
 
     DrawerLayout drawerLayout;
     Toolbar toolbar;
     ActionBarDrawerToggle actionBarDrawerToggle;
 
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            GoogleLocationService.LocalBinder binder = (GoogleLocationService.LocalBinder) service;
+            gleService = binder.getService();
+            isBoundToGoogleService = true;
+            Log.w("[NavActivity]", "Service bound");
+        }
 
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            gleService = null;
+            isBoundToGoogleService = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        if (savedInstanceState != null) {
-//            GoogleMapsFragment googleMapsFragment = (GoogleMapsFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_GOOGLE_MAPS);
-//        }
+        gleReceiver = new GoogleLocationServiceReceiver();
+        shkReceiver = new SkyhookLocationServiceReceiver();
 
         setContentView(R.layout.activity_navigation);
 
+        locationDataCacheViewModel = ViewModelProviders.of(this).get(LocationDataCacheViewModel.class);
+
+        if (LocationServiceController.isAPPRequestingService(this)) {
+            if (!locationPermissionIsGranted()) {
+                requestLocationPermission();
+            }
+        }
+
+        // Loading UI components
         toolbar = (Toolbar) findViewById(R.id.acitvity_tool_bar);
         setSupportActionBar(toolbar);
 
@@ -127,8 +179,6 @@ public class NavigationActivity extends AppCompatActivity
         useremail = (TextView) headerView.findViewById(R.id.header_account_email);
         useravater = (ImageView) headerView.findViewById(R.id.header_account_avatar);
 
-//            username.setText("username")
-
         headerView.setOnClickListener(v -> {
             Fragment currentFrag = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
             FragmentTransaction fragmentTransactionAccount = getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -137,18 +187,17 @@ public class NavigationActivity extends AppCompatActivity
                 if (currentFrag.getTag().equals(FRAGMENT_GOOGLE_MAPS) || currentFrag.getTag().equals(FRAGMENT_MAPBOX_MAPS)) {
                     fragmentTransactionAccount.addToBackStack(currentFrag.getTag());
                 }
-            } catch (Exception e) { }
+            } catch (Exception e) {
+            }
 
             fragmentTransactionAccount.commit();
             drawerLayout.closeDrawers();
             try {
                 navigationView.getCheckedItem().setChecked(false);
-            } catch (Exception e) { }
+            } catch (Exception e) {
+            }
 
         });
-
-        final RxPermissions rxPermissions = new RxPermissions(this);
-        rxPermissionStart(rxPermissions);
 
         // set default(Root) screen
         if (savedInstanceState == null) {
@@ -159,9 +208,29 @@ public class NavigationActivity extends AppCompatActivity
         }
     }
 
-    int backStackEntryCount;
+    /**
+     * Start Google location service here
+     */
+    @Override
+    protected void onStart(){
+        super.onStart();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(this);
+
+//        if (!locationPermissionIsGranted()) {
+//            requestLocationPermission();
+//        } else {
+//            gleService.requestGoogleLocationUpdates();
+//        }
+
+        bindService(new Intent(this, GoogleLocationService.class), serviceConnection,
+                Context.BIND_AUTO_CREATE);
+    }
+
     @Override
     public void onBackPressed() {
+        // Define a toast here and show in If statements
+        Toast backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -177,15 +246,14 @@ public class NavigationActivity extends AppCompatActivity
         if (currentFrag instanceof GoogleMapsFragment || currentFrag instanceof MapBoxMapsFragment) {
             if (backPressedTime + 2000 > System.currentTimeMillis()) { // Second press less than 2 sec
                 backToast.cancel();
-                Log.w("[NavActivityBACK]", "Pressed Twice, Current Frag is ["+currentFrag.getTag()+"], BackStack: "+backStackEntryCount);
+                Log.w("[NavActivityBACK]", "Pressed Twice, Current Frag is [" + currentFrag.getTag() + "], BackStack: " + backStackEntryCount);
                 //cleanBackStack(BACKSTACK_CLEAN_ALL);
                 super.onBackPressed();
                 return;
 
             } else {
-                backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
                 backToast.show();
-                Log.w("[NavActivityBACK]", "Pressed Once, Current Frag is ["+currentFrag.getTag()+"]");
+                Log.w("[NavActivityBACK]", "Pressed Once, Current Frag is [" + currentFrag.getTag() + "]");
             }
 
             backPressedTime = System.currentTimeMillis();
@@ -194,15 +262,15 @@ public class NavigationActivity extends AppCompatActivity
             If current fragment is other main fragment (Account, Timetable, Nearby, Security), back to map fragment
          */
         } else if (currentFrag instanceof AccountFragment || currentFrag instanceof TimetableFragment ||
-                    currentFrag instanceof NearbyFragment || currentFrag instanceof SecurityFragment || currentFrag instanceof FootprintFragment) {
-            Log.w("[NavActivityBACK]", "Current Frag is Other Main Frag ["+currentFrag.getTag()+"], BackStack: "+backStackEntryCount);
+                currentFrag instanceof NearbyFragment || currentFrag instanceof SecurityFragment || currentFrag instanceof FootprintFragment) {
+            Log.w("[NavActivityBACK]", "Current Frag is Other Main Frag [" + currentFrag.getTag() + "], BackStack: " + backStackEntryCount);
 //            getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
 //                    .replace(R.id.fragment_container, new GoogleMapsFragment(), FRAGMENT_GOOGLE_MAPS)
 //                    //.addToBackStack(null)  add current activity/fragment to back stack
 //                    .commit();
-            if (backStackEntryCount ==0) {
+            if (backStackEntryCount == 0) {
                 getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                    .replace(R.id.fragment_container, new GoogleMapsFragment(), FRAGMENT_GOOGLE_MAPS).commit();
+                        .replace(R.id.fragment_container, new GoogleMapsFragment(), FRAGMENT_GOOGLE_MAPS).commit();
             }
             navigationView.setCheckedItem(R.id.nav_map);
             super.onBackPressed();
@@ -213,7 +281,7 @@ public class NavigationActivity extends AppCompatActivity
          */
         } else {
 
-            Log.w("[NavActivityBACK]", "Current Frag is Other Main Frag ["+currentFrag.getTag()+"], BackStack: "+backStackEntryCount);
+            Log.w("[NavActivityBACK]", "Current Frag is Other Main Frag [" + currentFrag.getTag() + "], BackStack: " + backStackEntryCount);
             if (backStackEntryCount != 0) {
                 getSupportFragmentManager().popBackStack();
             } else {
@@ -223,18 +291,6 @@ public class NavigationActivity extends AppCompatActivity
 
         }
 
-    }
-
-    private void rxPermissionStart(RxPermissions rp) {
-        //rp.request(Manifest.permission_group.LOCATION);
-        rp.request(Manifest.permission.ACCESS_FINE_LOCATION).subscribe(granted -> {
-            if (granted) { // Always true pre-M
-                Log.w("[Activity]", "Permission Granted");
-            } else {
-                Log.w("[Activity]", "Permission Denied");
-                rxPermissionStart(rp);
-            }
-        });
     }
 
     @Override
@@ -264,9 +320,9 @@ public class NavigationActivity extends AppCompatActivity
 
         switch (id) {
             case R.id.nav_map:
-                Log.w("[NavActivitySwitch]", "Planned Transaction: From ["+currentFrag.getTag()+"] to ["+FRAGMENT_GOOGLE_MAPS+"]");
+                Log.w("[NavActivitySwitch]", "Planned Transaction: From [" + currentFrag.getTag() + "] to [" + FRAGMENT_GOOGLE_MAPS + "]");
                 String targetFragTag = FRAGMENT_GOOGLE_MAPS;
-                String currentFragTag ="";
+                String currentFragTag = "";
 
                 if (currentFrag.getTag() != null) {
                     currentFragTag = currentFrag.getTag();
@@ -279,7 +335,7 @@ public class NavigationActivity extends AppCompatActivity
                     if (cachedFrag instanceof GoogleMapsFragment) {
                         fragmentTransactionMap
                                 .replace(R.id.fragment_container, cachedFrag, targetFragTag);
-                        Log.w("[NavActivitySwitch]", "Found instance of ["+currentFrag.getTag()+"] in backstack");
+                        Log.w("[NavActivitySwitch]", "Found instance of [" + currentFrag.getTag() + "] in backstack");
 
                     } else {
                         fragmentTransactionMap
@@ -293,7 +349,7 @@ public class NavigationActivity extends AppCompatActivity
                 break;
 
             case R.id.nav_timetable:
-                Log.w("[NavActivitySwitch]", "Planned Transaction: From ["+currentFrag.getTag()+"] to ["+FRAGMENT_TIMETABLE+"]");
+                Log.w("[NavActivitySwitch]", "Planned Transaction: From [" + currentFrag.getTag() + "] to [" + FRAGMENT_TIMETABLE + "]");
 
                 cachedFrag = getSupportFragmentManager().findFragmentByTag(FRAGMENT_TIMETABLE);
                 FragmentTransaction fragmentTransactionTimetable =
@@ -302,7 +358,7 @@ public class NavigationActivity extends AppCompatActivity
                 if (cachedFrag instanceof TimetableFragment) {
                     fragmentTransactionTimetable
                             .replace(R.id.fragment_container, cachedFrag, FRAGMENT_TIMETABLE);
-                    Log.w("[NavActivitySwitch]", "Found instance of ["+currentFrag.getTag()+"] in backstack");
+                    Log.w("[NavActivitySwitch]", "Found instance of [" + currentFrag.getTag() + "] in backstack");
 
                 } else {
                     fragmentTransactionTimetable
@@ -322,7 +378,7 @@ public class NavigationActivity extends AppCompatActivity
                 break;
 
             case R.id.nav_nearby:
-                Log.w("[NavActivitySwitch]", "Planned Transaction: From ["+currentFrag.getTag()+"] to ["+FRAGMENT_NEARBY+"]");
+                Log.w("[NavActivitySwitch]", "Planned Transaction: From [" + currentFrag.getTag() + "] to [" + FRAGMENT_NEARBY + "]");
 
                 cachedFrag = getSupportFragmentManager().findFragmentByTag(FRAGMENT_NEARBY);
                 FragmentTransaction fragmentTransactionNearby = getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -330,7 +386,7 @@ public class NavigationActivity extends AppCompatActivity
                 if (cachedFrag instanceof NearbyFragment) {
                     fragmentTransactionNearby
                             .replace(R.id.fragment_container, cachedFrag, FRAGMENT_NEARBY);
-                    Log.w("[NavActivitySwitch]", "Found instance of ["+currentFrag.getTag()+"] in backstack");
+                    Log.w("[NavActivitySwitch]", "Found instance of [" + currentFrag.getTag() + "] in backstack");
                 } else {
                     fragmentTransactionNearby
                             .replace(R.id.fragment_container, new NearbyFragment(), FRAGMENT_NEARBY);
@@ -349,7 +405,7 @@ public class NavigationActivity extends AppCompatActivity
                 break;
 
             case R.id.nav_footprint:
-                Log.w("[NavActivitySwitch]", "Planned Transaction: From ["+currentFrag.getTag()+"] to ["+FRAGMENT_FOOTPRINT+"]");
+                Log.w("[NavActivitySwitch]", "Planned Transaction: From [" + currentFrag.getTag() + "] to [" + FRAGMENT_FOOTPRINT + "]");
 
                 cachedFrag = getSupportFragmentManager().findFragmentByTag(FRAGMENT_FOOTPRINT);
                 FragmentTransaction fragmentTransactionFootprint = getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -357,7 +413,7 @@ public class NavigationActivity extends AppCompatActivity
                 if (cachedFrag instanceof FootprintFragment) {
                     fragmentTransactionFootprint
                             .replace(R.id.fragment_container, cachedFrag, FRAGMENT_FOOTPRINT);
-                    Log.w("[NavActivitySwitch]", "Found instance of ["+currentFrag.getTag()+"] in backstack");
+                    Log.w("[NavActivitySwitch]", "Found instance of [" + currentFrag.getTag() + "] in backstack");
                 } else {
                     fragmentTransactionFootprint
                             .replace(R.id.fragment_container, new FootprintFragment(), FRAGMENT_FOOTPRINT);
@@ -376,13 +432,13 @@ public class NavigationActivity extends AppCompatActivity
                 break;
 
             case R.id.nav_security:
-                Log.w("[NavActivitySwitch]", "Planned Transaction: From ["+currentFrag.getTag()+"] to ["+FRAGMENT_SECURITY+"]");
+                Log.w("[NavActivitySwitch]", "Planned Transaction: From [" + currentFrag.getTag() + "] to [" + FRAGMENT_SECURITY + "]");
 
                 cachedFrag = getSupportFragmentManager().findFragmentByTag(FRAGMENT_SECURITY);
                 FragmentTransaction fragmentTransactionSecurity = getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 if (cachedFrag instanceof SecurityFragment) {
                     fragmentTransactionSecurity.replace(R.id.fragment_container, cachedFrag, FRAGMENT_SECURITY);
-                    Log.w("[NavActivitySwitch]", "Found instance of ["+currentFrag.getTag()+"] in backstack");
+                    Log.w("[NavActivitySwitch]", "Found instance of [" + currentFrag.getTag() + "] in backstack");
 
                 } else {
                     fragmentTransactionSecurity.replace(R.id.fragment_container, new SecurityFragment(), FRAGMENT_SECURITY);
@@ -425,9 +481,87 @@ public class NavigationActivity extends AppCompatActivity
         drawerLayout.setDrawerLockMode(drawerMode);
     }
 
+    /**
+     * Data relayed from global receiver will be retrieved here.
+     */
+    private BroadcastReceiver localLocationDataReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            LocationDataProcessor processor = new LocationDataProcessor();
+
+            if (intent != null) {
+                // Broadcast from google service
+                if (intent.getAction().equals(GoogleLocationServiceReceiver.ACTION_GLE_SERVICE_BROADCAST_RELAY)) {
+                    Log.w("[NavigationActivity]", "Received Data from Global [Google Location Service] Broadcast Receiver");
+
+                    String gleLocationJSON =
+                            intent.getStringExtra(GoogleLocationServiceReceiver.ACTION_GLE_LOCATION_DATA);
+
+                    Location gleLocation = processor.encapStringToLocation(gleLocationJSON);
+                    locationDataCacheViewModel.setMutableLocationLiveData(gleLocation);
+
+                // Broadcast from Skyhook service
+                } else if (intent.getAction().equals(SkyhookLocationServiceReceiver.ACTION_SHK_SERVICE_BROADCAST_RELAY)){
+                    String shkLocationJSON =
+                            intent.getStringExtra(SkyhookLocationServiceReceiver.ACTION_SHK_LOCATION_DATA);
+                    int geofenceTriggerType =
+                            intent.getIntExtra(SkyhookLocationServiceReceiver.ACTION_SHK_LOCATION_GEOFENCE, -1);
+
+                    Location shkLocation = processor.encapStringToLocation(shkLocationJSON);
+
+                    switch (geofenceTriggerType) {
+                        case SkyhookLocationServiceReceiver.GEOFENCE_NULL:
+
+                            break;
+
+                        case SkyhookLocationServiceReceiver.GEOFENCE_IN:
+
+
+//                            // Vibrate the phone when the user crosses the geofence
+//                            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+//                            v.vibrate(1000);
+
+                            break;
+
+                        case SkyhookLocationServiceReceiver.GEOFENCE_OUT:
+
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+
+            }
+
+        }
+
+    };
+
+
+
+    /**
+     * Register the receiver to Service
+     * Update the header info
+     */
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(gleReceiver, new IntentFilter(GoogleLocationService.ACTION_BROADCAST));
+
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(shkReceiver, new IntentFilter(SkyhookLocationService.LOCATION_UPDATED));
+
+        // Register the local broadcast receiver with shk service
+        IntentFilter localLocationIntentFilter = new IntentFilter();
+        localLocationIntentFilter.addAction(GoogleLocationServiceReceiver.ACTION_GLE_SERVICE_BROADCAST_RELAY);
+        localLocationIntentFilter.addAction(SkyhookLocationServiceReceiver.ACTION_SHK_SERVICE_BROADCAST_RELAY);
+
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(localLocationDataReceiver, localLocationIntentFilter);
+
         UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
         userViewModel.getUserLiveDataById(1).observe(this, new Observer<User>() {
             @Override
@@ -440,7 +574,39 @@ public class NavigationActivity extends AppCompatActivity
     }
 
     @Override
+    public void onPause() {
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(gleReceiver);
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(localLocationDataReceiver);
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop(){
+        // Tell the service this activity is no longer available to receive data, and promote itself to foreground service.
+        if(isBoundToGoogleService) {
+            unbindService(serviceConnection);
+            isBoundToGoogleService = false;
+        }
+
+        if (!securityServiceEnabled()) {
+            SkyhookLocationService.stopService(getApplicationContext());
+        }
+
+
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+        super.onStop();
+    }
+
+    private boolean securityServiceEnabled() {
+        return false;
+    }
+
+    @Override
     public void passData(String data) {
+        int backStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
+        FragmentTransaction fragmentTransaction =
+                getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+
         try {
             JSONObject dataJSON = new JSONObject(data);
             String from = (String) dataJSON.get("from");
@@ -449,27 +615,27 @@ public class NavigationActivity extends AppCompatActivity
             Log.w("[DEBUG INFO]", "Ready to relay: [" + data + "]");
 
             switch (destination) {
-                case FRAGMENT_FOOTPRINT_DETAIL:
-                    FootprintDetailFragment footprintDetailFragment = new FootprintDetailFragment();
-
-                    Bundle args1 = new Bundle();
-                    args1.putString(FootprintDetailFragment.KEY_FOOTPRINT_DATA_RECEIVED, data);
-                    footprintDetailFragment.setArguments(args1);
-                    getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                            //.addToBackStack(from)
-                            .replace(R.id.fragment_container, footprintDetailFragment).commit();
-                    break;
-
-                case FRAGMENT_FOOTPRINT_EDIT:
-                    FootprintEditFragment footprintEditFragment = new FootprintEditFragment();
-
-                    Bundle args2 = new Bundle();
-                    args2.putString(FootprintEditFragment.KEY_FOOTPRINT_EDIT_DATA_RECEIVED, data);
-                    footprintEditFragment.setArguments(args2);
-                    getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                            //.addToBackStack(from)
-                            .replace(R.id.fragment_container, footprintEditFragment).commit();
-                    break;
+//                case FRAGMENT_FOOTPRINT_DETAIL:
+//                    FootprintDetailFragment footprintDetailFragment = new FootprintDetailFragment();
+//
+//                    Bundle args1 = new Bundle();
+//                    args1.putString(FootprintDetailFragment.KEY_FOOTPRINT_DATA_RECEIVED, data);
+//                    footprintDetailFragment.setArguments(args1);
+//                    getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+//                            //.addToBackStack(from)
+//                            .replace(R.id.fragment_container, footprintDetailFragment).commit();
+//                    break;
+//
+//                case FRAGMENT_FOOTPRINT_EDIT:
+//                    FootprintEditFragment footprintEditFragment = new FootprintEditFragment();
+//
+//                    Bundle args2 = new Bundle();
+//                    args2.putString(FootprintEditFragment.KEY_FOOTPRINT_EDIT_DATA_RECEIVED, data);
+//                    footprintEditFragment.setArguments(args2);
+//                    getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+//                            //.addToBackStack(from)
+//                            .replace(R.id.fragment_container, footprintEditFragment).commit();
+//                    break;
 
                 case FRAGMENT_USEREVENT_DETAIL:
                     UserEventDetailFragment userEventDetailFragment = new UserEventDetailFragment();
@@ -482,6 +648,27 @@ public class NavigationActivity extends AppCompatActivity
                             .replace(R.id.fragment_container, userEventDetailFragment).commit();
                     break;
 
+                case FRAGMENT_GOOGLE_MAPS:
+                    Fragment newGoogleMapsFrag = new GoogleMapsFragment();
+                    Bundle args4 = new Bundle();
+                    args4.putString(GoogleMapsFragment.KEY_GOOGLE_MAPS_DATA, data);
+
+                    if (backStackEntryCount != 0) {
+                        Fragment cachedFrag = getSupportFragmentManager().findFragmentByTag(GoogleMapsFragment.TAG);
+                        if (cachedFrag instanceof GoogleMapsFragment) {
+                            cachedFrag.setArguments(args4);
+                            fragmentTransaction.replace(R.id.fragment_container, cachedFrag, GoogleMapsFragment.TAG);
+                        } else {
+                            newGoogleMapsFrag.setArguments(args4);
+                            fragmentTransaction.replace(R.id.fragment_container, newGoogleMapsFrag, GoogleMapsFragment.TAG);
+                        }
+                    } else {
+                        newGoogleMapsFrag.setArguments(args4);
+                        fragmentTransaction.replace(R.id.fragment_container, newGoogleMapsFrag, GoogleMapsFragment.TAG);
+                    }
+                    fragmentTransaction.commit();
+                    break;
+
             }
 
         } catch (JSONException e) {
@@ -491,33 +678,122 @@ public class NavigationActivity extends AppCompatActivity
 
     }
 
-//    private void cleanBackStack(String option) {
-//        int currentStackCount = getFragmentManager().getBackStackEntryCount();
-//        int stackLimit = BACKSTACK_LIMIT;
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//
-//        switch (option) {
-//            case BACKSTACK_CLEAN_ALL:
-//                fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-//                break;
-//
-//            case BACKSTACK_CLEAN_LIMIT:
-//                for(int i = 0; i < currentStackCount; i++) {
-//
-//                }
-//                break;
-//
-//        }
-//    }
-
-    private void setupNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel securityServiceChannel = new NotificationChannel(
-                    CHANNEL_ID, "Security Service Channel", NotificationManager.IMPORTANCE_HIGH
-            );
+    public void startGoogleLocationService() {
+        if (!locationPermissionIsGranted()) {
+            requestLocationPermission();
+        } else {
+            if(isBoundToGoogleService) {
+                gleService.requestGoogleLocationUpdates();
+            }
         }
-//        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-//        notificationManager.createNotificationChannel(securityServiceChannel);
+    }
+
+
+    public void startSecurityLocationService() {
+        if (locationPermissionIsGranted()) {
+            Intent startServiceIntent = new Intent(NavigationActivity.this, GoogleLocationService.class);
+            startService(startServiceIntent);
+            Log.w("[NavigationActivity]", "Google Location Service started");
+
+        } else {
+            requestLocationPermission();
+        }
+
+    }
+
+    public void stopSecurityLocationService() {
+        Intent stopServiceIntent = new Intent(NavigationActivity.this, GoogleLocationService.class);
+        stopService(stopServiceIntent);
+        Log.w("[NavigationActivity]", "Google Location Service stoped");
+    }
+
+    // For getting precise location
+    private boolean locationPermissionIsGranted() {
+        return PackageManager.PERMISSION_GRANTED ==
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    private void requestLocationPermission() {
+        // Check if system is able to show permission granting dialog to user
+        boolean shouldShowRationale =
+                ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (shouldShowRationale) {
+            AlertDialog alertDialog1 = new AlertDialog.Builder(this)
+                    .setTitle("Location Permission Required")
+                    .setMessage("Location and tracking function need permission to run.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ActivityCompat.requestPermissions(NavigationActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                    REQUEST_PERMISSION_CODE);
+                        }
+                    })
+                    .show();
+        } else {
+            ActivityCompat.requestPermissions(NavigationActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_PERMISSION_CODE);
+        }
+    }
+
+    // For save shared files
+    private boolean filePermissionIsGranted() {
+        return PackageManager.PERMISSION_GRANTED ==
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    }
+
+    // For sync timetable to system calendar
+    private boolean timetablePermissionIsGranted() {
+        return PackageManager.PERMISSION_GRANTED ==
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR);
+    }
+
+    // For set avatar or social function
+    private boolean cameraPermissionIsGranted() {
+        return PackageManager.PERMISSION_GRANTED ==
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+    }
+
+    /**
+     * Last time check permission
+     * @param code
+     * @param permissions
+     * @param results
+     */
+    @Override
+    public void onRequestPermissionsResult (int code, String[] permissions, int[] results) {
+        if (code == REQUEST_PERMISSION_CODE) {
+            if (results.length <=0) { // failed
+                Toast.makeText(this, "No permission granted", Toast.LENGTH_SHORT).show();
+
+            } else if (results[0] == PackageManager.PERMISSION_GRANTED) { // granted
+
+                gleService.requestGoogleLocationUpdates();
+                Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
+            } else { // denied
+                AlertDialog alertDialog2 = new AlertDialog.Builder(this)
+                        .setTitle("Permission Error")
+                        .setMessage("Location and tracking function need permission to run.")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ActivityCompat.requestPermissions(NavigationActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        REQUEST_PERMISSION_CODE);
+                            }
+                        })
+                        .show();
+
+            }
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+
     }
 
     public void setupHeaderInfo(String name, String email) {

@@ -40,6 +40,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.SupportMapFragment;
 
 public class MapBoxMapsFragment extends Fragment implements OnMapReadyCallback {
+    public static final String TAG = MapBoxMapsFragment.class.getSimpleName();
 
     private MapboxMap mMap;
 

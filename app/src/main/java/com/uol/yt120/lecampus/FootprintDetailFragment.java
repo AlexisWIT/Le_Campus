@@ -109,8 +109,10 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
         buttonStartFootprintDirection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
+                //mCallback.passData(FootprintDetailFragment.TAG, NavigationActivity.ACTIVITY_NAVIGATION, );
+                getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.fragment_container, new GoogleMapsFragment())
+                        .commit();
             }
         });
 
@@ -137,10 +139,9 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.option_footprint_detail_edit:
-                //footprintEditViewModel.setFootprintToEdit();
-                //mCallback.passData(footprintDataForEdit);
+                // Footprint data in cacheViewModel has been set in Footprint fragment;
                 getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                        .replace(R.id.footprint_frame_container, new FootprintEditFragment(), FootprintDetailFragment.TAG)
+                        .replace(R.id.fragment_container, new FootprintEditFragment())
                         .addToBackStack(FootprintDetailFragment.TAG)
                         .commit();
                 return true;

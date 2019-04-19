@@ -26,7 +26,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -43,6 +42,7 @@ import android.widget.Toast;
 import com.uol.yt120.lecampus.adapter.FootprintAdapter;
 import com.uol.yt120.lecampus.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.utility.JsonDataProcessor;
 import com.uol.yt120.lecampus.viewModel.FootprintCacheViewModel;
 import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 
@@ -88,10 +88,11 @@ public class FootprintFragment extends Fragment {
             public void onClick(View v) {
                 // Confirmation dialog pop out, Redirect to Google map fragment and start tracking
 
-                FragmentManager fragmentManager = getChildFragmentManager();
-                fragmentManager.beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                        .replace(R.id.fragment_container, new GoogleMapsFragment(),"GoogleMapsFragment")
-                        .commit();
+                notifyMapToStartRecording();
+//                FragmentManager fragmentManager = getChildFragmentManager();
+//                fragmentManager.beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+//                        .replace(R.id.fragment_container, new GoogleMapsFragment(),"GoogleMapsFragment")
+//                        .commit();
 //                Intent intent = new Intent(getActivity(), GoogleMapsFragment.class);
 //                startActivityForResult(intent, ADD_FOOTPRINT_REQUEST);
             }
@@ -150,10 +151,11 @@ public class FootprintFragment extends Fragment {
                             Toast.makeText(getActivity(), "Footprint deleted", Toast.LENGTH_SHORT).show();
                         } else {
                             footprintAdapter.setFootprintList(currentFootprintList);
+                            deleteConfirmed = true;
                         }
                     }
                 };
-                handler.postDelayed(r, 3000);
+                handler.postDelayed(r, 3100);
             }
         }).attachToRecyclerView(recyclerView);
 
@@ -166,8 +168,8 @@ public class FootprintFragment extends Fragment {
                 footprintCacheViewModel = ViewModelProviders.of(getActivity()).get(FootprintCacheViewModel.class);
                 footprintCacheViewModel.setSelectedFootprint(footprint);
 
-                getChildFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                        .replace(R.id.footprint_frame_container, new FootprintDetailFragment())
+                getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.fragment_container, new FootprintDetailFragment(), FootprintDetailFragment.TAG)
                         .addToBackStack(TAG)
                         .commit();
                 //sendDataThroughActivity(footprint, footprintId);
@@ -241,6 +243,14 @@ public class FootprintFragment extends Fragment {
             e.printStackTrace();
             Toast.makeText(getActivity(), "Something went wrong, please try again.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void notifyMapToStartRecording() {
+        JsonDataProcessor jsonDataProcessor = new JsonDataProcessor();
+        String message =
+                jsonDataProcessor.createJSONStringForPassData(FootprintFragment.TAG, GoogleMapsFragment.TAG, GoogleMapsFragment.START_RECORDING_CODE);
+        mCallback.passData(message);
+
     }
 
     @Override
