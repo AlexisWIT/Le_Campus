@@ -6,9 +6,9 @@ import android.arch.lifecycle.MutableLiveData;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.uol.yt120.lecampus.dataAccessObjects.UserEventDAO;
-import com.uol.yt120.lecampus.database.LocalDatabase;
-import com.uol.yt120.lecampus.domain.UserEvent;
+import com.uol.yt120.lecampus.model.dataAccessObjects.UserEventDAO;
+import com.uol.yt120.lecampus.model.database.LocalDatabase;
+import com.uol.yt120.lecampus.model.domain.UserEvent;
 
 import java.util.List;
 
@@ -67,6 +67,10 @@ public class UserEventRepository {
     public List<UserEvent> getNonLiveUserEventListByDateRange(String startDate, String endDate) {
         Log.w("[UserEventRepository]", "Date Range received in Repository: From ["+ startDate +"] to ["+endDate+"]");
         return userEventDAO.getNonLiveUserEventListByDateRange(startDate, endDate);
+    }
+
+    public UserEvent getNonLiveUserEventByTitle(String eventTitle) {
+        return userEventDAO.getNonLiveUserEventByTitle(eventTitle);
     }
 
 

@@ -4,6 +4,12 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.uol.yt120.lecampus.model.dataAccessObjects.UserDAO;
+import com.uol.yt120.lecampus.model.domain.User;
+import com.uol.yt120.lecampus.model.domain.UserEvent;
+import com.uol.yt120.lecampus.repository.UserEventRepository;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,4 +29,5 @@ public class ExampleInstrumentedTest {
 
         assertEquals("com.uol.yt120.lecampus", appContext.getPackageName());
     }
+
 }

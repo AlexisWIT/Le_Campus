@@ -29,7 +29,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.uol.yt120.lecampus.NavigationActivity;
+import com.uol.yt120.lecampus.view.NavigationActivity;
 import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.utility.LocationServiceController;
 

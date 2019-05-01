@@ -10,11 +10,11 @@
     <item
         android:id="@+id/action_switch_to_mapbox_map"
         android:orderInCategory="1"
-        android:title="Switch to..."
+        android:title="Offline Map"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_opt_2_google_maps"
+        android:id="@+id/action_layers_google_maps"
         android:orderInCategory="2"
-        android:title="Option 2"
+        android:title="Layers"
         app:showAsAction="never" />
 </menu>

@@ -18,7 +18,7 @@
         android:name="com.mapbox.mapboxsdk.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MapBoxMapsFragment" />
+        tools:context=".view.fragment.MapBoxMapsFragment" />
 
 <!-- mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10" -->
 

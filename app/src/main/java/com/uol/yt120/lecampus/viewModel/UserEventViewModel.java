@@ -5,7 +5,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 
-import com.uol.yt120.lecampus.domain.UserEvent;
+import com.uol.yt120.lecampus.model.domain.UserEvent;
 import com.uol.yt120.lecampus.repository.UserEventRepository;
 
 import java.util.List;

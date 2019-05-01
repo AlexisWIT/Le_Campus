@@ -42,16 +42,16 @@
             android:enabled="true"
             android:exported="true" />
 
-        <receiver android:name=".serviceReceiver.GoogleLocationServiceReceiver"
+        <receiver android:name=".broadcastReceiver.GoogleLocationServiceReceiver"
             android:enabled="true"
             android:exported="false" />
         <receiver
-            android:name=".serviceReceiver.SkyhookLocationServiceReceiver"
+            android:name=".broadcastReceiver.SkyhookLocationServiceReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <activity
-            android:name=".NavigationActivity"
+            android:name=".view.NavigationActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>

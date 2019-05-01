@@ -17,7 +17,12 @@
     <string name="nav_button_timetable">Timetable</string>
     <string name="nav_button_nearby">Nearby</string>
     <string name="nav_button_footprint">Footprint</string>
-    <string name="nav_button_more">Security</string>
+    <string name="nav_button_security">Security</string>
+
+    <string name="nav_group_name">Social</string>
+
+    <string name="nav_button_posts">Posts</string>
+    <string name="nav_button_chat">Chat</string>
 
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>

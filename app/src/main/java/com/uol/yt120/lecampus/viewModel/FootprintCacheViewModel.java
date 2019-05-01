@@ -2,11 +2,10 @@ package com.uol.yt120.lecampus.viewModel;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
 
-import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.model.domain.Footprint;
 
 public class FootprintCacheViewModel extends AndroidViewModel {
 

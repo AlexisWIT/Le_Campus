@@ -41,8 +41,8 @@ public class DateTimeCalculator {
         if (diffInAbs > yearInMillis) {
             r = (diffInAbs / yearInMillis);
             if (r == 1) {
-                if (difference>0) return r + " yearInMillis ago";
-                else return "in " +r + " yearInMillis";
+                if (difference>0) return r + " year ago";
+                else return "in " +r + " year";
             } else {
                 if (difference>0) return r + " years ago";
                 else return "in " +r + " years";
@@ -51,8 +51,8 @@ public class DateTimeCalculator {
         if (diffInAbs > monthInMillis) {
             r = (diffInAbs / monthInMillis);
             if (r == 1) {
-                if (difference>0) return r + " monthInMillis ago";
-                else return "in " +r + " monthInMillis";
+                if (difference>0) return r + " month ago";
+                else return "in " +r + " month";
             } else {
                 if (difference>0) return r + " months ago";
                 else return "in " +r + " months";
@@ -71,8 +71,8 @@ public class DateTimeCalculator {
         if (diffInAbs > hourInMillis) {
             r = (diffInAbs / hourInMillis);
             if (r == 1) {
-                if (difference>0) return r + " hourInMillis ago";
-                else return "in " +r + " hourInMillis";
+                if (difference>0) return r + " hour ago";
+                else return "in " +r + " hour";
             } else {
                 if (difference>0) return r + " hours ago";
                 else return "in " +r + " hours";
@@ -81,8 +81,8 @@ public class DateTimeCalculator {
         if (diffInAbs > minuteInMillis) {
             r = (diffInAbs / minuteInMillis);
             if (r == 1) {
-                if (difference > 0) return r + " minuteInMillis ago";
-                else return "in " + r + " minuteInMillis";
+                if (difference > 0) return r + " minute ago";
+                else return "in " + r + " minute";
             } else {
                 if (difference > 0) return r + " minutes ago";
                 else return "in " + r + " minutes";

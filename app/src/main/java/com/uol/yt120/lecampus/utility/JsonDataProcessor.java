@@ -3,6 +3,8 @@ package com.uol.yt120.lecampus.utility;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
+
 /**
  * This class is used for creating JSON string
  * data communicating between Fragments and Activity
@@ -40,4 +42,8 @@ public class JsonDataProcessor {
         dataJSONString = dataJSON.toString();
         return dataJSONString;
     }
+
+//    public static String encapInputStreamToJSONString(InputStream inputStream) {
+//
+//    }
 }

@@ -8,20 +8,24 @@ import android.support.annotation.NonNull;
 
 import java.util.List;
 
+/**
+ * The location broadcasted by service will be cached here
+ *
+ */
 public class LocationDataCacheViewModel extends AndroidViewModel {
-    private MutableLiveData<Location>  mutableLocationLiveData = new MutableLiveData<>();
+    private MutableLiveData<Location> mutableCurrentLocationLiveData = new MutableLiveData<>();
     private MutableLiveData<List<Location>> mutableLocationListLiveData = new MutableLiveData<>();
 
     public LocationDataCacheViewModel(@NonNull Application application) {
         super(application);
     }
 
-    public void setMutableLocationLiveData(Location location) {
-        mutableLocationLiveData.setValue(location);
+    public void setMutableCurrentLocationLiveData(Location location) {
+        mutableCurrentLocationLiveData.setValue(location);
     }
 
-    public MutableLiveData<Location> getMutableLocationLiveData() {
-        return mutableLocationLiveData;
+    public MutableLiveData<Location> getMutableCurrentLocationLiveData() {
+        return mutableCurrentLocationLiveData;
     }
 
     public void setMutableLocationListLiveData(List<Location> locationList) {

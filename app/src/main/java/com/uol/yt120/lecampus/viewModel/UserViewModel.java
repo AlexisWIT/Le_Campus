@@ -5,7 +5,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 
-import com.uol.yt120.lecampus.domain.User;
+import com.uol.yt120.lecampus.model.domain.User;
 import com.uol.yt120.lecampus.repository.UserRepository;
 
 public class UserViewModel extends AndroidViewModel {
@@ -25,6 +25,8 @@ public class UserViewModel extends AndroidViewModel {
     public void delete(User user) { userRepository.delete(user);}
 
     public void deleteAllUser() { userRepository.deleteAllUser();}
+
+    public LiveData<User> getUserLiveData() { return userRepository.getUserLiveData();}
 
     public LiveData<User> getUserLiveDataById(int id) {return userRepository.getUserLiveDataById(id);}
 

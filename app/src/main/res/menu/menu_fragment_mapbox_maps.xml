@@ -10,7 +10,7 @@
     <item
         android:id="@+id/action_switch_to_google_map"
         android:orderInCategory="1"
-        android:title="Switch to..."
+        android:title="Online Map"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_opt_2"

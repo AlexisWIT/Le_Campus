@@ -23,19 +23,19 @@
         <item
             android:id="@+id/nav_security"
             android:icon="@drawable/ic_menu_security"
-            android:title="@string/nav_button_more" />
+            android:title="@string/nav_button_security" />
     </group>
 
-    <item android:title="Social">
+    <item android:title="@string/nav_group_name">
         <menu>
             <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+                android:title="@string/nav_button_posts" />
             <item
                 android:id="@+id/nav_send"
                 android:icon="@drawable/ic_menu_send"
-                android:title="Explore" />
+                android:title="@string/nav_button_chat" />
         </menu>
     </item>
 

@@ -4,9 +4,9 @@ import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
 
-import com.uol.yt120.lecampus.dataAccessObjects.FootprintDAO;
-import com.uol.yt120.lecampus.database.LocalDatabase;
-import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.model.dataAccessObjects.FootprintDAO;
+import com.uol.yt120.lecampus.model.database.LocalDatabase;
+import com.uol.yt120.lecampus.model.domain.Footprint;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package com.uol.yt120.lecampus.utility;
 
-import com.uol.yt120.lecampus.domain.Footprint;
+import com.uol.yt120.lecampus.model.domain.Footprint;
 
 public class ObjectComparetor {
 
