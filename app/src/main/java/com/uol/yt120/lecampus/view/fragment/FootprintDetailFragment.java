@@ -159,8 +159,8 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
 
     @Override
     public void onStart() {
-        super.onStart();
         updateView();
+        super.onStart();
     }
 
     private void updateView() {
@@ -240,7 +240,12 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                     latLngBoundsBuilder.include(currentLatLng);
 
                     if (lastLatLng != null) {
-                        polyline = gMap.addPolyline((new PolylineOptions()).add(lastLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
+                        polyline = gMap.addPolyline((new PolylineOptions())
+                                .add(lastLatLng, currentLatLng)
+                                .geodesic(true)
+                                .width(9)
+                                .color(Color.GRAY)
+                                .visible(true));
                     }
 
                 } else {

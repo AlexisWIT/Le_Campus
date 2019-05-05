@@ -28,7 +28,6 @@ public class GoogleLocationServiceReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-//        handler.removeCallbacks(sendLocationUpdate);
         this.context = context;
         this.intent = new Intent(ACTION_GLE_SERVICE_BROADCAST_RELAY);
 
@@ -36,7 +35,6 @@ public class GoogleLocationServiceReceiver extends BroadcastReceiver {
             Location location = intent.getParcelableExtra(GoogleLocationService.EXTRA_LOCATION);
             if (location != null) {
                 String locationJSON = getLocationInString(location);
-                //Log.w("[Glbal_Ggle_Rcivr]", locationJSON);
                 broadcastDataToActivity(locationJSON);
 
             }
@@ -70,11 +68,11 @@ public class GoogleLocationServiceReceiver extends BroadcastReceiver {
             //String speedACC = Double.toString(location.getSpeedAccuracyMetersPerSecond());
 
             String[] value = {""+latitude, ""+longitude, ""+altitude, ""+accuracy, ""+speedEST, ""+localTimeStamp};
-            result = dataProcessor.encapDataToJSONString(label, value);
+            result = dataProcessor.encapDataToJSON(label, value).toString();
 
         } else {
             String[] value = {"", "", "", "", "", localTimeStamp};
-            result = dataProcessor.encapDataToJSONString(label, value);
+            result = dataProcessor.encapDataToJSON(label, value).toString();
         }
         return result;
     }

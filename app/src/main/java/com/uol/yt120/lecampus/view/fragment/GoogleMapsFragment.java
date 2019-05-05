@@ -50,6 +50,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -57,6 +58,7 @@ import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -72,7 +74,6 @@ import com.uol.yt120.lecampus.viewModel.FootprintViewModel;
 import com.uol.yt120.lecampus.viewModel.LocationDataCacheViewModel;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -102,8 +103,11 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private Activity mActivity;
     private Context mContext;
     private boolean locationEnabled = false;
+    private boolean directionEnabled = false;
+
     private FloatingActionButton googleLocateButton;
-    private Polyline directionPolyline;
+    private static Polyline directionPolyline;
+    private boolean cameraMovingEnabled = true;
 
     DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
 
@@ -145,6 +149,21 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         footprintTrackButton.setOnClickListener(this::onFootprintClick);
         footprintTrackEnabled = false;
 
+        locationDataCacheViewModel.getMutableCurrentLocationLiveData().observe(this, new Observer<Location>() {
+            @Override
+            public void onChanged(@Nullable Location location) {
+                if (location != null) {
+                    currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    if (directionEnabled) {
+                        ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
+                    }
+                    if (locationEnabled) {
+                        updateLocation(location);
+                    }
+                }
+            }
+        });
+
         return googleMapViewLayout;
     }
 
@@ -152,14 +171,25 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     public void onMapReady(GoogleMap googleMap) {
         gMap = googleMap;
         gMap.getUiSettings().setMapToolbarEnabled(false);
+        gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+
+            }
+        });
+
+        gMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+
+            }
+        });
 
         LatLng uniOfLeicester = new LatLng(52.6217, -1.1241);
 
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(uniOfLeicester,18));
+        Log.w("[GoogleMapsFragment]", "Map loaded");
 
-        // Add marker to map location
-//        gMap.addMarker(new MarkerOptions().position(uniOfLeicester).title("Charles Wilson Building")
-//                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker)));
     }
 
     private void onFootprintClick(View view) {
@@ -178,31 +208,22 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         if (locationEnabled) {
             locationEnabled = false;
+            cameraMovingEnabled = false;
             googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_locate));
             Snackbar.make(view, "Stop showing your location.", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
             if (footprintTrackEnabled) {
                 showEndTrackingDialog();
             }
+            ((NavigationActivity)getActivity()).updateGoogleLocationService(10,5);
         } else {
             locationEnabled = true;
+            cameraMovingEnabled = true;
             googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_location_disabled));
             Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
-
-            ((NavigationActivity)getActivity()).startGoogleLocationService();
+            ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
         }
-
-        locationDataCacheViewModel.getMutableCurrentLocationLiveData().observe(this, new Observer<Location>() {
-            @Override
-            public void onChanged(@Nullable Location location) {
-                if (location != null) {
-                    if (locationEnabled) {
-                        updateLocation(location);
-                    }
-                }
-            }
-        });
 
     }
 
@@ -224,12 +245,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
             currentLatLng = new LatLng(currentLatitude, currentLongitude);
 
-            gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f), 4000, null);// Updated coordinate
+            if (cameraMovingEnabled) {
+                gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f), 4000, null);// Updated coordinate
+            }
 
             if (currentMarker == null) {
                 currentMarker = gMap.addMarker(new MarkerOptions().position(currentLatLng).flat(true));
             }
-
 
             currentMarker.setTitle("LOCATION");
             currentMarker.setSnippet("LAT: "+currentLatitude+"\nLNG: "+currentLongitude+"\nALT: "+currentAltitude);
@@ -308,12 +330,32 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         }
 
     }
+    @Override
+    public void onStart() {
+        locationDataCacheViewModel.getLatLngForDirection().observe(this, new Observer<LatLng>() {
+            @Override
+            public void onChanged(@Nullable LatLng targetLatLng) {
+                if (targetLatLng != null && currentLatLng != null) {
+                    Log.i("[GoogleMapsFragment]", "Current Latlng: "+currentLatLng);
+                    try {
+                        ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2); // location update interval (second)
+                        getDirectionPath(currentLatLng.latitude, currentLatLng.longitude, targetLatLng.latitude, targetLatLng.longitude, MapDrawer.MODE_WALK);
+                        cameraMovingEnabled = false;
+                        directionEnabled = true;
 
-//    @Override
-//    public void onPrepareOptionsMenu(Menu menu) {
-//        menu.clear();
-//        super.onPrepareOptionsMenu(menu);
-//    }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -343,6 +385,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                     gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
                 }
                 return true;
+
+            case R.id.action_clear_direction:
+                directionPolyline.remove();
+                //gMap.clear();
+
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -403,16 +452,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                     footprintTrackEnabled = false;
                     //Date saveTime = calendar.getTime();
                     Date saveTime = new Date(System.currentTimeMillis());
-                    Log.w("DEBUG", "SAVE DATE: "+saveTime.toString());
-
 
                     String title = "New Footprint";
                     String desc = "No description.";
                     String timeCreated = dateTimeFormatter.formatDateToString(saveTime, "default");
-
                     saveFootprint(title, desc, timeCreated, trackpointList);
-
                     trackpointIndex = 0;
+
                     clearAllTrackpoints();
                     clearAllPolylines();
                 }
@@ -510,7 +556,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                         endLat, endLng, MapDrawer.MODE_WALK);
 
         new ProcessDirectionPathAsyncTask(requestUrl, this).execute();
-
     }
 
     @Override
@@ -520,13 +565,29 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
     @Override
     public void showPath(List<LatLng> pathList) {
-
+        Log.i("[GoogleMapsFragment]", "Got path: "+pathList.toString());
+        directionPolyline.remove();
         directionPolyline = gMap.addPolyline(new PolylineOptions()
                 .addAll(pathList)
-                .width(12)
-                .color(Color.parseColor("#05b1fb"))//Google maps blue color
+                .width(9)
+                .color(Color.GRAY)
                 .geodesic(true)
         );
+        LatLngBounds.Builder latLngBoundsBuilder = new LatLngBounds.Builder();
+
+        for (LatLng point : pathList) {
+            latLngBoundsBuilder.include(point);
+        }
+
+        LatLngBounds bounds = latLngBoundsBuilder.build();
+
+        int width = getResources().getDisplayMetrics().widthPixels;
+        int height = getResources().getDisplayMetrics().heightPixels;
+        int padding = (int) (height * 0.10); // offset from edges of the map 20% of screen
+
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
+        gMap.animateCamera(cu);
+        locationDataCacheViewModel.setLatLngForDirection(null);
     }
 
 

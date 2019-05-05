@@ -6,6 +6,8 @@ import android.arch.lifecycle.MutableLiveData;
 import android.location.Location;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.List;
 
 /**
@@ -15,6 +17,7 @@ import java.util.List;
 public class LocationDataCacheViewModel extends AndroidViewModel {
     private MutableLiveData<Location> mutableCurrentLocationLiveData = new MutableLiveData<>();
     private MutableLiveData<List<Location>> mutableLocationListLiveData = new MutableLiveData<>();
+    private MutableLiveData<LatLng> latLngForDirection = new MutableLiveData<>();
 
     public LocationDataCacheViewModel(@NonNull Application application) {
         super(application);
@@ -34,5 +37,13 @@ public class LocationDataCacheViewModel extends AndroidViewModel {
 
     public MutableLiveData<List<Location>> getMutableLocationListLiveData() {
         return mutableLocationListLiveData;
+    }
+
+    public MutableLiveData<LatLng> getLatLngForDirection() {
+        return latLngForDirection;
+    }
+
+    public void setLatLngForDirection(LatLng latLng) {
+        latLngForDirection.setValue(latLng);
     }
 }

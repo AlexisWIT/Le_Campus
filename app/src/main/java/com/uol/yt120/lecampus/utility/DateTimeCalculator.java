@@ -42,50 +42,50 @@ public class DateTimeCalculator {
             r = (diffInAbs / yearInMillis);
             if (r == 1) {
                 if (difference>0) return r + " year ago";
-                else return "in " +r + " year";
+                else return "In " +r + " year";
             } else {
                 if (difference>0) return r + " years ago";
-                else return "in " +r + " years";
+                else return "In " +r + " years";
             }
         }
         if (diffInAbs > monthInMillis) {
             r = (diffInAbs / monthInMillis);
             if (r == 1) {
                 if (difference>0) return r + " month ago";
-                else return "in " +r + " month";
+                else return "In " +r + " month";
             } else {
                 if (difference>0) return r + " months ago";
-                else return "in " +r + " months";
+                else return "In " +r + " months";
             }
         }
         if (diffInAbs > dayInMillis) {
             r = (diffInAbs / dayInMillis);
             if (r == 1) {
-                if (difference>0) return "Yesterday";
-                else return "Tomorrow";
+                if (difference>0) return r +"day ago";
+                else return "In " +r + " day";
             } else {
                 if (difference>0) return r + " days ago";
-                else return "in " +r + " days";
+                else return "In " +r + " days";
             }
         }
         if (diffInAbs > hourInMillis) {
             r = (diffInAbs / hourInMillis);
             if (r == 1) {
                 if (difference>0) return r + " hour ago";
-                else return "in " +r + " hour";
+                else return "In " +r + " hour";
             } else {
                 if (difference>0) return r + " hours ago";
-                else return "in " +r + " hours";
+                else return "In " +r + " hours";
             }
         }
         if (diffInAbs > minuteInMillis) {
             r = (diffInAbs / minuteInMillis);
             if (r == 1) {
                 if (difference > 0) return r + " minute ago";
-                else return "in " + r + " minute";
+                else return "In " + r + " minute";
             } else {
                 if (difference > 0) return r + " minutes ago";
-                else return "in " + r + " minutes";
+                else return "In " + r + " minutes";
             }
         }
         return "Just now";

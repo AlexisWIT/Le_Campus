@@ -35,14 +35,10 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
 
     @Override
     public void onBindViewHolder(@NonNull FootprintHolder footprintHolder, int position) {
-
         Footprint currentFootprint = footprintList.get(position);
-        Log.w("[Footprint Adapter]", "Current Footprint: "+currentFootprint.toString());
         footprintHolder.textViewTitle.setText(currentFootprint.getTitle());
         footprintHolder.textViewDesc.setText(currentFootprint.getDescription());
         footprintHolder.textViewDate.setText(currentFootprint.getCreateTime());
-        // Footprint map thumbnail image
-        // Add here
 
     }
 

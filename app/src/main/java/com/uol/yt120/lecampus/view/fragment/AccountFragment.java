@@ -399,7 +399,6 @@ public class AccountFragment extends Fragment {
         public void showWelcomeSource(String html) {
             getWelcomeContent(html);
         }
-
         @JavascriptInterface
         public void showDetailSource(String html) {
             getDetailContent(html);

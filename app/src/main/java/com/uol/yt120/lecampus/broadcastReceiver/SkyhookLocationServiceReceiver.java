@@ -108,11 +108,11 @@ public class SkyhookLocationServiceReceiver extends BroadcastReceiver {
             //String serverTimeStamp = String.valueOf(location.getServerTimestamp());
 
             String[] value = {""+latitude, ""+longitude, ""+altitude, ""+accuracy, ""+speedEST, ""+localTimeStamp};
-            result = dataProcessor.encapDataToJSONString(label, value);
+            result = dataProcessor.encapDataToJSON(label, value).toString();
 
         } else {
             String[] value = {"", "", "", "", "", localTimeStamp};
-            result = dataProcessor.encapDataToJSONString(label, value);
+            result = dataProcessor.encapDataToJSON(label, value).toString();
         }
         return result;
     }

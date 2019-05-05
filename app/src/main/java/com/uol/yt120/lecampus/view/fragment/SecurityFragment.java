@@ -1,29 +1,57 @@
 package com.uol.yt120.lecampus.view.fragment;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.uol.yt120.lecampus.R;
+import com.uol.yt120.lecampus.model.restAPI.RestApiClient;
+import com.uol.yt120.lecampus.model.restDomain.CrimeGeoFence;
+import com.uol.yt120.lecampus.utility.HttpHandler;
+import com.uol.yt120.lecampus.view.NavigationActivity;
+
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SecurityFragment extends Fragment implements OnMapReadyCallback {
+
+    public static final String TAG = SecurityFragment.class.getSimpleName();
+    public static final String SECURITY_NOTIFIER_STATUS = "Security_Notifier_Status";
 
     private MapView crimeMapView;
     private View securityView;
     private GoogleMap crimeMap;
     private Switch securitySwitch;
+    private SharedPreferences sharedPreferences;
+    private HeatmapTileProvider heatmapTileProvider;
+    private TileOverlay tileOverlay;
+    //private List<CrimeGeoFence> crimeGeoFences;
 
     private boolean securityNotifierEnabled;
 
@@ -40,7 +68,21 @@ public class SecurityFragment extends Fragment implements OnMapReadyCallback {
 
         getActivity().setTitle(getString(R.string.title_fragment_security));
         securityView = inflater.inflate(R.layout.fragment_security, container, false);
+        sharedPreferences = getActivity().getSharedPreferences(NavigationActivity.SHARED_PREFS, Context.MODE_PRIVATE);
+
         securitySwitch = securityView.findViewById(R.id.switch_security_notifier);
+        securitySwitch.setChecked(sharedPreferences.getBoolean(SECURITY_NOTIFIER_STATUS, false));
+        securitySwitch.setOnClickListener((switchView) -> {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(SECURITY_NOTIFIER_STATUS, securitySwitch.isChecked());
+            editor.apply();
+            if (securitySwitch.isChecked()) {
+                Toast.makeText(getContext(), "Security Notifier Enabled", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Security Notifier Disabled", Toast.LENGTH_SHORT).show();
+            }
+
+        });
 
         crimeMapView = securityView.findViewById(R.id.crime_map);
         crimeMapView.onCreate(savedInstanceState);
@@ -75,7 +117,51 @@ public class SecurityFragment extends Fragment implements OnMapReadyCallback {
         LatLng city = new LatLng(52.633904, -1.131657);
 
         crimeMap.moveCamera(CameraUpdateFactory.newLatLngZoom(city,14));
+        loadCrimeData();
 
         crimeMapView.onResume();
+    }
+
+    public void loadCrimeData() {
+        HttpHandler httpHandler = new HttpHandler();
+        RestApiClient restApiClient = httpHandler.initRestApiClient();
+        Call<List<CrimeGeoFence>> crimeCall = restApiClient.getCrimeGeoFences();
+        crimeCall.enqueue(new Callback<List<CrimeGeoFence>>() {
+            @Override
+            public void onResponse(Call<List<CrimeGeoFence>> call, Response<List<CrimeGeoFence>> response) {
+                if (!response.isSuccessful()) {
+                    Log.e("[HTTP Handler]", "Error occurred, Code: "+response.code()); // 404 or other
+                    return;
+                }
+                List<CrimeGeoFence> crimeGeoFences = response.body();
+                generateHeatMap(crimeGeoFences);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<CrimeGeoFence>> call, Throwable t) {
+                Log.e("[HTTP Handler]", "Error occurred, Info: " + t.getMessage());
+            }
+        });
+    }
+
+    private void generateHeatMap(List<CrimeGeoFence> crimeGeoFences) {
+        List<WeightedLatLng> datalist = new ArrayList<>();
+
+        for (CrimeGeoFence crimeGeoFence: crimeGeoFences) {
+            double lat = Double.valueOf(crimeGeoFence.getLat());
+            double lng = Double.valueOf(crimeGeoFence.getLng());
+            LatLng latLng = new LatLng(lat, lng);
+            datalist.add(new WeightedLatLng(latLng, 1));
+        }
+
+
+        heatmapTileProvider = new HeatmapTileProvider.Builder()
+                .weightedData(datalist)
+                .build();
+
+        // Add a heat zone overlay to the map
+        tileOverlay = crimeMap.addTileOverlay(new TileOverlayOptions().tileProvider(heatmapTileProvider));
+
     }
 }

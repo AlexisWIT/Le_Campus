@@ -422,7 +422,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         userEvent.setColor(viewStyle);
         userEvent.setCancelled(isCancelled);
 
-        Log.w("[User Event]", "User event to Weekview event");
+        //Log.w("[User Event]", "User event to Weekview event");
 
         return userEvent;
     }

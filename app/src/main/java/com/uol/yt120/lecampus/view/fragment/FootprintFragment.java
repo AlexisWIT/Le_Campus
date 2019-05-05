@@ -19,6 +19,7 @@ package com.uol.yt120.lecampus.view.fragment;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -40,6 +41,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.uol.yt120.lecampus.R;
+import com.uol.yt120.lecampus.view.NavigationActivity;
 import com.uol.yt120.lecampus.view.adapter.FootprintAdapter;
 import com.uol.yt120.lecampus.model.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.model.domain.Footprint;
@@ -144,6 +146,7 @@ public class FootprintFragment extends Fragment {
                         }).show();
 
                 Footprint footprint = footprintAdapter.getFootprintAt(viewHolder.getAdapterPosition());
+
                 Handler handler=new Handler();
                 Runnable r=new Runnable() {
                     public void run() {
@@ -153,9 +156,7 @@ public class FootprintFragment extends Fragment {
 
                             if (getActivity()!=null) {
                                 Toast.makeText(getActivity(), "Footprint deleted", Toast.LENGTH_SHORT).show();
-                                //((NavigationActivity) getActivity()).showToast("Footprint deleted", Toast.LENGTH_SHORT);
                             }
-
                         } else {
                             // Reload list
                             footprintAdapter.setFootprintList(currentFootprintList);

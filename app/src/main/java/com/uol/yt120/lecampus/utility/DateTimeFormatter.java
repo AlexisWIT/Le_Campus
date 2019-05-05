@@ -14,12 +14,12 @@ public class DateTimeFormatter {
 
     private final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private final String DATE_NO_TIME_PATTERN = "yyyy-MM-dd";
-    private final String TIME_ONLY_PATERN = "HH:mm";
+    private final String TIME_ONLY_PATERN = "HH:mm a";
     private final String UNI_DATE_PATTERN = "dd/MMM/yyyy";
     private final String SERVER_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private final String DATE_NO_YEAR_PATTERN = "MM-dd";
 
-    private Locale zoneLocale = Locale.UK;
+    private Locale locale = Locale.UK;
     private TimeZone deviceTimeZone = TimeZone.getDefault();
     private TimeZone serverTimeZone = TimeZone.getTimeZone("UTC");
 
@@ -36,7 +36,7 @@ public class DateTimeFormatter {
                 dateFormat = new SimpleDateFormat(UNI_DATE_PATTERN);
                 break;
             case "time_only":
-                dateFormat = new SimpleDateFormat(TIME_ONLY_PATERN);
+                dateFormat = new SimpleDateFormat(TIME_ONLY_PATERN, locale);
                 break;
             case "no_year":
                 dateFormat = new SimpleDateFormat(DATE_NO_YEAR_PATTERN);
@@ -65,7 +65,7 @@ public class DateTimeFormatter {
                 dateFormat = new SimpleDateFormat(UNI_DATE_PATTERN);
                 break;
             case "time_only":
-                dateFormat = new SimpleDateFormat(TIME_ONLY_PATERN);
+                dateFormat = new SimpleDateFormat(TIME_ONLY_PATERN, locale);
                 break;
             case "no_year":
                 dateFormat = new SimpleDateFormat(DATE_NO_YEAR_PATTERN);
@@ -101,15 +101,15 @@ public class DateTimeFormatter {
         return DEFAULT_PATTERN;
     }
     public Locale getZoneLocale() {
-        return zoneLocale;
+        return locale;
     }
     public String getZoneLocaleInString() {
-        String locale = zoneLocale.toString();
+        String locale = this.locale.toString();
         return locale;
     }
 
     public void setZoneLocale(Locale zoneLocale) {
-        this.zoneLocale = zoneLocale;
+        this.locale = zoneLocale;
     }
 
 }

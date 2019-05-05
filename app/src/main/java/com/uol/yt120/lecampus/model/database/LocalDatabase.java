@@ -15,7 +15,7 @@ import com.uol.yt120.lecampus.model.domain.Footprint;
 import com.uol.yt120.lecampus.model.domain.User;
 import com.uol.yt120.lecampus.model.domain.UserEvent;
 
-@Database(entities = {Footprint.class, UserEvent.class, User.class}, exportSchema = false, version = 1)
+@Database(entities = {Footprint.class, UserEvent.class, User.class}, exportSchema = false, version = 2)
 public abstract class LocalDatabase extends RoomDatabase {
 
     private static LocalDatabase instance;

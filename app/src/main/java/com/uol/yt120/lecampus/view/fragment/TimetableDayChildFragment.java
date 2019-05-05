@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -36,6 +37,7 @@ import com.uol.yt120.lecampus.view.adapter.UserEventAdapter;
 import com.uol.yt120.lecampus.model.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.model.domain.UserEvent;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
+import com.uol.yt120.lecampus.viewModel.UserEventCacheViewModel;
 import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
 
 import org.json.JSONException;
@@ -49,6 +51,7 @@ public class TimetableDayChildFragment extends Fragment {
     DataPassListener mCallback;
 
     private UserEventViewModel userEventViewModel;
+    private UserEventCacheViewModel userEventCacheViewModel;
     private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
 
     private String currentDateWithTime;
@@ -87,18 +90,6 @@ public class TimetableDayChildFragment extends Fragment {
             }
         });
 
-//        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
-//                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-//            @Override
-//            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
-//                return false;
-//            }
-//
-//            @Override
-//            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-//                return false;
-//            }
-//        }).attachToRecyclerView(recyclerView);
 
         userEventAdapter.setOnItemClickListener(new UserEventAdapter.OnItemClickListener() {
             @Override
@@ -106,17 +97,25 @@ public class TimetableDayChildFragment extends Fragment {
                 JSONObject userEventDetailJSON = new JSONObject();
                 Integer userEventId = userEvent.getLocalId();
 
-                try {
-                    userEventDetailJSON.put("from", TAG);
-                    userEventDetailJSON.put("to", UserEventDetailFragment.TAG);
-                    userEventDetailJSON.put("id", userEventId);
-                    String userEventDetailJSONString = userEventDetailJSON.toString();
-                    Log.w("[DEBUG INFO]", "Ready to send: ["+userEventDetailJSONString+"]");
-                    mCallback.passData(userEventDetailJSONString);
+                userEventCacheViewModel = ViewModelProviders.of(getActivity()).get(UserEventCacheViewModel.class);
+                userEventCacheViewModel.setMutableUserEvent(userEvent);
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.fragment_container, new UserEventDetailFragment(), UserEventDetailFragment.TAG)
+                        .addToBackStack(TAG)
+                        .commit();
+
+//                try {
+//                    userEventDetailJSON.put("from", TAG);
+//                    userEventDetailJSON.put("to", UserEventDetailFragment.TAG);
+//                    userEventDetailJSON.put("id", userEventId);
+//                    String userEventDetailJSONString = userEventDetailJSON.toString();
+//                    Log.w("[DEBUG INFO]", "Ready to send: ["+userEventDetailJSONString+"]");
+//                    mCallback.passData(userEventDetailJSONString);
+//
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
         return timetableDayView;

@@ -13,6 +13,7 @@ public class User {
 
     private String studentNumber;
     private String nickname;
+    @Ignore
     private String ucasNumber;
     private String realname;
     private String preferedName;

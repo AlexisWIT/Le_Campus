@@ -88,7 +88,7 @@ dependencies {
 
     // RxPermission Controller
 //    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
-    implementation 'org.jetbrains:annotations:15.0'
+    implementation 'org.jetbrains:annotations:16.0.1'
 
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'

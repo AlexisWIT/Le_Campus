@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -48,6 +49,7 @@ import com.uol.yt120.lecampus.repository.UserEventRepository;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.utility.TextValidator;
+import com.uol.yt120.lecampus.viewModel.UserEventCacheViewModel;
 import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
 
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +68,7 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
 
     private UserEventRepository userEventRepository;
     private UserEventViewModel userEventViewModel;
+    private UserEventCacheViewModel userEventCacheViewModel;
 
     private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
     private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
@@ -164,6 +167,13 @@ public class TimetableWeekChildFragment extends Fragment implements EventClickLi
     public void onEventClick(UserEvent userEvent, @NotNull RectF rectF) {
         Integer userEventId = userEvent.getLocalId();
         Toast.makeText(getContext(), "Event Clicked " + userEvent.getEventTitle(), Toast.LENGTH_SHORT).show();
+        userEventCacheViewModel = ViewModelProviders.of(getActivity()).get(UserEventCacheViewModel.class);
+        userEventCacheViewModel.setMutableUserEvent(userEvent);
+
+        getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .replace(R.id.fragment_container, new UserEventDetailFragment(), UserEventDetailFragment.TAG)
+                .addToBackStack(TAG)
+                .commit();
 
     }
 

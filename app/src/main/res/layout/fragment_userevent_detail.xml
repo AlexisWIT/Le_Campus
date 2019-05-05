@@ -17,9 +17,12 @@
             android:id="@+id/text_userevent_detail_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginStart="56dp"
+            android:layout_marginTop="16dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:text="[User Event Title]"
+            android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -27,31 +30,91 @@
             android:id="@+id/text_userevent_detail_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginStart="56dp"
+            android:layout_marginTop="48dp"
             android:text="[User Event Type]"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_title" />
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_time" />
 
         <TextView
             android:id="@+id/text_userevent_detail_code"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="48dp"
             android:text="[User Event Code]"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_type" />
+            app:layout_constraintStart_toEndOf="@+id/text_userevent_detail_type"
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_time" />
 
         <TextView
             android:id="@+id/text_userevent_detail_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:text="[User Event Location]"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/icon_event_location"
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_type" />
+
+        <TextView
+            android:id="@+id/text_userevent_detail_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="[User Event Location]"
+            android:layout_marginStart="56dp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="[User Event Time]"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_code" />
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_title" />
+
+        <TextView
+            android:id="@+id/text_userevent_detail_location_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="16dp"
+            android:maxLines="2"
+            android:text="[User Event Location Address]"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/icon_event_location"
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_location" />
+
+        <TextView
+            android:id="@+id/text_userevent_detail_desc"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:text="[User Event Description]"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/icon_event_desc"
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_location_2" />
+
+        <ImageView
+            android:id="@+id/icon_event_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_type"
+            app:srcCompat="@drawable/ic_event_location" />
+
+        <ImageView
+            android:id="@+id/icon_event_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_userevent_detail_location_2"
+            app:srcCompat="@drawable/ic_event_desc" />
+
     </android.support.constraint.ConstraintLayout>
 
 </ScrollView>

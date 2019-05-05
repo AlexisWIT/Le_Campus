@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -38,6 +39,7 @@ import com.uol.yt120.lecampus.view.adapter.UserEventAdapter;
 import com.uol.yt120.lecampus.model.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.model.domain.UserEvent;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
+import com.uol.yt120.lecampus.viewModel.UserEventCacheViewModel;
 import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
 
 import org.json.JSONException;
@@ -52,6 +54,7 @@ public class TimetableMonthChildFragment extends Fragment {
     DataPassListener mCallback;
     private CalendarView calendarView;
     private UserEventViewModel userEventViewModel;
+    private UserEventCacheViewModel userEventCacheViewModel;
     private Calendar currentDate;
     private Calendar selectedDate;
     private DateTimeFormatter dtf = new DateTimeFormatter();
@@ -120,17 +123,25 @@ public class TimetableMonthChildFragment extends Fragment {
                 JSONObject userEventDetailJSON = new JSONObject();
                 Integer userEventId = userEvent.getLocalId();
 
-                try {
-                    userEventDetailJSON.put("from", TAG);
-                    userEventDetailJSON.put("to", UserEventDetailFragment.TAG);
-                    userEventDetailJSON.put("id", userEventId);
-                    String userEventDetailJSONString = userEventDetailJSON.toString();
-                    Log.w("[DEBUG INFO]", "Ready to send: ["+userEventDetailJSONString+"]");
-                    mCallback.passData(userEventDetailJSONString);
+                userEventCacheViewModel = ViewModelProviders.of(getActivity()).get(UserEventCacheViewModel.class);
+                userEventCacheViewModel.setMutableUserEvent(userEvent);
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.fragment_container, new UserEventDetailFragment(), UserEventDetailFragment.TAG)
+                        .addToBackStack(TAG)
+                        .commit();
+
+//                try {
+//                    userEventDetailJSON.put("from", TAG);
+//                    userEventDetailJSON.put("to", UserEventDetailFragment.TAG);
+//                    userEventDetailJSON.put("id", userEventId);
+//                    String userEventDetailJSONString = userEventDetailJSON.toString();
+//                    Log.w("[DEBUG INFO]", "Ready to send: ["+userEventDetailJSONString+"]");
+//                    mCallback.passData(userEventDetailJSONString);
+//
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
 
             }
         });

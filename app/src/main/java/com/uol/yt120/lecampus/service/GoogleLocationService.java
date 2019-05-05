@@ -52,9 +52,9 @@ public class GoogleLocationService extends Service {
 
     private static final int GOOGLE_LOCATION_SERVICE_NOTIFICATION_IDENTIFIER = 112233;
 
-    private static final long UPDATE_INTERVAL_FOREGROUND = 3500; // 3 sec when app in foreground
-    private static final long UPDATE_INTERVAL_BACKGROUND = 10000; // 10 sec when app in background
-    private static final long FASTEST_UPDATE_INTERVAL = 2000;   // 2 sec minimal interval
+    private long update_interval_foreground = 3*1000; // 3 sec when app in foreground
+    //private long UPDATE_INTERVAL_BACKGROUND = 10*1000; // 10 sec when app in background
+    private long fastest_update_interval = 2*1000;   // 2 sec minimal interval
 
     private NotificationManager notificationManager;
 
@@ -175,8 +175,8 @@ public class GoogleLocationService extends Service {
      */
     private void initLocationRequest() {
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(UPDATE_INTERVAL_FOREGROUND);
-        locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL);
+        locationRequest.setInterval(update_interval_foreground);
+        locationRequest.setFastestInterval(fastest_update_interval);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
     }
@@ -261,14 +261,18 @@ public class GoogleLocationService extends Service {
         return false;
     }
 
+    public void changeSetting(long interval, long fast_interval){
+        locationRequest.setInterval(interval);
+        locationRequest.setFastestInterval(fast_interval);
+    }
+
     /**
      * Call this method to start service
      */
     public void requestGoogleLocationUpdates() {
-        Log.w("[Ggle Location Service]", "Requesting Google Location Data");
 
         LocationServiceController.setLocationServiceStatus(this, true);
-        startService(new Intent(getApplicationContext(), GoogleLocationService.class));
+            startService(new Intent(getApplicationContext(), GoogleLocationService.class));
 
         try {
             fusedLocationProviderClient

@@ -29,7 +29,7 @@ public class JsonDataProcessor {
     }
 
     //Encapsulate data from two String array to one JSONString
-    public String encapDataToJSONString(String[] dataLabels, String[] dataValues) {
+    public JSONObject encapDataToJSON(String[] dataLabels, String[] dataValues) {
         String dataJSONString;
         JSONObject dataJSON = new JSONObject();
         try {
@@ -39,8 +39,8 @@ public class JsonDataProcessor {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        dataJSONString = dataJSON.toString();
-        return dataJSONString;
+        //dataJSONString = dataJSON.toString();
+        return dataJSON;
     }
 
 //    public static String encapInputStreamToJSONString(InputStream inputStream) {
