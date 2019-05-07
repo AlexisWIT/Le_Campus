@@ -40,24 +40,9 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
         footprintHolder.textViewTitle.setText(currentFootprint.getTitle());
         footprintHolder.textViewDesc.setText(currentFootprint.getDescription());
         footprintHolder.textViewDate.setText(currentFootprint.getCreateTime());
-        String distance = getDistanceString(currentFootprint.getLength());
+        String distance = LocationDataProcessor.getDistanceString(currentFootprint.getLength());
         footprintHolder.textViewDistance.setText(distance);
 
-    }
-
-    private String getDistanceString(String length) {
-        String result = "";
-        try {
-            double distance = Double.valueOf(length);
-            if (distance >= 1000) {
-                result = LocationDataProcessor.round(distance/1000, 0) + " km";
-            } else {
-                result = LocationDataProcessor.round(distance, 0) + " m";
-            }
-        } catch (Exception e) {
-
-        }
-        return result;
     }
 
     @Override

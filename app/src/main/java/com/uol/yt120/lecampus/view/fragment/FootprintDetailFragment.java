@@ -174,7 +174,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                 footprintTitleView.setText(footprint.getTitle());
                 footprintDescView.setText(footprint.getDescription());
                 footprintTimeCreated.setText(footprint.getCreateTime());
-                footprintPublisher.setText("default");
+                footprintPublisher.setText(footprint.getCreator());
 
                 try {
                     trackpointJSONArray = new JSONArray(footprint.getNodeList());

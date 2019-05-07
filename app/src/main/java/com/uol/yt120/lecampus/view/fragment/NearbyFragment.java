@@ -57,6 +57,8 @@ import retrofit2.Response;
 
 public class NearbyFragment extends Fragment {
 
+    public static final String TAG = NearbyFragment.class.getSimpleName();
+
     private PublicEventCacheViewModel publicEventCacheViewModel;
     private SharedPreferences sharedPreferences;
     private LatLng lastKnownLatlng;
@@ -199,7 +201,7 @@ public class NearbyFragment extends Fragment {
             double eventLat = Double.valueOf(publicEvent.getLat());
             double eventLng = Double.valueOf(publicEvent.getLon());
             LatLng eventLatlng = new LatLng(eventLat, eventLng);
-            result = LocationDataProcessor.getDistanceBetween(lastKnownLatlng, eventLatlng) <= 500;
+            result = LocationDataProcessor.getDistanceBetween(lastKnownLatlng, eventLatlng) <= 600;
             Log.w("[Nearby Fragment]", "Distance: "+LocationDataProcessor.getDistanceBetween(lastKnownLatlng, eventLatlng));
         }
         return result;

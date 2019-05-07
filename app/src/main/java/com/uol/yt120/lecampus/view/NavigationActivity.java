@@ -104,7 +104,7 @@ public class NavigationActivity extends AppCompatActivity implements
     private SkyhookLocationService shkService = null;
 
     private boolean isBoundToGoogleService = false;
-    private boolean isBoundToSkyhookService = false; //TODO Use startService() to start Skyhook rather than binder;
+    private boolean isBoundToSkyhookService = false; //Use startService() to start Skyhook rather than binder;
 
     private long backPressedTime;
 
@@ -245,6 +245,7 @@ public class NavigationActivity extends AppCompatActivity implements
         if (currentFrag instanceof GoogleMapsFragment || currentFrag instanceof MapBoxMapsFragment) {
             if (backStackEntryCount != 0) {
                 getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
             }
 
             if (backPressedTime + 2000 > System.currentTimeMillis()) { // Second press less than 2 sec
@@ -530,7 +531,6 @@ public class NavigationActivity extends AppCompatActivity implements
 
                         case SkyhookLocationServiceReceiver.GEOFENCE_IN:
 
-
 //                            // Vibrate the phone when the user crosses the geofence
 //                            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 //                            v.vibrate(1000);
@@ -562,6 +562,7 @@ public class NavigationActivity extends AppCompatActivity implements
     @Override
     public void onResume() {
         super.onResume();
+        setupHeaderInfo();
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(gleReceiver, new IntentFilter(GoogleLocationService.ACTION_BROADCAST));
 
@@ -576,16 +577,6 @@ public class NavigationActivity extends AppCompatActivity implements
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(localLocationDataReceiver, localLocationIntentFilter);
 
-        UserViewModel userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
-        userViewModel.getUserLiveData().observe(this, new Observer<User>() {
-            @Override
-            public void onChanged(@Nullable User user) {
-                if (user != null) {
-                    setupHeaderInfo(user.getRealname(), user.getUolEmail());
-                    Log.i("[Nav Activity]", "User Info updated: "+user.getRealname()+", "+user.getUolEmail());
-                }
-            }
-        });
     }
 
     @Override
@@ -829,9 +820,9 @@ public class NavigationActivity extends AppCompatActivity implements
         Toast.makeText(this, content, length).show();
     }
 
-    public void setupHeaderInfo(String name, String email) {
-        username.setText(name);
-        useremail.setText(email);
+    public void setupHeaderInfo() {
+        username.setText(sharedPreferences.getString(AccountFragment.USER_NAME, "No Login"));
+        useremail.setText(sharedPreferences.getString(AccountFragment.USER_EMAIL, ""));
     }
 
 }

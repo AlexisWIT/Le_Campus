@@ -93,4 +93,19 @@ public class LocationDataProcessor {
         bd = null;
         return result;
     }
+
+    public static String getDistanceString(String length) {
+        String result = "";
+        try {
+            double distance = Double.valueOf(length);
+            if (distance >= 1000) {
+                result = LocationDataProcessor.round(distance/1000, 0) + " km";
+            } else {
+                result = LocationDataProcessor.round(distance, 0) + " m";
+            }
+        } catch (Exception e) {
+
+        }
+        return result;
+    }
 }

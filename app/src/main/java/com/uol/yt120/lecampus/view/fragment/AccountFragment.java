@@ -23,6 +23,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -49,6 +50,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.uol.yt120.lecampus.model.domain.Footprint;
+import com.uol.yt120.lecampus.utility.LocationDataProcessor;
 import com.uol.yt120.lecampus.view.NavigationActivity;
 import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.model.domain.User;
@@ -75,12 +78,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import timber.log.Timber;
 
 public class AccountFragment extends Fragment {
+
+    public static final String TAG = AccountFragment.class.getSimpleName();
+    public static final String USER_NAME = "User_Name";
+    public static final String USER_STUDENT_NUMBER = "User_Student_Number";
+    public static final String USER_EMAIL = "User_Email";
 
     public WebView webView;
 
@@ -107,11 +116,6 @@ public class AccountFragment extends Fragment {
     volatile boolean externalFileFound = false;
     volatile boolean internalFileFound = false;
 
-    //private ProgressDialog loadingDialog;
-    String profileFolderName = "profile";
-    String profileFileName = "profile.json";
-    String profileContent = "";
-
     private TextView text_username;
     private TextView text_useremail;
     private TextView text_footprintNum;
@@ -120,17 +124,12 @@ public class AccountFragment extends Fragment {
     private TextView text_header_name;
     private TextView text_header_email;
 
-//    private static final String default_username = "NO LOGIN";
-//    private static final String default_useremail = "";
-//    private String login_username;
-//    private String login_email;
-
     LoadingDialog loadingDialog = new LoadingDialog();
+    private SharedPreferences sharedPreferences;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkFilePath();
 
     }
 
@@ -142,14 +141,20 @@ public class AccountFragment extends Fragment {
 
         //loadingDialog = new ProgressDialog(mContext);
         //LoadingDialog loadingDialog = new LoadingDialog();
+
+        sharedPreferences = getActivity().getSharedPreferences(NavigationActivity.SHARED_PREFS, Context.MODE_PRIVATE);
         userViewModel = ViewModelProviders.of(getActivity()).get(UserViewModel.class);
         userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
+        footprintViewModel = ViewModelProviders.of(getActivity()).get(FootprintViewModel.class);
+
         loginAddress = getString(R.string.login_web_address);
         loginAddressFailed = getString(R.string.login_web_address_failed);
         prefixAddress = getString(R.string.prefix_web_address);
 
         getActivity().setTitle(getString(R.string.title_fragment_account));
-        //checkIfloggedIn(1);
+
+        String username = sharedPreferences.getString(USER_NAME, "No Login");
+        userAccountObtained = !username.equals("No Login");
 
         Log.i("[Account Fragmt]","User Account Obtained: "+userAccountObtained);
         if (userAccountObtained) {
@@ -161,28 +166,48 @@ public class AccountFragment extends Fragment {
             avatar.setImageResource(R.drawable.sample_avatar);
             text_username = userProfileView.findViewById(R.id.text_account_username);
             text_useremail = userProfileView.findViewById(R.id.text_account_useremail);
-            text_footprintNum = userProfileView.findViewById(R.id.label_account_footprint_num);
-            text_footprintDistance = userProfileView.findViewById(R.id.label_account_user_footprint_total_distance);
-            text_eventNum = userProfileView.findViewById(R.id.label_account_user_event_interest);
+
+            text_footprintNum = userProfileView.findViewById(R.id.value_account_text_footprint_num);
+            text_footprintDistance = userProfileView.findViewById(R.id.value_account_user_footprint_text_total_distance);
+            text_eventNum = userProfileView.findViewById(R.id.value_account_user_event_interest);
 
             text_header_name = getActivity().findViewById(R.id.header_account_name);
             text_header_email = getActivity().findViewById(R.id.header_account_email);
 
-            //ListView profileListView = userProfileView.findViewById(R.id.account_item_list);
-            userViewModel.getUserLiveDataById(1).observe(this, new Observer<User>() {
+            text_username.setText(sharedPreferences.getString(USER_NAME, "No Login"));
+            text_useremail.setText(sharedPreferences.getString(USER_EMAIL, ""));
+
+            footprintViewModel.getAllFootprints().observe(this, new Observer<List<Footprint>>() {
                 @Override
-                public void onChanged(@Nullable User user) {
-                    if (user != null) {
-                        text_username.setText(user.getRealname());
-                        text_useremail.setText(user.getUolEmail());
-//                        text_header_name.setText(user.getRealname());
-//                        text_header_name.setText(user.getUolEmail());
-                        syncNavHeader(user.getRealname(), user.getUolEmail());
+                public void onChanged(@Nullable List<Footprint> footprints) {
+                    int number = 0;
+                    double distance = 0;
+                    for (Footprint footprint : footprints) {
+                        String currentUser = sharedPreferences.getString(USER_NAME, "No Login");
+                        String creator = footprint.getCreator();
+                        if (creator != null && creator.equals(currentUser)) {
+                            number++;
+                            distance += Double.valueOf(footprint.getLength());
+                        }
+
                     }
+                    text_footprintNum.setText(String.valueOf(number));
+                    text_footprintDistance.setText(LocationDataProcessor.getDistanceString(String.valueOf(distance)));
                 }
             });
 
-
+            userEventViewModel.getAllUserEvents().observe(this, new Observer<List<UserEvent>>() {
+                @Override
+                public void onChanged(@Nullable List<UserEvent> userEventList) {
+                    int number = 0;
+                    for (UserEvent userEvent : userEventList) {
+                        if (userEvent.getEventType().equals("Event")) {
+                            number++;
+                        }
+                    }
+                    text_eventNum.setText(String.valueOf(number));
+                }
+            });
 
             return userProfileView;
 
@@ -561,192 +586,16 @@ public class AccountFragment extends Fragment {
         userViewModel.insert(user);
         userAccountObtained = true;
 
-        detailHashmap.put("Student_Number", studentNum);
-        detailHashmap.put("UCAS_Number", ucasNum);
-        detailHashmap.put("Name", foreName+" "+surName);
-        detailHashmap.put("Preferred_First_Name", prefName);
-        detailHashmap.put("Date_of_Birth", dob);
-        detailHashmap.put("UoL_Email", uolEmail);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(USER_NAME, foreName+" "+surName);
+        editor.putString(USER_STUDENT_NUMBER, studentNum);
+        editor.putString(USER_EMAIL, uolEmail);
+        editor.apply();
 
-        try {
-            JSONObject detailJSON = new JSONObject(detailHashmap);
-            String userDetail = "{ \"user\": ["+detailJSON.toString()+"]}";
-            Log.i("[Account Fragmt]", "User JSON detail: "+userDetail);
-            writeIntoFile(mContext, userDetail, profileFileName, profileFolderName);
-
-            //webView.setVisibility(View.VISIBLE);
-            loadingDialog.hide();
-            detailSuccessful = true;
-            showTimetable();
-
-        } catch (Exception e) {
-            Log.i("[Account Fragmt]", "Webpage is not fully loaded, retry");
-            //e.printStackTrace();
-            detailSuccessful = false;
-        }
-
+        detailSuccessful = true;
+        loadingDialog.hide();
+        showTimetable();
     }
-
-
-    /**
-     * Read timetable info from timetable.json
-     * @param fileName The file path of timetable.json
-     * @return a string "result"
-     */
-    public String readFromFile(String fileName) {
-        Log.i("[Account Fragmt]", "Read user profile from: "+fileName);
-        String result = "";
-        BufferedReader reader = null;
-
-        try {
-            //FileInputStream fis = mContext.openFileInput(fileName);
-            FileInputStream fis = new FileInputStream (new File(fileName));
-            StringBuffer buffer = new StringBuffer();
-            reader = new BufferedReader(new InputStreamReader(fis));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line);
-            }
-
-            result = buffer.toString();
-            Log.i("[Account Fragmt]", "Read JSON: "+result);
-
-            fis.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-    /**
-     * Write timetable into local file with JSON format
-     * @param context App context, stored as global var when fragment attached
-     * @param content Content to be stored locally (JSON string here)
-     * @param fileName File name
-     * @param folderName Name of the folder the file will be stored in.
-     * @return
-     */
-    @SuppressLint("LogNotTimber")
-    public File writeIntoFile (Context context, String content, String fileName, String folderName) {
-
-        String filePath = getFilePath(context, folderName);
-        File folder = new File(filePath);
-        File file = new File(folder, fileName);
-
-        try {
-            if (!file.exists()) {
-                Log.i("[Account Fragmt]", "File '" + file + "' doesn't exist, creating now...");
-                file.createNewFile();
-            }
-
-            FileWriter fileWriter = new FileWriter(filePath+File.separator+fileName);
-            fileWriter.write(content);
-            fileWriter.flush();
-            fileWriter.close();
-
-            Log.i("[Account Fragmt]", fileName+" has been saved to '" + file.getPath() + "'");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return file;
-
-    }
-
-    /**
-     *  Using viewModel instead of this
-     * @param profileContent
-     * @return
-     */
-    public SimpleAdapter loadUserProfileIntoAdapter(String profileContent) {
-
-        SimpleAdapter finalAdapter = null;
-        String[] from = {"Name", "UoL_Email"};
-        //int[] to = {R.id.user_name, R.id.user_email};
-        ArrayList<HashMap<String, String>> profileArrayList = new ArrayList<HashMap<String, String>>();
-        HashMap<String, String> profileHashmap;
-
-        try {
-            JSONObject json = new JSONObject(profileContent);
-            JSONArray jArray = json.getJSONArray("user");
-
-            for (int i = 0; i < jArray.length(); i++) {
-                JSONObject jsonProfile = jArray.getJSONObject(i);
-
-                String studentNum = jsonProfile.getString("Student_Number");
-                //Log.i("[Account Fragmt]", "Student Num: "+studentNum);
-
-                String ucasNum = jsonProfile.getString("UCAS_Number");
-                //Log.i("[Account Fragmt]", "UCAS Num: "+ucasNum);
-
-                String userName = jsonProfile.getString("Name");
-                //Log.i("[Account Fragmt]", "Name: "+userName);
-
-                String prefName = jsonProfile.getString("Preferred_First_Name");
-                //Log.i("[Account Fragmt]", "Pref. Name: "+prefName);
-
-                String dob = jsonProfile.getString("Date_of_Birth");
-                //Log.i("[Account Fragmt]", "DoB: "+dob);
-
-                String UoLemail = jsonProfile.getString("UoL_Email");
-                //Log.i("[Account Fragmt]", "email: "+UoLemail);
-
-                profileHashmap = new HashMap<String, String>();
-                profileHashmap.put("Student_Number", "" + studentNum);
-                profileHashmap.put("UCAS_Number", "" + ucasNum);
-                profileHashmap.put("Name", "" + userName);
-                profileHashmap.put("Preferred_First_Name", "" + prefName);
-                profileHashmap.put("Date_of_Birth", "" + dob);
-                profileHashmap.put("UoL_Email", "" + UoLemail);
-                profileArrayList.add(profileHashmap);
-
-            }
-
-            //SimpleAdapter adapter = new SimpleAdapter(mContext, profileArrayList, R.layout.fragment_account_item, from, to);
-            //finalAdapter = adapter;
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return finalAdapter;
-    }
-
-
-    /**
-     * Determine if the current device has External Storage (SDCard)
-     * if no, use Internal path
-     * @param context App context, stored as global var when fragment attached
-     * @param subDir The indicated folder name under 'files' dir
-     * @return
-     */
-    @SuppressLint("LogNotTimber")
-    public static String getFilePath(Context context, String subDir) {
-        String filePath = "";
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ) {
-            Log.i("[Account Fragmt]", "External Storage is available.");
-            filePath = Objects.requireNonNull(context.getExternalFilesDir(subDir)).getAbsolutePath();
-
-        }else{
-            Log.i("[Account Fragmt]", "External Storage is unavailable, try Internal Storage.");
-            filePath = context.getFilesDir()+ File.separator+subDir;
-
-        }
-
-        File folder = new File(filePath);
-
-        try {
-            if(!folder.exists())
-                Log.i("[Account Fragmt]", "Directory '"+folder.getPath()+"' doesn't exist, creating now...");
-            folder.mkdirs();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return filePath;
-    }
-
 
     @Override
     public void onDestroy() {
@@ -772,55 +621,15 @@ public class AccountFragment extends Fragment {
 
     @SuppressLint("LogNotTimber")
     public void logoutAccount() {
-        String finalResult = "";
-        String resultEx1 = "";
-        String resultEx2 = "";
-        String resultIn1 = "";
-        String resultIn2 = "";
-
-        String internalTimetableFilePath = mContext.getFilesDir()+ File.separator+"timetable";
-        String internalProfileFilePath = mContext.getFilesDir()+ File.separator+profileFolderName;
-        String externalTimetableFilePath = Objects.requireNonNull(mContext.getExternalFilesDir("timetable")).getAbsolutePath();
-        String externalProfileFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(profileFolderName)).getAbsolutePath();
-
-        File internalTimetableFolder = new File(internalTimetableFilePath);
-        File internalProfileFolder = new File(internalProfileFilePath);
-        File externalTimetableFolder = new File(externalTimetableFilePath);
-        File externalProfileFolder = new File(externalProfileFilePath);
-
-        File internalTimetableFile = new File(internalTimetableFolder, "timetable.json");
-        File internalProfileFile = new File(internalProfileFolder, profileFileName);
-        File externalTimetableFile = new File(externalTimetableFolder, "timetable.json");
-        File externalProfileFile = new File(externalProfileFolder, profileFileName);
-
-        if (externalTimetableFile.exists())
-            externalTimetableFile.delete();
-            resultEx1 = "Timetable file in External Storage deleted";
-            //Log.i("[Account Fragmt]", resultEx1);
-
-        if (externalProfileFile.exists())
-            externalProfileFile.delete();
-            resultEx2 = "User Profile in External Storage deleted";
-            //Log.i("[Account Fragmt]", resultEx2);
-
-        if (internalTimetableFile.exists()) {
-            internalTimetableFile.delete();
-            resultIn1 = "Timetable file in Internal Storage deleted";
-            //Log.i("[Account Fragmt]", resultIn1);
-        }
-
-        if (internalProfileFile.exists()) {
-            internalProfileFile.delete();
-            resultIn2 = "User Profile in Internal Storage deleted";
-            //Log.i("[Account Fragmt]", resultIn2);
-        }
 
         userViewModel.deleteAllUser();
         userEventViewModel.deleteAll();
 
-        externalFileFound = false;
-        internalFileFound = false;
-        userAccountObtained = false;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(USER_NAME, "No Login");
+        editor.putString(USER_STUDENT_NUMBER, "");
+        editor.putString(USER_EMAIL, "");
+        editor.apply();
 
     }
 
@@ -912,67 +721,9 @@ public class AccountFragment extends Fragment {
         }
     }
 
-    private void checkFilePath() {
-        String internalFilePath = mContext.getFilesDir()+ File.separator+profileFolderName;
-        String externalFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(profileFolderName)).getAbsolutePath();
-
-        File internalFolder = new File(internalFilePath);
-        File externalFolder = new File(externalFilePath);
-
-        File internalFile = new File(internalFolder, profileFileName);
-        File externalFile = new File(externalFolder, profileFileName);
-
-        if (!externalFile.exists() || externalFile==null) {
-            //Log.i("[Account Fragmt]", "User Profile in external storage not found");
-            externalFileFound = false;
-        } else {
-            //Log.i("[Account Fragmt]", "Found User Profile in external storage");
-            externalFileFound = true;
-        }
-
-        if (!internalFile.exists() || internalFile==null) {
-            //Log.i("[Account Fragmt]", "User Profile in internal storage not found");
-            internalFileFound = false;
-        } else {
-            //Log.i("[Account Fragmt]", "Found User Profile in internal storage");
-            internalFileFound = true;
-        }
-
-        if (externalFileFound) {
-            userAccountObtained = true;
-            //profileContent = readFromFile(externalFilePath+File.separator+profileFileName);
-
-        } else if (internalFileFound) {
-            userAccountObtained = true;
-            //profileContent = readFromFile(internalFilePath+File.separator+profileFileName);
-
-        } else {
-            userAccountObtained = false;
-            //profileContent = "";
-        }
-    }
-
-    private void checkIfloggedIn(int userId) {
+    public void syncNavHeader() {
         try {
-            LiveData<User> user = userViewModel.getUserLiveDataById(userId);
-            if (user != null) {
-                Log.w("[Login status]", "found user logged in: ["+user.getValue().getRealname()+"]");
-                userAccountObtained = true;
-            } else {
-                Log.w("[Login status]", "No user logged in");
-                userAccountObtained = false;
-            }
-        } catch (Exception e) {
-            Log.w("[Login status]", "==================== Exception ========================");
-            e.printStackTrace();
-            userAccountObtained = false;
-        }
-    }
-
-    public void syncNavHeader(String name, String email) {
-        try {
-            ((NavigationActivity)getActivity()).setupHeaderInfo(name, email);
-            Log.i("[Account Fragment]", "User Info updated: "+name+", "+email);
+            ((NavigationActivity)getActivity()).setupHeaderInfo();
         } catch (Exception e) {
             e.printStackTrace();
         }
