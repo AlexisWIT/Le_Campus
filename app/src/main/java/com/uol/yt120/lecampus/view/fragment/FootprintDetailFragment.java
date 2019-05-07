@@ -57,6 +57,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  */
@@ -215,6 +218,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
         try {
             Log.w("[DEBUG INFO]", "NodeList JSONArray casted: ["+trackpointJSONArray+"]");
             JSONArray nodeJSONArray = trackpointJSONArray;
+            List<LatLng> trackpointList = new ArrayList<>();
 
             for (int i=0; i<nodeJSONArray.length(); i++) {
                 if (currentLatLng != null) { lastLatLng = currentLatLng; }
@@ -236,23 +240,22 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                     double lat = (double)nodeJSON.get("lat");
                     double lon = (double)nodeJSON.get("lon");
                     currentLatLng = new LatLng(lat, lon);
+                    trackpointList.add(currentLatLng);
 
                     latLngBoundsBuilder.include(currentLatLng);
-
-                    if (lastLatLng != null) {
-                        polyline = gMap.addPolyline((new PolylineOptions())
-                                .add(lastLatLng, currentLatLng)
-                                .geodesic(true)
-                                .width(9)
-                                .color(Color.GRAY)
-                                .visible(true));
-                    }
 
                 } else {
                     Log.e(FootprintDetailFragment.TAG, "Node JSON data contains error.");
                 }
 
             }
+
+            polyline = gMap.addPolyline((new PolylineOptions())
+                    .addAll(trackpointList)
+                    .geodesic(true)
+                    .width(9)
+                    .color(Color.GRAY)
+                    .visible(true));
 
             LatLngBounds bounds = latLngBoundsBuilder.build();
 

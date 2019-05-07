@@ -23,32 +23,56 @@ import retrofit2.http.Query;
 
 public interface RestApiClient {
 
+    /**
+     * Get crime data
+     */
     @GET("api/crime")
     Call<List<CrimeGeoFence>> getCrimeGeoFences();
 
+    @GET("api/crime/{date}")
+    Call<List<CrimeGeoFence>> getCrimeGeoFences(@Path("date") String yearAndMonth);
+
+    /**
+     * Building GeoFence
+     */
     @GET("api/building")
     Call<BuildingGeoFence> getBuildingGeoFence(@Query("building") String buildingName); // /api/building?name=buildingName
 
+    /**
+     * Send emergency request
+     */
     @POST("api/emergency")
     Call<EmergencyRequest> sendEmergencyRequest(@Body EmergencyRequest emergencyRequest);
 
+    /**
+     * Footprint sync
+     */
     @GET("api/footprint/{author}")
     Call<List<Footprint>> getFootprintsByCreator(@Path("author") String creator);
 
-    @GET("api/public-event")
-    Call<List<PublicEvent>> getPublicEvents();
-
+    /**
+     * User info for register
+     */
     @FormUrlEncoded
-    @GET("api/user")
-    Call<User> getUser(
+    @POST("api/user")
+    Call<User> sendUser(
             @Field("studentNumber") String studentNum,
             @Field("realname") String realName,
             @Field("uolEmail") String uolEmail
     );
 
+    /**
+     * Public Event for nearBy
+     */
+    @GET("api/public-event")
+    Call<List<PublicEvent>> getPublicEvents();
 
+
+    /**
+     * User events for Timetable
+     */
     @POST("api/user-event")
-    Call<List<UserEvent>> getUserEvents();
+    Call<List<UserEvent>> sendUserEvents(@Body List<UserEvent> userEventList);
 
     @PUT("api/user-event/{serverId}") // replace completely
     Call<UserEvent> replaceUserEvent(@Path("serverId") int id, @Body UserEvent userEvent);

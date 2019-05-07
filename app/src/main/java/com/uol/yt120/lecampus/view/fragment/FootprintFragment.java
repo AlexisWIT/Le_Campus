@@ -89,15 +89,7 @@ public class FootprintFragment extends Fragment {
         buttonAddFootprint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Confirmation dialog pop out, Redirect to Google map fragment and start tracking
-
                 notifyMapToStartRecording();
-//                FragmentManager fragmentManager = getChildFragmentManager();
-//                fragmentManager.beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-//                        .replace(R.id.fragment_container, new GoogleMapsFragment(),"GoogleMapsFragment")
-//                        .commit();
-//                Intent intent = new Intent(getActivity(), GoogleMapsFragment.class);
-//                startActivityForResult(intent, ADD_FOOTPRINT_REQUEST);
             }
         });
 

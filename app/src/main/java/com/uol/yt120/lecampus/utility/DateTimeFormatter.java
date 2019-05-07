@@ -14,10 +14,11 @@ public class DateTimeFormatter {
 
     private final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private final String DATE_NO_TIME_PATTERN = "yyyy-MM-dd";
-    private final String TIME_ONLY_PATERN = "HH:mm a";
+    private final String TIME_ONLY_PATERN = "HH:mm A";
     private final String UNI_DATE_PATTERN = "dd/MMM/yyyy";
-    private final String SERVER_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    private final String SERVER_PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
     private final String DATE_NO_YEAR_PATTERN = "MM-dd";
+    private final String YEAR_MONTH = "yyyy-MM";
 
     private Locale locale = Locale.UK;
     private TimeZone deviceTimeZone = TimeZone.getDefault();
@@ -43,6 +44,9 @@ public class DateTimeFormatter {
                 break;
             case "server":
                 dateFormat = new SimpleDateFormat(SERVER_PATTERN);
+                break;
+            case "year_month":
+                dateFormat = new SimpleDateFormat(YEAR_MONTH);
                 break;
             default:
                 dateFormat = new SimpleDateFormat(DEFAULT_PATTERN);
@@ -72,6 +76,9 @@ public class DateTimeFormatter {
                 break;
             case "server":
                 dateFormat = new SimpleDateFormat(SERVER_PATTERN);
+                break;
+            case "year_month":
+                dateFormat = new SimpleDateFormat(YEAR_MONTH);
                 break;
             default:
                 dateFormat = new SimpleDateFormat(DEFAULT_PATTERN);

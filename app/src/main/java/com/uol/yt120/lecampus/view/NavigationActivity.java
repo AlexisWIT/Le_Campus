@@ -273,10 +273,12 @@ public class NavigationActivity extends AppCompatActivity implements
             } else if (cachedFrag != null || cachedFrag instanceof GoogleMapsFragment){
                 getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .replace(R.id.fragment_container, cachedFrag, FRAGMENT_GOOGLE_MAPS).commit();
-            }
 
+            } else {
+                getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.fragment_container, new GoogleMapsFragment(), FRAGMENT_GOOGLE_MAPS).commit();
+            }
             navigationView.setCheckedItem(R.id.nav_map);
-            super.onBackPressed();
             return;
 
         /*

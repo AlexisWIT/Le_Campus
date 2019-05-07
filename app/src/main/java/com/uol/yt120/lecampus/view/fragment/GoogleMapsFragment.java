@@ -264,7 +264,11 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 if (prevLatLng != null && currentLatLng != null) {
                     Polyline polyline =
                             gMap.addPolyline((new PolylineOptions())
-                                    .add(prevLatLng, currentLatLng).width(9).color(Color.GRAY).visible(true));
+                                    .add(prevLatLng, currentLatLng)
+                                    .geodesic(true)
+                                    .width(9)
+                                    .color(Color.GRAY)
+                                    .visible(true));
 
                     int index = trackpointIndex+1;
 
@@ -387,7 +391,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 return true;
 
             case R.id.action_clear_direction:
-                directionPolyline.remove();
+                if (directionPolyline != null) {
+                    directionPolyline.remove();
+                }
                 //gMap.clear();
 
                 return true;

@@ -21,47 +21,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HttpHandler {
 
-    private static final String LE_CAMPUS_SERVER_URL = "";
-
+    private static final String LE_CAMPUS_SERVER_URL = " http://192.168.137.1:8090";
     private static final String BASE_URL = "";
-
-    /**
-     * Send HTTP request to google to get Direction path
-     * @param requestUrl
-     * @return
-     */
-    public String processDirectionRequest(String requestUrl) {
-        InputStream inS_GgleResult = null;
-        String jsStr_GgleResult = "";
-
-//        try {
-//            HttpURLConnection urlConnection;
-//            URL url = new URL(requestUrl);
-//            urlConnection = (HttpURLConnection) url.openConnection();
-//
-//            inS_GgleResult = urlConnection.getInputStream();
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        // encapsulate JSON result from Google into String
-//        try {
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(
-//                    inS_GgleResult, "iso-8859-1"), 8);
-//            StringBuilder sb = new StringBuilder();
-//            String line = null;
-//            while ((line = reader.readLine()) != null) {
-//                sb.append(line + "\n");
-//            }
-//
-//            jsStr_GgleResult = sb.toString();
-//            inS_GgleResult.close();
-//        } catch (Exception e) {
-//            Log.e("[HTTPHandler]", "Read Google Direction Result Error: " + e.toString());
-//        }
-        return jsStr_GgleResult;
-    }
 
 
     public RestApiClient initRestApiClient() {
@@ -72,6 +33,7 @@ public class HttpHandler {
                 new OkHttpClient.Builder()
                         .addInterceptor(new Interceptor() {
                             // Intercept the request and add header
+                            // TODO Security feature
                             @Override
                             public Response intercept(Chain chain) throws IOException {
                                 Request initialRequest = chain.request();
