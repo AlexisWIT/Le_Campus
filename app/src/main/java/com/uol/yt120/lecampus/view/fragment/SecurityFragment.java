@@ -165,7 +165,7 @@ public class SecurityFragment extends Fragment implements OnMapReadyCallback {
             double lat = Double.valueOf(crimeGeoFence.getLat());
             double lng = Double.valueOf(crimeGeoFence.getLng());
             LatLng latLng = new LatLng(lat, lng);
-            Log.i("[Security Fragment]", "Data for Heatmap "+latLng.toString());
+            //Log.i("[Security Fragment]", "Data for Heatmap "+latLng.toString());
             datalist.add(new WeightedLatLng(latLng, 1));
         }
 
@@ -174,7 +174,9 @@ public class SecurityFragment extends Fragment implements OnMapReadyCallback {
                 .build();
 
         // Add a heat zone overlay to the map
-        tileOverlay.clearTileCache();
+        if (tileOverlay != null) {
+            tileOverlay.clearTileCache();
+        }
         tileOverlay = crimeMap.addTileOverlay(new TileOverlayOptions().tileProvider(heatmapTileProvider));
         //crimeMap.addMarker(new MarkerOptions().position(new LatLng(52.633904, -1.131657)).flat(true));
 

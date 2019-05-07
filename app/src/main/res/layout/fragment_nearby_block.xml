@@ -49,5 +49,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_nearby_block_desc"
         tools:listitem="@layout/fragment_nearby_block_item"
-        tools:orientation="horizontal"></android.support.v7.widget.RecyclerView>
+        tools:orientation="horizontal"/>
+
 </android.support.constraint.ConstraintLayout>

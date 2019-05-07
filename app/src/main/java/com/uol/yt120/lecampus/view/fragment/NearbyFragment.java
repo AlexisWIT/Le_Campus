@@ -16,11 +16,12 @@
 
 package com.uol.yt120.lecampus.view.fragment;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -36,15 +37,22 @@ import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.model.restAPI.RestApiClient;
 import com.uol.yt120.lecampus.model.restDomain.PublicEvent;
 import com.uol.yt120.lecampus.utility.HttpHandler;
-import com.uol.yt120.lecampus.view.adapter.ImageViewAdapter;
+import com.uol.yt120.lecampus.view.adapter.NearbyAdapter;
+import com.uol.yt120.lecampus.view.adapter.PublicEventAdapter;
+import com.uol.yt120.lecampus.viewModel.PublicEventCacheViewModel;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class NearbyFragment extends Fragment {
+
+    private PublicEventCacheViewModel publicEventCacheViewModel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,13 +67,28 @@ public class NearbyFragment extends Fragment {
         getActivity().setTitle(getString(R.string.title_fragment_nearby));
         View nearbyView = inflater.inflate(R.layout.fragment_nearby, container, false);
 
-        ViewPager viewPager = nearbyView.findViewById(R.id.viewPager_image);
-        ImageViewAdapter adapter = new ImageViewAdapter(getActivity());
-        viewPager.setAdapter(adapter);
+        loadEventData();
 
-        LinearLayoutManager layoutManager
-                = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
-        //RecyclerView recyclerView = (RecyclerView)nearbyView.findViewById(
+        RecyclerView recyclerView = (RecyclerView)nearbyView.findViewById(R.id.nearby_list);
+        recyclerView.setHasFixedSize(true);
+
+        final NearbyAdapter nearbyAdapter = new NearbyAdapter(getActivity());
+        recyclerView.setAdapter(nearbyAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        publicEventCacheViewModel = ViewModelProviders.of(getActivity()).get(PublicEventCacheViewModel.class);
+        publicEventCacheViewModel.getPublicEventData().observe(this, new Observer<Map<String, Object>>() {
+            @Override
+            public void onChanged(@Nullable Map<String, Object> eventDataMap) {
+                if (!eventDataMap.isEmpty()) {
+                    Log.w("[Nearby Fragment]", "Event data found in Cache ViewModel");
+                    nearbyAdapter.setPublicEventBlockList(eventDataMap);
+
+                } else {
+                    Toast.makeText(getActivity(), "Please connect to the server", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
 
         return nearbyView;
@@ -84,7 +107,7 @@ public class NearbyFragment extends Fragment {
                     return;
                 }
                 List<PublicEvent> publicEvents = response.body();
-                Log.e("[Nearby Fragment]", "Event data received");
+                Log.w("[Nearby Fragment]", "Event data received");
                 if (!publicEvents.isEmpty()) {
                     setupEvents(publicEvents);
                 }
@@ -100,8 +123,78 @@ public class NearbyFragment extends Fragment {
 
 
     public void setupEvents(List<PublicEvent> eventList) {
+        Map<String, Object> eventData = new HashMap<>();
+        List<List<PublicEvent>> blockList = new ArrayList<>();
+        List<String> filterNameList = new ArrayList<>();
+        List<String> filterDescList = new ArrayList<>();
+
+        List<PublicEvent> recentEventList = new ArrayList<>();
+        List<PublicEvent> nearbyEventList = new ArrayList<>();
+        List<PublicEvent> featuredEventList = new ArrayList<>();
+        List<PublicEvent> offersEventList = new ArrayList<>();
+
+        for (PublicEvent event: eventList) {
+            if (recentEventList.size() <= 10) {
+                recentEventList.add(event);
+            }
+
+            if (isNearBy(event) && nearbyEventList.size() <= 10) {
+                nearbyEventList.add(event);
+            }
+
+            if (isFeatured(event) && featuredEventList.size() <= 10) {
+                featuredEventList.add(event);
+            }
+
+            if (isOffered(event) && offersEventList.size() <= 10) {
+                offersEventList.add(event);
+            }
+        }
+
+        blockList.add(recentEventList);
+        blockList.add(nearbyEventList);
+        blockList.add(featuredEventList);
+        blockList.add(offersEventList);
+
+        filterNameList.add("Recent");
+        filterNameList.add("Nearby");
+        filterNameList.add("Featured");
+        filterNameList.add("Offers");
+
+        filterDescList.add("Recent events");
+        filterDescList.add("Nearby events");
+        filterDescList.add("Featured events");
+        filterDescList.add("Offered events");
+
+        eventData.put("blockList", blockList);
+        eventData.put("filter", filterNameList);
+        eventData.put("filterDesc", filterDescList);
+
+        //Log.w("[Nearby Fragment]", eventData.toString());
+
+        publicEventCacheViewModel = ViewModelProviders.of(getActivity()).get(PublicEventCacheViewModel.class);
+        publicEventCacheViewModel.setPublicEventData(eventData);
 
     }
+
+    private boolean isNearBy(PublicEvent publicEvent) {
+        boolean result = true;
+
+        return result;
+    }
+
+    private boolean isFeatured(PublicEvent publicEvent) {
+        boolean result = true;
+
+        return result;
+    }
+
+    private boolean isOffered(PublicEvent publicEvent) {
+        boolean result = true;
+
+        return result;
+    }
+
 
 
     // Options specifically for Nearby fragment

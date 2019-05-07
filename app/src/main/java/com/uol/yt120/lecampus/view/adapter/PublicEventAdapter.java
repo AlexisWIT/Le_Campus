@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.model.domain.UserEvent;
+import com.uol.yt120.lecampus.model.restDomain.PublicEvent;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 
@@ -18,17 +19,17 @@ import java.util.List;
 
 public class PublicEventAdapter extends RecyclerView.Adapter<PublicEventAdapter.PublicEventHolder> {
 
-    private List<UserEvent> publicEventList = new ArrayList<>();
+    private List<PublicEvent> publicEventList = new ArrayList<>();
     private OnItemClickListener listener;
 
     private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
     private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
 
     private String filter;
-    private static final String FEATURED = "featured";
-    private static final String RECENT = "recent";
-    private static final String NEARBY = "nearby";
-    private static final String OFFERS = "offers";
+    private static final String FEATURED = "Featured";
+    private static final String RECENT = "Recent";
+    private static final String NEARBY = "Nearby";
+    private static final String OFFERS = "Offers";
 
     @NonNull
     @Override
@@ -40,7 +41,7 @@ public class PublicEventAdapter extends RecyclerView.Adapter<PublicEventAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull PublicEventHolder publicEventHolder, int position) {
-        UserEvent currentPublicEvent = publicEventList.get(position);
+        PublicEvent currentPublicEvent = publicEventList.get(position);
         publicEventHolder.publicEventTitle.setText(currentPublicEvent.getEventTitle());
         publicEventHolder.publicEventDesc.setText(currentPublicEvent.getEventDesc());
 
@@ -69,13 +70,13 @@ public class PublicEventAdapter extends RecyclerView.Adapter<PublicEventAdapter.
         return publicEventList.size();
     }
 
-    public void setPublicEventList(List<UserEvent> pEventList, String filter) {
+    public void setPublicEventList(List<PublicEvent> pEventList, String filter) {
         this.filter = filter;
         this.publicEventList = pEventList;
         notifyDataSetChanged();
     }
 
-    public UserEvent getPublicEventAt(int position) {
+    public PublicEvent getPublicEventAt(int position) {
         return publicEventList.get(position);
     }
 
@@ -106,7 +107,7 @@ public class PublicEventAdapter extends RecyclerView.Adapter<PublicEventAdapter.
     }
 
     public interface OnItemClickListener{
-        void onItemClick(UserEvent publicEvent);
+        void onItemClick(PublicEvent publicEvent);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {

@@ -45,8 +45,8 @@ public class PublicEventBlockAdapter extends RecyclerView.Adapter<PublicEventBlo
         return publicEventBlockList.size();
     }
 
-    public void setPublicEventListBlockList(List<List<UserEvent>> publicEventListBlockList, String filter, String filterDesc, PublicEventAdapter adapter) {
-        this.publicEventBlockList = publicEventListBlockList;
+    public void setPublicEventListBlockList(List<List<UserEvent>> blockList, String filter, String filterDesc, PublicEventAdapter adapter) {
+        this.publicEventBlockList = blockList;
         this.filter = filter;
         this.filterDesc = filterDesc;
         this.adapter = adapter;

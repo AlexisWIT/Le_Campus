@@ -9,12 +9,12 @@ import android.widget.ImageView;
 
 import com.uol.yt120.lecampus.R;
 
-public class ImageViewAdapter extends PagerAdapter {
+public class ImageViewPagerAdapter extends PagerAdapter {
 
     private Context mContext;
     private int[] mImageIds = new int[] {R.drawable.pad, R.drawable.jfl, R.drawable.mv};
 
-    public ImageViewAdapter(Context context) {
+    public ImageViewPagerAdapter(Context context) {
         mContext = context;
     }
 
