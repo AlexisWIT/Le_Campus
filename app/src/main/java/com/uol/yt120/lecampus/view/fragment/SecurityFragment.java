@@ -80,6 +80,7 @@ public class SecurityFragment extends Fragment implements OnMapReadyCallback {
         securitySwitch = securityView.findViewById(R.id.switch_security_notifier);
         securitySwitch.setChecked(sharedPreferences.getBoolean(SECURITY_NOTIFIER_STATUS, false));
         securitySwitch.setOnClickListener((switchView) -> {
+
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(SECURITY_NOTIFIER_STATUS, securitySwitch.isChecked());
             editor.apply();
@@ -145,7 +146,7 @@ public class SecurityFragment extends Fragment implements OnMapReadyCallback {
                     return;
                 }
                 List<CrimeGeoFence> crimeGeoFences = response.body();
-                Log.e("[Security Fragment]", "Received crime data: " + dateForRequest);
+                Log.w("[Security Fragment]", "Received crime data: " + dateForRequest + " Size: "+crimeGeoFences.size());
                 if (!crimeGeoFences.isEmpty()) {
                     generateHeatMap(crimeGeoFences);
                 }
@@ -169,6 +170,7 @@ public class SecurityFragment extends Fragment implements OnMapReadyCallback {
             datalist.add(new WeightedLatLng(latLng, 1));
         }
 
+        Log.e("[Security Fragment]", "Current Datasize: "+datalist.size());
         heatmapTileProvider = new HeatmapTileProvider.Builder()
                 .weightedData(datalist)
                 .build();

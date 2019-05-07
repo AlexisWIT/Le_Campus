@@ -12,6 +12,7 @@ import com.uol.yt120.lecampus.*;
 import com.uol.yt120.lecampus.model.domain.Footprint;
 import com.uol.yt120.lecampus.utility.DateTimeCalculator;
 import com.uol.yt120.lecampus.utility.DateTimeFormatter;
+import com.uol.yt120.lecampus.utility.LocationDataProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,24 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
         footprintHolder.textViewTitle.setText(currentFootprint.getTitle());
         footprintHolder.textViewDesc.setText(currentFootprint.getDescription());
         footprintHolder.textViewDate.setText(currentFootprint.getCreateTime());
+        String distance = getDistanceString(currentFootprint.getLength());
+        footprintHolder.textViewDistance.setText(distance);
 
+    }
+
+    private String getDistanceString(String length) {
+        String result = "";
+        try {
+            double distance = Double.valueOf(length);
+            if (distance >= 1000) {
+                result = LocationDataProcessor.round(distance/1000, 0) + " km";
+            } else {
+                result = LocationDataProcessor.round(distance, 0) + " m";
+            }
+        } catch (Exception e) {
+
+        }
+        return result;
     }
 
     @Override
@@ -62,12 +80,14 @@ public class FootprintAdapter extends RecyclerView.Adapter<FootprintAdapter.Foot
         private TextView textViewTitle;
         private TextView textViewDesc;
         private TextView textViewDate;
+        private TextView textViewDistance;
 
         public FootprintHolder(View itemView) {
             super(itemView);
             textViewTitle = itemView.findViewById(R.id.text_footprint_title);
             textViewDesc = itemView.findViewById(R.id.text_footprint_desc);
             textViewDate = itemView.findViewById(R.id.text_footprint_date);
+            textViewDistance = itemView.findViewById(R.id.text_footprint_distance);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

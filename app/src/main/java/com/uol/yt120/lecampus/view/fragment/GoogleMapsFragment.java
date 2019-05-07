@@ -22,6 +22,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -64,6 +65,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.uol.yt120.lecampus.publicAsyncTasks.ProcessDirectionPathAsyncTask;
+import com.uol.yt120.lecampus.utility.LocationDataProcessor;
 import com.uol.yt120.lecampus.utility.MapDrawer;
 import com.uol.yt120.lecampus.view.NavigationActivity;
 import com.uol.yt120.lecampus.R;
@@ -92,6 +94,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     public static final String VIEW_FOOTPRINT_CODE = "view_fprint";
     public static final String VIEW_CRIME_CODE = "view_crime";
 
+    public static final String LAST_KNOWN_LAT = "Last_Known_Latitude";
+    public static final String LAST_KNOWN_LNG = "Last_Known_Longitude";
+
     private DataPassListener mCallback;
     private LocationDataCacheViewModel locationDataCacheViewModel;
     private ProgressDialog progressDialog;
@@ -115,10 +120,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     LatLng prevLatLng;
     LatLng currentLatLng;
 
-    List<Polyline> polylineList = new ArrayList<Polyline>();
+    Location googleLocation;
+    Location skyhookLocation;
 
+    List<Polyline> polylineList = new ArrayList<Polyline>();
+    double footprintDistance = 0;
     Integer trackpointIndex = 0;
     ArrayList<HashMap<String, Object>> trackpointList = new ArrayList<HashMap<String, Object>>();
+
+    private SharedPreferences sharedPreferences;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -133,6 +143,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         getActivity().setTitle(getString(R.string.title_fragment_campus_map));
         locationDataCacheViewModel = ViewModelProviders.of(getActivity()).get(LocationDataCacheViewModel.class);
+        sharedPreferences = getActivity().getSharedPreferences(NavigationActivity.SHARED_PREFS, Context.MODE_PRIVATE);
 
         View googleMapViewLayout = inflater.inflate(R.layout.fragment_google_maps, container, false);
 
@@ -149,18 +160,35 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         footprintTrackButton.setOnClickListener(this::onFootprintClick);
         footprintTrackEnabled = false;
 
-        locationDataCacheViewModel.getMutableCurrentLocationLiveData().observe(this, new Observer<Location>() {
+        locationDataCacheViewModel.getGoogleLocationLiveData().observe(this, new Observer<Location>() {
             @Override
-            public void onChanged(@Nullable Location location) {
-                if (location != null) {
-                    currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            public void onChanged(@Nullable Location gleLocation) {
+                if (gleLocation != null) {
+                    googleLocation = gleLocation;
+                    if (skyhookLocation != null) {
+                        currentLatLng = LocationDataProcessor.getBetterLocation(googleLocation, skyhookLocation);
+                        skyhookLocation = null;
+                    } else {
+                        currentLatLng = new LatLng(googleLocation.getLatitude(), googleLocation.getLongitude());
+                    }
+
                     if (directionEnabled) {
                         ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
                     }
                     if (locationEnabled) {
-                        updateLocation(location);
+                        updateLocation(googleLocation);
                     }
                 }
+            }
+        });
+
+        locationDataCacheViewModel.getSkyhookLocationLiveData().observe(this, new Observer<Location>() {
+            @Override
+            public void onChanged(@Nullable Location shkLocation) {
+                if (shkLocation != null) {
+                    skyhookLocation = shkLocation;
+                }
+
             }
         });
 
@@ -207,24 +235,47 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private void onClick(View view) {
 
         if (locationEnabled) {
-            locationEnabled = false;
-            cameraMovingEnabled = false;
-            googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_locate));
+            disableLocation();
             Snackbar.make(view, "Stop showing your location.", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
-            if (footprintTrackEnabled) {
-                showEndTrackingDialog();
-            }
-            ((NavigationActivity)getActivity()).updateGoogleLocationService(10,5);
         } else {
-            locationEnabled = true;
-            cameraMovingEnabled = true;
-            googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_location_disabled));
+            enableLocation();
             Snackbar.make(view, "Getting your current location...", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
-            ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
         }
 
+    }
+
+    private void disableLocation() {
+        locationEnabled = false;
+        cameraMovingEnabled = false;
+        googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_locate));
+
+        if (footprintTrackEnabled) {
+            showEndTrackingDialog();
+        }
+        ((NavigationActivity)getActivity()).updateGoogleLocationService(10,5);
+    }
+
+    private void enableLocation() {
+        locationEnabled = true;
+        cameraMovingEnabled = true;
+        googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_location_disabled));
+        ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
+    }
+
+    private void enableLocation(LatLng startLatlng) {
+        locationEnabled = true;
+        cameraMovingEnabled = true;
+        googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_location_disabled));
+
+        currentMarker = gMap.addMarker(new MarkerOptions().position(currentLatLng).flat(true));
+
+        currentMarker.setTitle("LOCATION");
+        currentMarker.setSnippet("LAT: "+startLatlng.latitude+"\nLNG: "+startLatlng.longitude);
+        currentMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker));
+
+        ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
     }
 
     public void updateLocation(Location locationForUpdate) {
@@ -272,14 +323,16 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
                     int index = trackpointIndex+1;
 
+                    long currentTime = System.currentTimeMillis();
                     HashMap<String, Object> trackpoint = new HashMap<>();
                     trackpoint.put("index", index);
-                    Date trackpointDate = new Date(System.currentTimeMillis());
+                    Date trackpointDate = new Date(currentTime);
                     trackpoint.put("time", dateTimeFormatter.formatDateToString(trackpointDate, "default"));
                     trackpoint.put("lat", locationForUpdate.getLatitude());
                     trackpoint.put("lon", locationForUpdate.getLongitude());
                     trackpoint.put("allInfo", locationForUpdate.toString());
 
+                    footprintDistance += LocationDataProcessor.getDistanceBetween(prevLatLng, currentLatLng);
                     trackpointList.add(trackpoint);
                     Log.w("[DEBUG INFO]", "Current List: ["+trackpointList.toString()+"]");
                     trackpointIndex = index;
@@ -485,8 +538,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         Integer privacy = 0;
 
         Footprint footprint = new Footprint(title, desc, nodeListJSON, timeCreated, privacy);
+        footprint.setLength(String.valueOf(footprintDistance));
         footprintViewModel.insert(footprint);
-        Toast.makeText(getActivity(), "Footprint saved - "+timeCreated, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), "Footprint saved:"+timeCreated +" Total Distance: "+footprintDistance, Toast.LENGTH_SHORT).show();
     }
 
     private void clearAllPolylines() {
@@ -501,6 +555,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private void clearAllTrackpoints() {
         if (!trackpointList.isEmpty()) {
             trackpointList.clear();
+            footprintDistance = 0;
         }
     }
 
@@ -561,7 +616,10 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         String requestUrl = mapDrawer.makeDirectionRequestURL(startLat, startLng,
                         endLat, endLng, MapDrawer.MODE_WALK);
 
-        new ProcessDirectionPathAsyncTask(requestUrl, this).execute();
+        LatLng startLatlng = new LatLng(startLat, startLng);
+        LatLng endLatlng = new LatLng(endLat, endLng);
+
+        new ProcessDirectionPathAsyncTask(requestUrl, startLatlng, endLatlng, this).execute();
     }
 
     @Override
@@ -570,11 +628,21 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
 
     @Override
-    public void showPath(List<LatLng> pathList) {
+    public void showPath(List<LatLng> pathList, LatLng startLatlng, LatLng endLatlng) {
         Log.i("[GoogleMapsFragment]", "Got path: "+pathList.toString());
-        directionPolyline.remove();
+        List<LatLng> result = new ArrayList<>();
+        result.add(startLatlng);
+        result.addAll(pathList);
+        result.add(endLatlng);
+
+        enableLocation(startLatlng);
+
+        if (directionPolyline != null) {
+            directionPolyline.remove();
+        }
+
         directionPolyline = gMap.addPolyline(new PolylineOptions()
-                .addAll(pathList)
+                .addAll(result)
                 .width(9)
                 .color(Color.GRAY)
                 .geodesic(true)

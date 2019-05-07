@@ -18,6 +18,8 @@ package com.uol.yt120.lecampus.view.fragment;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -33,10 +35,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.model.restAPI.RestApiClient;
 import com.uol.yt120.lecampus.model.restDomain.PublicEvent;
 import com.uol.yt120.lecampus.utility.HttpHandler;
+import com.uol.yt120.lecampus.utility.LocationDataProcessor;
+import com.uol.yt120.lecampus.view.NavigationActivity;
 import com.uol.yt120.lecampus.view.adapter.NearbyAdapter;
 import com.uol.yt120.lecampus.view.adapter.PublicEventAdapter;
 import com.uol.yt120.lecampus.viewModel.PublicEventCacheViewModel;
@@ -53,6 +58,8 @@ import retrofit2.Response;
 public class NearbyFragment extends Fragment {
 
     private PublicEventCacheViewModel publicEventCacheViewModel;
+    private SharedPreferences sharedPreferences;
+    private LatLng lastKnownLatlng;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,6 +73,10 @@ public class NearbyFragment extends Fragment {
 
         getActivity().setTitle(getString(R.string.title_fragment_nearby));
         View nearbyView = inflater.inflate(R.layout.fragment_nearby, container, false);
+        sharedPreferences = getActivity().getSharedPreferences(NavigationActivity.SHARED_PREFS, Context.MODE_PRIVATE);
+        double lastKnownLat = sharedPreferences.getFloat(NavigationActivity.LAST_KNOWN_LAT,0);
+        double lastKnowmLng = sharedPreferences.getFloat(NavigationActivity.LAST_KNOWN_LNG,0);
+        lastKnownLatlng = new LatLng(lastKnownLat, lastKnowmLng);
 
         loadEventData();
 
@@ -85,7 +96,7 @@ public class NearbyFragment extends Fragment {
                     nearbyAdapter.setPublicEventBlockList(eventDataMap);
 
                 } else {
-                    Toast.makeText(getActivity(), "Please connect to the server", Toast.LENGTH_SHORT).show();
+
                 }
             }
         });
@@ -110,6 +121,8 @@ public class NearbyFragment extends Fragment {
                 Log.w("[Nearby Fragment]", "Event data received");
                 if (!publicEvents.isEmpty()) {
                     setupEvents(publicEvents);
+                } else {
+                    Toast.makeText(getActivity(), "Please connect to the server", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -122,6 +135,7 @@ public class NearbyFragment extends Fragment {
     }
 
 
+    int sizeLimit = 15;
     public void setupEvents(List<PublicEvent> eventList) {
         Map<String, Object> eventData = new HashMap<>();
         List<List<PublicEvent>> blockList = new ArrayList<>();
@@ -133,22 +147,24 @@ public class NearbyFragment extends Fragment {
         List<PublicEvent> featuredEventList = new ArrayList<>();
         List<PublicEvent> offersEventList = new ArrayList<>();
 
+        int i = 0;
         for (PublicEvent event: eventList) {
-            if (recentEventList.size() <= 10) {
+            if (recentEventList.size() <= sizeLimit) {
                 recentEventList.add(event);
             }
 
-            if (isNearBy(event) && nearbyEventList.size() <= 10) {
+            if (isNearBy(event) && nearbyEventList.size() <= sizeLimit) {
                 nearbyEventList.add(event);
             }
 
-            if (isFeatured(event) && featuredEventList.size() <= 10) {
+            if (isFeatured(event, i, eventList.size(), featuredEventList.size()) && featuredEventList.size() <= sizeLimit) {
                 featuredEventList.add(event);
             }
 
-            if (isOffered(event) && offersEventList.size() <= 10) {
+            if (isOffered(event) && offersEventList.size() <= sizeLimit) {
                 offersEventList.add(event);
             }
+            i++;
         }
 
         blockList.add(recentEventList);
@@ -179,13 +195,20 @@ public class NearbyFragment extends Fragment {
 
     private boolean isNearBy(PublicEvent publicEvent) {
         boolean result = true;
-
+        if (lastKnownLatlng != null && lastKnownLatlng.latitude != 0 && lastKnownLatlng.longitude != 0) {
+            double eventLat = Double.valueOf(publicEvent.getLat());
+            double eventLng = Double.valueOf(publicEvent.getLon());
+            LatLng eventLatlng = new LatLng(eventLat, eventLng);
+            result = LocationDataProcessor.getDistanceBetween(lastKnownLatlng, eventLatlng) <= 500;
+            Log.w("[Nearby Fragment]", "Distance: "+LocationDataProcessor.getDistanceBetween(lastKnownLatlng, eventLatlng));
+        }
         return result;
     }
 
-    private boolean isFeatured(PublicEvent publicEvent) {
+    private boolean isFeatured(PublicEvent publicEvent, int index, int size1, int size2) {
         boolean result = true;
-
+        result = Math.random() >= 0.5;
+        result = (sizeLimit-size2) == (size1-index);
         return result;
     }
 

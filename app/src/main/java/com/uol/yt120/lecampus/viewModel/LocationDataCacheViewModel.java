@@ -15,7 +15,8 @@ import java.util.List;
  *
  */
 public class LocationDataCacheViewModel extends AndroidViewModel {
-    private MutableLiveData<Location> mutableCurrentLocationLiveData = new MutableLiveData<>();
+    private MutableLiveData<Location> googleLocationLiveData = new MutableLiveData<>();
+    private MutableLiveData<Location> skyhookLocationLiveData = new MutableLiveData<>();
     private MutableLiveData<List<Location>> mutableLocationListLiveData = new MutableLiveData<>();
     private MutableLiveData<LatLng> latLngForDirection = new MutableLiveData<>();
 
@@ -23,12 +24,20 @@ public class LocationDataCacheViewModel extends AndroidViewModel {
         super(application);
     }
 
-    public void setMutableCurrentLocationLiveData(Location location) {
-        mutableCurrentLocationLiveData.setValue(location);
+    public void setGoogleLocationLiveData(Location location) {
+        googleLocationLiveData.setValue(location);
     }
 
-    public MutableLiveData<Location> getMutableCurrentLocationLiveData() {
-        return mutableCurrentLocationLiveData;
+    public MutableLiveData<Location> getGoogleLocationLiveData() {
+        return googleLocationLiveData;
+    }
+
+    public void setSkyhookLocationLiveData(Location location) {
+        skyhookLocationLiveData.setValue(location);
+    }
+
+    public MutableLiveData<Location> getSkyhookLocationLiveData() {
+        return skyhookLocationLiveData;
     }
 
     public void setMutableLocationListLiveData(List<Location> locationList) {

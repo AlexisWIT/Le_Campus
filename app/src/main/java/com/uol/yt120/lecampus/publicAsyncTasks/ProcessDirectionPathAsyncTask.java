@@ -17,17 +17,21 @@ import java.util.List;
 public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, List<LatLng>> {
 
     private String requestUrl;
+    private LatLng startLatlng;
+    private LatLng endLatlng;
     MapDrawer mapDrawer = new MapDrawer();
     HttpHandler httpHandler = new HttpHandler();
 
     public interface Response {
         void startProcessPath();
-        void showPath(List<LatLng> path);
+        void showPath(List<LatLng> path, LatLng startLatlng, LatLng endLatlng);
     }
 
-    public ProcessDirectionPathAsyncTask(String requestUrl, Response response) {
+    public ProcessDirectionPathAsyncTask(String requestUrl, LatLng startLatlng, LatLng endLatlng, Response response) {
         this.requestUrl = requestUrl;
         this.response = response;
+        this.startLatlng = startLatlng;
+        this.endLatlng = endLatlng;
     }
 
     @Override
@@ -97,6 +101,6 @@ public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, List
     @Override
     protected void onPostExecute(List<LatLng> pathResult) {
         //showDialog("Downloaded " + result + " items");
-        response.showPath(pathResult);
+        response.showPath(pathResult, startLatlng, endLatlng);
     }
 }

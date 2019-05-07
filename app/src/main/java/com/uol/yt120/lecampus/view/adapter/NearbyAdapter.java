@@ -37,13 +37,13 @@ public class NearbyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
         switch (viewType) {
             case 0:
-                Log.w("[Nearby Adapter]", "create image banner");
+                //Log.w("[Nearby Adapter]", "create image banner");
                 View imageBannerView = LayoutInflater.from(viewGroup.getContext())
                         .inflate(R.layout.fragment_nearby_banner, viewGroup, false);
                 return new BannerViewHolder(imageBannerView, context);
 
             default:
-                Log.w("[Nearby Adapter]", "create event blocks");
+                //Log.w("[Nearby Adapter]", "create event blocks");
                 View eventBlockView = LayoutInflater.from(viewGroup.getContext())
                         .inflate(R.layout.fragment_nearby_block, viewGroup, false);
                 return new EventBlockViewHolder(eventBlockView);
@@ -55,7 +55,7 @@ public class NearbyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
         switch (viewHolder.getItemViewType()) {
             case 0: // Load image banner
-                Log.w("[Nearby Adapter]", "load image banner");
+                //Log.w("[Nearby Adapter]", "load image banner");
                 BannerViewHolder bannerViewHolder = (BannerViewHolder) viewHolder;
                 final ImageViewPagerAdapter imageViewPagerAdapter = new ImageViewPagerAdapter(context);
                 bannerViewHolder.imageViewPager.setAdapter(imageViewPagerAdapter);
@@ -63,7 +63,7 @@ public class NearbyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 break;
 
             default: // Load event blocks - list of event list
-                Log.w("[Nearby Adapter]", "load event blocks");
+                //Log.w("[Nearby Adapter]", "load event blocks");
                 EventBlockViewHolder eventBlockViewHolder = (EventBlockViewHolder) viewHolder;
                 List<PublicEvent> currentPublicEventList = publicEventBlockList.get(position-1);
                 String currentPublicEventFilter = filterList.get(position-1);
@@ -87,7 +87,6 @@ public class NearbyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         this.publicEventBlockList = (List<List<PublicEvent>>) blockList.get("blockList");
         this.filterList = (List<String>) blockList.get("filter");
         this.filterDescList = (List<String>) blockList.get("filterDesc");
-        //this.publicEventAdapter = (PublicEventAdapter) blockList.get("adapter");
         notifyDataSetChanged();
     }
 
@@ -98,10 +97,7 @@ public class NearbyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public int getItemViewType(int position) {
-        //int result = position % 2 * 2;
-        //Log.w("[Nearby Adapter]", "itemView Type (position): "+result);
-        //return result;
-        Log.w("[Nearby Adapter]", "itemView Type (position): "+position);
+        //Log.w("[Nearby Adapter]", "itemView Type (position): "+position);
         return position;
     }
 

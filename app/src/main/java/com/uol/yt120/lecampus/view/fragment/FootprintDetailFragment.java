@@ -270,7 +270,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
             gMap.animateCamera(cu);
 
         } catch (Exception e) {
-            Log.e(FootprintDetailFragment.TAG, "Invalid node JSON data.");
+            Log.e(FootprintDetailFragment.TAG, "Invalid node Footprint JSON data.");
             e.printStackTrace();
         }
 

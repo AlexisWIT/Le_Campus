@@ -69,9 +69,6 @@ import com.uol.yt120.lecampus.viewModel.UserViewModel;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * This is the only main activity in this application which is hosting several fragments
  * this activity is responsible for:
@@ -92,6 +89,9 @@ public class NavigationActivity extends AppCompatActivity implements
     public static final String FRAGMENT_SECURITY = "SecurityFragment";
     public static final String FRAGMENT_TIMETABLE = "TimetableFragment";
     public static final String FRAGMENT_USEREVENT_DETAIL = "UserEventDetailFragment";
+
+    public static final String LAST_KNOWN_LAT = "Last_Known_Latitude";
+    public static final String LAST_KNOWN_LNG = "Last_Known_Longitude";
 
     public static final String SHARED_PREFS = "Shared_Preferences";
 
@@ -115,6 +115,7 @@ public class NavigationActivity extends AppCompatActivity implements
     private ImageView useravater;
     private int backStackEntryCount = 0;
 
+    private SharedPreferences sharedPreferences;
     private LocationDataCacheViewModel locationDataCacheViewModel;
 
     DrawerLayout drawerLayout;
@@ -143,6 +144,8 @@ public class NavigationActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         gleReceiver = new GoogleLocationServiceReceiver();
         shkReceiver = new SkyhookLocationServiceReceiver();
+
+        sharedPreferences = getSharedPreferences(SHARED_PREFS, Context.MODE_PRIVATE);
 
         setContentView(R.layout.activity_navigation);
 
@@ -503,7 +506,12 @@ public class NavigationActivity extends AppCompatActivity implements
                             intent.getStringExtra(GoogleLocationServiceReceiver.ACTION_GLE_LOCATION_DATA);
 
                     Location gleLocation = processor.encapStringToLocation(gleLocationJSON);
-                    locationDataCacheViewModel.setMutableCurrentLocationLiveData(gleLocation);
+                    locationDataCacheViewModel.setGoogleLocationLiveData(gleLocation);
+
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putFloat(LAST_KNOWN_LAT, (float)gleLocation.getLatitude());
+                    editor.putFloat(LAST_KNOWN_LNG, (float)gleLocation.getLongitude());
+                    editor.apply();
 
                 // Broadcast from Skyhook service
                 } else if (intent.getAction().equals(SkyhookLocationServiceReceiver.ACTION_SHK_SERVICE_BROADCAST_RELAY)){
@@ -513,7 +521,7 @@ public class NavigationActivity extends AppCompatActivity implements
                             intent.getIntExtra(SkyhookLocationServiceReceiver.ACTION_SHK_LOCATION_GEOFENCE, -1);
 
                     Location shkLocation = processor.encapStringToLocation(shkLocationJSON);
-                    locationDataCacheViewModel.setMutableCurrentLocationLiveData(shkLocation);
+                    locationDataCacheViewModel.setSkyhookLocationLiveData(shkLocation);
 
                     switch (geofenceTriggerType) {
                         case SkyhookLocationServiceReceiver.GEOFENCE_NULL:

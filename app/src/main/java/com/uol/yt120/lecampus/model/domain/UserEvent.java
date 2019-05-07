@@ -439,7 +439,7 @@ public class UserEvent implements WeekViewDisplayable<UserEvent>{
         final int color_text = context.getResources().getColor(R.color.color_text_dark);
 
         int bgColor;
-        int defaultColor = Color.WHITE;
+        int defaultColor = Color.GRAY;
 
         boolean isEnd = isDisabled == 1;
         int borderWidth = !isEnd ? 0 : 2;
