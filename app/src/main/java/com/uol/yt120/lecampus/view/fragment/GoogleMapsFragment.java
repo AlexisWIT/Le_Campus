@@ -64,9 +64,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.uol.yt120.lecampus.model.domain.UserEvent;
 import com.uol.yt120.lecampus.publicAsyncTasks.ProcessDirectionPathAsyncTask;
 import com.uol.yt120.lecampus.utility.LocationDataProcessor;
 import com.uol.yt120.lecampus.utility.MapDrawer;
+import com.uol.yt120.lecampus.utility.TextValidator;
 import com.uol.yt120.lecampus.view.NavigationActivity;
 import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.model.dataAccessObjects.DataPassListener;
@@ -82,6 +84,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import timber.log.Timber;
 
@@ -111,7 +114,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private boolean directionEnabled = false;
 
     private FloatingActionButton googleLocateButton;
-    private static Polyline directionPolyline;
+    private List<Polyline> directionPolylineList = new ArrayList<>();
     private boolean cameraMovingEnabled = true;
 
     DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
@@ -389,14 +392,31 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
     @Override
     public void onStart() {
-        locationDataCacheViewModel.getLatLngForDirection().observe(this, new Observer<LatLng>() {
+        locationDataCacheViewModel.getEventForDirection().observe(this, new Observer<List<UserEvent>>() {
             @Override
-            public void onChanged(@Nullable LatLng targetLatLng) {
-                if (targetLatLng != null && currentLatLng != null) {
+            public void onChanged(@Nullable List<UserEvent> userEventList) {
+                TextValidator tv = new TextValidator();
+                List<LatLng> targetList = new ArrayList<>();
+                for (UserEvent userEvent : userEventList) {
+                    if (!tv.isEmptyString(userEvent.getLat()) && !tv.isEmptyString(userEvent.getLon())) {
+                        targetList.add(new LatLng(Double.valueOf(userEvent.getLat()), Double.valueOf(userEvent.getLon())));
+                    }
+                }
+
+                if (currentLatLng != null) {
                     Log.i("[GoogleMapsFragment]", "Current Latlng: "+currentLatLng);
+                    directionPolylineList.clear();
+
                     try {
                         ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2); // location update interval (second)
-                        getDirectionPath(currentLatLng.latitude, currentLatLng.longitude, targetLatLng.latitude, targetLatLng.longitude, MapDrawer.MODE_WALK);
+                        LatLng latLng1 = currentLatLng;
+                        LatLng latLng2;
+                        for (LatLng targetLatlng : targetList) {
+                            latLng2 = targetLatlng;
+                            getDirectionPath(latLng1.latitude, latLng1.longitude, latLng2.latitude, latLng2.longitude, MapDrawer.MODE_WALK);
+                            latLng1 = latLng2;
+                        }
+
                         cameraMovingEnabled = false;
                         directionEnabled = true;
 
@@ -406,6 +426,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 }
             }
         });
+
         super.onStart();
     }
 
@@ -444,8 +465,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 return true;
 
             case R.id.action_clear_direction:
-                if (directionPolyline != null) {
-                    directionPolyline.remove();
+                if (!directionPolylineList.isEmpty()) {
+                    directionPolylineList.clear();
                 }
                 //gMap.clear();
 
@@ -628,8 +649,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
 
     @Override
-    public void showPath(List<LatLng> pathList, LatLng startLatlng, LatLng endLatlng) {
-        Log.i("[GoogleMapsFragment]", "Got path: "+pathList.toString());
+    public void showPath(Map<String, Object> pathResult, LatLng startLatlng, LatLng endLatlng) {
+        Log.i("[GoogleMapsFragment]", "Got path: "+pathResult.get("pathList"));
+
+        List<LatLng> pathList = (List<LatLng>) pathResult.get("pathList");
+        String distanceString = (String) pathResult.get("distanceString");
+        int distanceInMetre = (Integer) pathResult.get("distanceInMetre");
+        String durationString = (String) pathResult.get("durationString");
+        int durationInSec = (Integer) pathResult.get("durationInSec");
+
         List<LatLng> result = new ArrayList<>();
         result.add(startLatlng);
         result.addAll(pathList);
@@ -637,16 +665,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         enableLocation(startLatlng);
 
-        if (directionPolyline != null) {
-            directionPolyline.remove();
-        }
-
-        directionPolyline = gMap.addPolyline(new PolylineOptions()
+        Polyline directionPolyline = gMap.addPolyline(new PolylineOptions()
                 .addAll(result)
                 .width(9)
                 .color(Color.GRAY)
                 .geodesic(true)
         );
+
+        directionPolylineList.add(directionPolyline);
+
         LatLngBounds.Builder latLngBoundsBuilder = new LatLngBounds.Builder();
 
         for (LatLng point : pathList) {
@@ -661,7 +688,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
         gMap.animateCamera(cu);
-        locationDataCacheViewModel.setLatLngForDirection(null);
     }
 
 

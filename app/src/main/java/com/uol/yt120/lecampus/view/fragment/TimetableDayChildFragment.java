@@ -79,12 +79,12 @@ public class TimetableDayChildFragment extends Fragment {
         TextView textView = timetableDayView.findViewById(R.id.label_timetable_day_date);
         textView.setText(dateTimeCalculator.getTodayDate());
 
-        Log.w("[DEBUG INFO]", "Today: ["+ currentDate +"]" + currentDateWithTime);
+        Log.w("[Timetable_Day]", "Today: ["+ currentDate +"]" + currentDateWithTime);
         userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
         userEventViewModel.getUserEventListByDate(currentDate).observe(this, new Observer<List<UserEvent>>() {
             @Override
             public void onChanged(@Nullable List<UserEvent> userEventList) {
-                Log.w("[DEBUG INFO]", "Got Event List: ["+ userEventList.toString() +"]");
+                Log.w("[Timetable_Day]", "Got Event List: ["+ userEventList.toString() +"]");
                 userEventAdapter.setUserEventList(userEventList);
                 //Toast.makeText(getActivity(), "Timetable updated", Toast.LENGTH_SHORT).show();
             }

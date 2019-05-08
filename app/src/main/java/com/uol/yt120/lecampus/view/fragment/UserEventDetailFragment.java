@@ -43,7 +43,9 @@ import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
 import org.json.JSONObject;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class UserEventDetailFragment extends Fragment {
     public static final String TAG = UserEventDetailFragment.class.getSimpleName();
@@ -69,6 +71,7 @@ public class UserEventDetailFragment extends Fragment {
     private LocationDataCacheViewModel locationDataCacheViewModel;
     private DateTimeCalculator dtc = new DateTimeCalculator();
     private DateTimeFormatter dtf = new DateTimeFormatter();
+    private UserEvent currentEvent;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -118,6 +121,7 @@ public class UserEventDetailFragment extends Fragment {
             public void onChanged(@Nullable UserEvent userEvent) {
                 if (userEvent != null) {
                     setupInterface(userEvent);
+                    currentEvent = userEvent;
                     Log.w("[UserEventDetail]", "Got event info: "+userEvent.toString());
                 }
             }
@@ -134,9 +138,11 @@ public class UserEventDetailFragment extends Fragment {
 
     private void onLocationClick(View view) {
         LatLng locationLatLng = new LatLng(locationLat, locationLng);
+        List<UserEvent> eventListForDirection = new ArrayList<>();
+        eventListForDirection.add(currentEvent);
         if (getActivity() != null) {
             locationDataCacheViewModel = ViewModelProviders.of(getActivity()).get(LocationDataCacheViewModel.class);
-            locationDataCacheViewModel.setLatLngForDirection(locationLatLng);
+            locationDataCacheViewModel.setEventForDirection(eventListForDirection);
 
             Fragment cachedFrag = getActivity().getSupportFragmentManager().findFragmentByTag(GoogleMapsFragment.TAG);
             if (cachedFrag instanceof GoogleMapsFragment){

@@ -18,7 +18,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapDrawer {
 
@@ -46,8 +48,9 @@ public class MapDrawer {
         return directionRequestUrl;
     }
 
-    public List<LatLng> createDirectionPath (String googleDirectionResult) {
+    public Map<String, Object> createDirectionPath (String googleDirectionResult) {
         List<LatLng> pathList = null;
+        Map<String, Object> result = new HashMap<>();
         try {
             final JSONObject jsonObject = new JSONObject(googleDirectionResult);
 
@@ -55,16 +58,31 @@ public class MapDrawer {
             JSONObject routes = routeArray.getJSONObject(0);
             JSONObject overviewPolyline = routes.getJSONObject("overview_polyline");
 
+            JSONArray infoArray = routes.getJSONArray("legs");
+            JSONObject distance = infoArray.getJSONObject(0);
+            String distanceString = distance.getString("text");
+            int distanceInMetre = distance.getInt("value");
+
+            JSONObject duration = infoArray.getJSONObject(1);
+            String durationString = distance.getString("text");
+            int durationInSec = distance.getInt("value");
+
             String encodedPolyline = overviewPolyline.getString("points");
-            //Log.i("[MapDrawer]","Got decodedDirection: "+encodedPolyline);
             pathList = PolyUtil.decode(encodedPolyline);
-            Log.i("[MapDrawer]","Got decodedDirection: "+pathList.toString());
+            Log.i("[MapDrawer]","Got decoded Direction: "+pathList.toString());
+
+            result.put("pathList", pathList);
+            result.put("distanceString", distanceString);
+            result.put("distanceInMetre", distanceInMetre);
+            result.put("durationString", durationString);
+            result.put("durationInSec", durationInSec);
 
         }
         catch (JSONException e) {
             e.printStackTrace();
         }
-        return pathList;
+        //return pathList;
+        return result;
     }
 
 }

@@ -13,8 +13,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
-public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, List<LatLng>> {
+public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, Map<String, Object>> {
 
     private String requestUrl;
     private LatLng startLatlng;
@@ -24,7 +25,7 @@ public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, List
 
     public interface Response {
         void startProcessPath();
-        void showPath(List<LatLng> path, LatLng startLatlng, LatLng endLatlng);
+        void showPath(Map<String, Object> path, LatLng startLatlng, LatLng endLatlng);
     }
 
     public ProcessDirectionPathAsyncTask(String requestUrl, LatLng startLatlng, LatLng endLatlng, Response response) {
@@ -44,7 +45,7 @@ public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, List
     public Response response = null;
 
     @Override
-    protected List<LatLng> doInBackground(Void... voids) {
+    protected Map<String, Object> doInBackground(Void... voids) {
 //        String resultRawData = httpHandler.processDirectionRequest(requestUrl);
 
         InputStream inS_GgleResult = null;
@@ -77,18 +78,19 @@ public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, List
             Log.e("[HTTPHandler]", "Read Google Direction Result Error: " + e.toString());
         }
 
-//        if(resultRawData.length() > 3000) {
-//            for(int i=0;i<resultRawData.length();i+=3000){
-//                if(i+3000<resultRawData.length())
-//                    Log.i("[DirectionAsync] -"+i,"Got direction: "+resultRawData.substring(i, i+3000));
-//                else
-//                    Log.i("[DirectionAsync] -"+i,resultRawData.substring(i, resultRawData.length()));
-//            }
-//        } else {
-//            Log.i("[DirectionAsync]","Got direction: "+resultRawData);
-//        }
+        if(jsStr_GgleResult.length() > 3000) {
+            for(int i=0;i<jsStr_GgleResult.length();i+=3000){
+                if(i+3000<jsStr_GgleResult.length())
+                    Log.i("[DirectionAsync] -"+i,"Got direction: "+jsStr_GgleResult.substring(i, i+3000));
+                else
+                    Log.i("[DirectionAsync] -"+i,jsStr_GgleResult.substring(i, jsStr_GgleResult.length()));
+            }
+        } else {
+            Log.i("[DirectionAsync]","Got direction: "+jsStr_GgleResult);
+        }
 
-        List<LatLng> result = mapDrawer.createDirectionPath(jsStr_GgleResult);
+        //List<LatLng> result = mapDrawer.createDirectionPath(jsStr_GgleResult);
+        Map<String, Object> result = mapDrawer.createDirectionPath(jsStr_GgleResult);
         return result;
     }
 
@@ -99,7 +101,7 @@ public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, List
 //    }
 
     @Override
-    protected void onPostExecute(List<LatLng> pathResult) {
+    protected void onPostExecute(Map<String, Object> pathResult) {
         //showDialog("Downloaded " + result + " items");
         response.showPath(pathResult, startLatlng, endLatlng);
     }

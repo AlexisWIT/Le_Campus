@@ -17,6 +17,8 @@
 package com.uol.yt120.lecampus.view.fragment;
 
 import android.app.Activity;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -24,6 +26,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,8 +39,14 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.uol.yt120.lecampus.R;
+import com.uol.yt120.lecampus.model.domain.UserEvent;
+import com.uol.yt120.lecampus.utility.DateTimeCalculator;
+import com.uol.yt120.lecampus.utility.DateTimeFormatter;
 import com.uol.yt120.lecampus.view.adapter.TimetablePagerAdapter;
 import com.uol.yt120.lecampus.view.adapter.UserEventAdapter;
+import com.uol.yt120.lecampus.viewModel.LocationDataCacheViewModel;
+import com.uol.yt120.lecampus.viewModel.UserEventCacheViewModel;
+import com.uol.yt120.lecampus.viewModel.UserEventViewModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,8 +56,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class TimetableFragment extends Fragment {
@@ -64,6 +77,8 @@ public class TimetableFragment extends Fragment {
     String timetableFileName = "timetable.json";
     String timetableFolderName = "timetable";
     String timetableContent = "";
+
+    private UserEventViewModel userEventViewModel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -162,10 +177,6 @@ public class TimetableFragment extends Fragment {
     }
 
 
-
-
-
-
     /**
      * Read timetable info from timetable.json
      * @param fileName The file path of timetable.json
@@ -197,72 +208,6 @@ public class TimetableFragment extends Fragment {
         return result;
     }
 
-
-    /**
-     *
-     * @param timetableContent
-     * @return
-     */
-    public SimpleAdapter loadTimetableIntoAdapter(String timetableContent) {
-
-        SimpleAdapter finalAdapter = null;
-        String[] from = {"Name", "Type", "Location", "Lat", "Lon","StartTime","EndTime",};
-        int[] to = {R.id.event_name, R.id.event_type, R.id.event_location, R.id.event_lat, R.id.event_lon, R.id.event_startTime, R.id.event_endTime};
-        ArrayList<HashMap<String, String>> eventArrayList = new ArrayList<HashMap<String, String>>();
-        HashMap<String, String> hashmap;
-
-        try {
-            JSONObject json = new JSONObject(timetableContent);
-            JSONArray jArray = json.getJSONArray("timetable");
-
-            for (int i = 0; i < jArray.length(); i++) {
-                JSONObject event = jArray.getJSONObject(i);
-                Log.i("[Account Fragmt]", "=== Event "+i+" ===");
-
-                String eventName = event.getString("moduleName");
-                Log.i("[Account Fragmt]", "Event: "+eventName);
-
-                String eventType = event.getString("moduleType");
-                Log.i("[Account Fragmt]", "Type: "+eventType);
-
-                String eventLocation = event.getString("building");
-                Log.i("[Account Fragmt]", "Building: "+eventLocation);
-
-                String eventLat = event.getString("buildingLatitude");
-                Log.i("[Account Fragmt]", "LAT: "+eventLat);
-
-                String eventLon = event.getString("buildingLongitude");
-                Log.i("[Account Fragmt]", "LON: "+eventLon);
-
-                String eventStartTime = event.getString("start");
-                Log.i("[Account Fragmt]", "Start Time: "+eventStartTime);
-
-                String eventEndTime = event.getString("end");
-                Log.i("[Account Fragmt]", "End Time: "+eventEndTime);
-
-                if (!event.getString("lecturer").equals("someone")) {
-                    hashmap = new HashMap<String, String>();
-                    hashmap.put("Name", "" + eventName);
-                    hashmap.put("Type", "" + eventType);
-                    hashmap.put("Location", "" + eventLocation);
-                    hashmap.put("Lat", "" + eventLat);
-                    hashmap.put("Lon", "" + eventLon);
-                    hashmap.put("StartTime", "" + eventStartTime);
-                    hashmap.put("EndTime", "" + eventEndTime);
-                    eventArrayList.add(hashmap);
-
-                }
-
-            }
-
-            SimpleAdapter adapter = new SimpleAdapter(mContext, eventArrayList, R.layout.fragment_timetable_item, from, to);
-            finalAdapter = adapter;
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return finalAdapter;
-    }
 
     public String deleteLocalTimetable() {
         String finalResult = "";
@@ -306,46 +251,6 @@ public class TimetableFragment extends Fragment {
         return finalResult;
     }
 
-    private void checkFilePath() {
-        String internalFilePath = mContext.getFilesDir()+ File.separator+timetableFolderName;
-        String externalFilePath = Objects.requireNonNull(mContext.getExternalFilesDir(timetableFolderName)).getAbsolutePath();
-
-        File internalFolder = new File(internalFilePath);
-        File externalFolder = new File(externalFilePath);
-
-        File internalFile = new File(internalFolder, timetableFileName);
-        File externalFile = new File(externalFolder, timetableFileName);
-
-        if (!externalFile.exists() || externalFile==null) {
-            Log.i("[Timetable Fragmt]", "Timetable file in external storage not found");
-            externalFileFound = false;
-        } else {
-            Log.i("[Timetable Fragmt]", "Found Timetable file in external storage");
-            externalFileFound = true;
-        }
-
-        if (!internalFile.exists() || internalFile==null) {
-            Log.i("[Timetable Fragmt]", "Timetable file in internal storage not found");
-            internalFileFound = false;
-        } else {
-            Log.i("[Timetable Fragmt]", "Found timetable file in internal storage");
-            internalFileFound = true;
-        }
-
-        if (externalFileFound) {
-            timetableObtained = true;
-            //timetableContent = readFromFile(externalFilePath+File.separator+timetableFileName);
-
-        } else if (internalFileFound) {
-            timetableObtained = true;
-            //timetableContent = readFromFile(internalFilePath+File.separator+timetableFileName);
-
-        } else {
-            timetableObtained = false;
-            timetableContent = "";
-        }
-    }
-
 
     private void refreshTimetable() {
         //WeekView weekView = getChildFragmentManager().findFragmentByTag()
@@ -376,7 +281,47 @@ public class TimetableFragment extends Fragment {
                 return true;
 
             case R.id.action_plan_my_day:
-                Toast.makeText(getActivity(), "This function is temporarily unavailable", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Planning your today's route...", Toast.LENGTH_SHORT).show();
+
+                DateTimeCalculator dtc = new DateTimeCalculator();
+                DateTimeFormatter dtf = new DateTimeFormatter();
+                Date currentTime = Calendar.getInstance().getTime();
+                String currentDate = dtc.getToday(false);
+                Log.w("[Timetable Fragment]", "Planning Today: ["+ currentDate +"]");
+
+                userEventViewModel = ViewModelProviders.of(getActivity()).get(UserEventViewModel.class);
+                userEventViewModel.getUserEventListByDate(currentDate).observe(this, new Observer<List<UserEvent>>() {
+                    @Override
+                    public void onChanged(@Nullable List<UserEvent> userEventList) {
+                        List<UserEvent> eventsForDirection = new ArrayList<>();
+                        for (UserEvent userEvent : userEventList) {
+                            try {
+                                Date eventEndTime = dtf.parseStringToDate(userEvent.getEndTime(), "default");
+                                if (currentTime.before(eventEndTime)) {
+                                    eventsForDirection.add(userEvent);
+                                }
+
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        LocationDataCacheViewModel locationDataCacheViewModel = ViewModelProviders.of(getActivity()).get(LocationDataCacheViewModel.class);
+                        locationDataCacheViewModel.setEventForDirection(eventsForDirection);
+                        Log.w("[Timetable Fragment]", "Today's events remaining: ["+ eventsForDirection.toString() +"]");
+
+                        Fragment cachedFrag = getActivity().getSupportFragmentManager().findFragmentByTag(GoogleMapsFragment.TAG);
+                        if (cachedFrag instanceof GoogleMapsFragment){
+                            Log.i("[Timetable Fragment]", "Found instance of Google Map");
+                            getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                                    .replace(R.id.fragment_container, cachedFrag, GoogleMapsFragment.TAG).commit();
+                        } else {
+                            Log.i("[Timetable Fragment]", "Instance of Google Map not found");
+                            getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                                    .replace(R.id.fragment_container, new GoogleMapsFragment(), GoogleMapsFragment.TAG).commit();
+                        }
+                    }
+                });
                 return true;
 
             case R.id.action_delete_local_timetable:

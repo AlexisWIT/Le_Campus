@@ -19,7 +19,6 @@ package com.uol.yt120.lecampus.view.fragment;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -27,7 +26,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -46,7 +44,6 @@ import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,23 +61,14 @@ import com.uol.yt120.lecampus.viewModel.UserViewModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import timber.log.Timber;
 
@@ -105,8 +93,8 @@ public class AccountFragment extends Fragment {
     private UserEventViewModel userEventViewModel;
     private UserViewModel userViewModel;
     private FootprintViewModel footprintViewModel;
-    private DateTimeCalculator dateTimeCalculator = new DateTimeCalculator();
-    private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
+    private DateTimeCalculator dtc = new DateTimeCalculator();
+    private DateTimeFormatter dtf = new DateTimeFormatter();
 
     volatile boolean userAccountObtained = false;
     volatile boolean loginSuccessful = false;
@@ -523,12 +511,12 @@ public class AccountFragment extends Fragment {
                 String lon = eventJSON.getString("buildingLongitude");
 
                 String startTime =
-                        dateTimeFormatter.formatDateToString(dateTimeCalculator.getNewDateBy(5, "month",
-                                dateTimeFormatter.parseStringToDate(eventJSON.getString("start"),"default")), "default");
+                        dtf.formatDateToString(dtc.getNewDateBy(1,"day",dtc.getNewDateBy(5, "month",
+                                dtf.parseStringToDate(eventJSON.getString("start"),"default"))), "default");
 
                 String endTime =
-                        dateTimeFormatter.formatDateToString(dateTimeCalculator.getNewDateBy(5, "month",
-                                dateTimeFormatter.parseStringToDate(eventJSON.getString("end"),"default")), "default");
+                        dtf.formatDateToString(dtc.getNewDateBy(1,"day",dtc.getNewDateBy(5, "month",
+                                dtf.parseStringToDate(eventJSON.getString("end"),"default"))), "default");
 
                 String duration = eventJSON.getString("eventDuration");
                 String weekDay = eventJSON.getString("moduleWeekDay");
