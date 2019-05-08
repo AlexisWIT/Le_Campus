@@ -52,6 +52,7 @@ import com.uol.yt120.lecampus.R;
 import com.uol.yt120.lecampus.model.dataAccessObjects.DataPassListener;
 import com.uol.yt120.lecampus.model.domain.Footprint;
 import com.uol.yt120.lecampus.viewModel.FootprintCacheViewModel;
+import com.uol.yt120.lecampus.viewModel.LocationDataCacheViewModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -92,6 +93,8 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
     //private FootprintEditViewModel footprintEditViewModel;
     private FloatingActionButton buttonStartFootprintDirection;
 
+    private List<LatLng> trackpointList;
+
     private GoogleMap gMap;
     MapView mapView;
     int footprintId = 0;
@@ -116,9 +119,19 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
             @Override
             public void onClick(View v) {
                 if (getActivity() != null) {
-                    getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                            .replace(R.id.fragment_container, new GoogleMapsFragment(), GoogleMapsFragment.TAG)
-                            .commit();
+                    LocationDataCacheViewModel locationDataCacheViewModel = ViewModelProviders.of(getActivity()).get(LocationDataCacheViewModel.class);
+                    locationDataCacheViewModel.setFootprintForDirection(trackpointList);
+
+                    Fragment cachedFrag = getActivity().getSupportFragmentManager().findFragmentByTag(GoogleMapsFragment.TAG);
+                    if (cachedFrag instanceof GoogleMapsFragment){
+                        Log.i("[Footprint Detail]", "Found instance of Google Map");
+                        getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                                .replace(R.id.fragment_container, cachedFrag, GoogleMapsFragment.TAG).commit();
+                    } else {
+                        Log.i("[Footprint Detail]", "Instance of Google Map not found");
+                        getActivity().getSupportFragmentManager().beginTransaction().setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                                .replace(R.id.fragment_container, new GoogleMapsFragment(), GoogleMapsFragment.TAG).commit();
+                    }
                 }
             }
         });
@@ -218,7 +231,7 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
         try {
             Log.w("[DEBUG INFO]", "NodeList JSONArray casted: ["+trackpointJSONArray+"]");
             JSONArray nodeJSONArray = trackpointJSONArray;
-            List<LatLng> trackpointList = new ArrayList<>();
+            trackpointList = new ArrayList<>();
 
             for (int i=0; i<nodeJSONArray.length(); i++) {
                 if (currentLatLng != null) { lastLatLng = currentLatLng; }
@@ -249,6 +262,8 @@ public class FootprintDetailFragment extends Fragment implements OnMapReadyCallb
                 }
 
             }
+
+
 
             polyline = gMap.addPolyline((new PolylineOptions())
                     .addAll(trackpointList)

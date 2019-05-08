@@ -215,12 +215,6 @@ public class NavigationActivity extends AppCompatActivity implements
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
 
-//        if (!locationPermissionIsGranted()) {
-//            requestLocationPermission();
-//        } else {
-//            gleService.requestGoogleLocationUpdates();
-//        }
-
         bindService(new Intent(this, GoogleLocationService.class), serviceConnection,
                 Context.BIND_AUTO_CREATE);
     }

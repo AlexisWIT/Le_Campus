@@ -64,6 +64,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.ui.IconGenerator;
 import com.uol.yt120.lecampus.model.domain.UserEvent;
 import com.uol.yt120.lecampus.publicAsyncTasks.ProcessDirectionPathAsyncTask;
 import com.uol.yt120.lecampus.utility.LocationDataProcessor;
@@ -115,6 +116,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
     private FloatingActionButton googleLocateButton;
     private List<Polyline> directionPolylineList = new ArrayList<>();
+    private List<Marker> directionMarkerList = new ArrayList<>();
+    private List<Polyline> footprintPolylineList = new ArrayList<>();
     private boolean cameraMovingEnabled = true;
 
     DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
@@ -272,11 +275,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         cameraMovingEnabled = true;
         googleLocateButton.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_map_location_disabled));
 
-        currentMarker = gMap.addMarker(new MarkerOptions().position(currentLatLng).flat(true));
-
-        currentMarker.setTitle("LOCATION");
-        currentMarker.setSnippet("LAT: "+startLatlng.latitude+"\nLNG: "+startLatlng.longitude);
-        currentMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker));
+        Location location = new Location("");
+        location.setLatitude(startLatlng.latitude);
+        location.setLongitude(startLatlng.longitude);
+        updateLocation(location);
+//        currentMarker = gMap.addMarker(new MarkerOptions().position(currentLatLng).flat(true));
+//
+//        currentMarker.setTitle("LOCATION");
+//        currentMarker.setSnippet("LAT: "+startLatlng.latitude+"\nLNG: "+startLatlng.longitude);
+//        currentMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_marker));
 
         ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
     }
@@ -395,44 +402,102 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         locationDataCacheViewModel.getEventForDirection().observe(this, new Observer<List<UserEvent>>() {
             @Override
             public void onChanged(@Nullable List<UserEvent> userEventList) {
-                TextValidator tv = new TextValidator();
-                List<LatLng> targetList = new ArrayList<>();
-                for (UserEvent userEvent : userEventList) {
-                    if (!tv.isEmptyString(userEvent.getLat()) && !tv.isEmptyString(userEvent.getLon())) {
-                        targetList.add(new LatLng(Double.valueOf(userEvent.getLat()), Double.valueOf(userEvent.getLon())));
+                if (userEventList != null && !userEventList.isEmpty()) {
+                    TextValidator tv = new TextValidator();
+                    List<LatLng> targetList = new ArrayList<>();
+                    for (UserEvent userEvent : userEventList) {
+                        if (!tv.isEmptyString(userEvent.getLat()) && !tv.isEmptyString(userEvent.getLon())) {
+                            targetList.add(new LatLng(Double.valueOf(userEvent.getLat()), Double.valueOf(userEvent.getLon())));
+                        }
                     }
-                }
 
-                if (currentLatLng != null) {
-                    Log.i("[GoogleMapsFragment]", "Current Latlng: "+currentLatLng);
-                    directionPolylineList.clear();
+                    if (currentLatLng != null) {
+                        Log.i("[GoogleMapsFragment]", "Current Latlng: "+currentLatLng);
 
-                    try {
-                        ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2); // location update interval (second)
-                        LatLng latLng1 = currentLatLng;
-                        LatLng latLng2;
-                        for (LatLng targetLatlng : targetList) {
-                            latLng2 = targetLatlng;
-                            getDirectionPath(latLng1.latitude, latLng1.longitude, latLng2.latitude, latLng2.longitude, MapDrawer.MODE_WALK);
-                            latLng1 = latLng2;
+                        clearAllDirectionInfo();
+
+                        try {
+                            ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2); // location update interval (second)
+                            LatLng latLng1 = currentLatLng;
+                            LatLng latLng2;
+                            for (LatLng targetLatlng : targetList) {
+                                latLng2 = targetLatlng;
+                                getDirectionPath(latLng1.latitude, latLng1.longitude, latLng2.latitude, latLng2.longitude, MapDrawer.MODE_WALK);
+                                latLng1 = latLng2;
+                            }
+
+                            cameraMovingEnabled = false;
+                            directionEnabled = true;
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
 
-                        cameraMovingEnabled = false;
-                        directionEnabled = true;
+                        Handler handler=new Handler();
+                        Runnable r=new Runnable() {
+                            public void run() {
 
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                                locationDataCacheViewModel.setEventForDirection(null);
+                            }
+                        };
+                        handler.postDelayed(r, 1500);
+                    }
+                }
+            }
+        });
+
+        locationDataCacheViewModel.getFootprintForDirection().observe(this, new Observer<List<LatLng>>() {
+            @Override
+            public void onChanged(@Nullable List<LatLng> latLngs) {
+                if (latLngs != null && !latLngs.isEmpty()) {
+                    List<LatLng> targetList = new ArrayList<>();
+                    LatLng startPoint = latLngs.get(0);
+                    targetList.add(startPoint);
+
+                    if (currentLatLng != null) {
+                        clearAllDirectionInfo();
+
+                        try {
+                            ((NavigationActivity)getActivity()).updateGoogleLocationService(3,2);
+                            getDirectionPath(currentLatLng.latitude, currentLatLng.longitude, startPoint.latitude, startPoint.longitude, MapDrawer.MODE_WALK);
+
+                            cameraMovingEnabled = false;
+                            directionEnabled = true;
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        Polyline polyline = gMap.addPolyline((new PolylineOptions())
+                                .addAll(latLngs)
+                                .geodesic(true)
+                                .width(9)
+                                .color(Color.RED)
+                                .visible(true));
+
+                        footprintPolylineList.add(polyline);
+
+                        Handler handler=new Handler();
+                        Runnable r=new Runnable() {
+                            public void run() {
+                                Polyline polyline = gMap.addPolyline((new PolylineOptions())
+                                        .addAll(latLngs)
+                                        .geodesic(true)
+                                        .width(9)
+                                        .color(Color.RED)
+                                        .visible(true));
+
+                                footprintPolylineList.add(polyline);
+                                locationDataCacheViewModel.setFootprintForDirection(null);
+                            }
+                        };
+                        handler.postDelayed(r, 1500);
                     }
                 }
             }
         });
 
         super.onStart();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
     }
 
     @Override
@@ -465,9 +530,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 return true;
 
             case R.id.action_clear_direction:
-                if (!directionPolylineList.isEmpty()) {
-                    directionPolylineList.clear();
-                }
+
+                clearAllDirectionInfo();
+
                 //gMap.clear();
 
                 return true;
@@ -476,6 +541,29 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    private void clearAllDirectionInfo() {
+        if (!directionPolylineList.isEmpty()) {
+            for (Polyline polyline : directionPolylineList) {
+                polyline.remove();
+            }
+            directionPolylineList.clear();
+        }
+
+        if (!directionMarkerList.isEmpty()) {
+            for (Marker marker : directionMarkerList) {
+                marker.remove();
+            }
+            directionMarkerList.clear();
+        }
+
+        if (!footprintPolylineList.isEmpty()) {
+            for (Polyline polyline : footprintPolylineList) {
+                polyline.remove();
+            }
+            footprintPolylineList.clear();
+        }
     }
 
     /**
@@ -560,6 +648,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
         Footprint footprint = new Footprint(title, desc, nodeListJSON, timeCreated, privacy);
         footprint.setLength(String.valueOf(footprintDistance));
+        footprint.setCreator(sharedPreferences.getString(AccountFragment.USER_NAME, "default"));
         footprintViewModel.insert(footprint);
         Toast.makeText(getActivity(), "Footprint saved:"+timeCreated +" Total Distance: "+footprintDistance, Toast.LENGTH_SHORT).show();
     }
@@ -663,7 +752,10 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         result.addAll(pathList);
         result.add(endLatlng);
 
-        enableLocation(startLatlng);
+        if (!locationEnabled) {
+            enableLocation(startLatlng);
+        }
+
 
         Polyline directionPolyline = gMap.addPolyline(new PolylineOptions()
                 .addAll(result)
@@ -672,6 +764,14 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 .geodesic(true)
         );
 
+        IconGenerator iconFactory = new IconGenerator(getContext());
+        MarkerOptions markerOptions = new MarkerOptions().
+                icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(distanceString+", "+durationString))).
+                position(pathList.get(pathList.size()/2)).
+                anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+        Marker directionInfoMarker = gMap.addMarker(markerOptions);
+
+        directionMarkerList.add(directionInfoMarker);
         directionPolylineList.add(directionPolyline);
 
         LatLngBounds.Builder latLngBoundsBuilder = new LatLngBounds.Builder();

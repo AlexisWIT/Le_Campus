@@ -59,17 +59,21 @@ public class MapDrawer {
             JSONObject overviewPolyline = routes.getJSONObject("overview_polyline");
 
             JSONArray infoArray = routes.getJSONArray("legs");
-            JSONObject distance = infoArray.getJSONObject(0);
+
+            JSONObject info = infoArray.getJSONObject(0);
+
+            JSONObject distance = info.getJSONObject("distance");
             String distanceString = distance.getString("text");
             int distanceInMetre = distance.getInt("value");
 
-            JSONObject duration = infoArray.getJSONObject(1);
-            String durationString = distance.getString("text");
-            int durationInSec = distance.getInt("value");
+            JSONObject duration = info.getJSONObject("duration");
+            String durationString = duration.getString("text");
+            int durationInSec = duration.getInt("value");
 
             String encodedPolyline = overviewPolyline.getString("points");
             pathList = PolyUtil.decode(encodedPolyline);
             Log.i("[MapDrawer]","Got decoded Direction: "+pathList.toString());
+            Log.i("[MapDrawer]","Distance: "+distanceString+" ["+distanceInMetre+"], Duration: "+durationString+" ["+durationInSec+"]");
 
             result.put("pathList", pathList);
             result.put("distanceString", distanceString);

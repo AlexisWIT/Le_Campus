@@ -7,6 +7,7 @@ import android.location.Location;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.uol.yt120.lecampus.model.domain.Footprint;
 import com.uol.yt120.lecampus.model.domain.UserEvent;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class LocationDataCacheViewModel extends AndroidViewModel {
     private MutableLiveData<Location> skyhookLocationLiveData = new MutableLiveData<>();
     private MutableLiveData<List<Location>> mutableLocationListLiveData = new MutableLiveData<>();
     private MutableLiveData<List<UserEvent>> eventForDirection = new MutableLiveData<>();
+    private MutableLiveData<List<LatLng>> footprintForDirection = new MutableLiveData<>();
 
     public LocationDataCacheViewModel(@NonNull Application application) {
         super(application);
@@ -55,5 +57,13 @@ public class LocationDataCacheViewModel extends AndroidViewModel {
 
     public void setEventForDirection(List<UserEvent> eventList) {
         eventForDirection.setValue(eventList);
+    }
+
+    public MutableLiveData<List<LatLng>> getFootprintForDirection() {
+        return footprintForDirection;
+    }
+
+    public void setFootprintForDirection(List<LatLng> footprintLatlngList) {
+        footprintForDirection.setValue(footprintLatlngList);
     }
 }

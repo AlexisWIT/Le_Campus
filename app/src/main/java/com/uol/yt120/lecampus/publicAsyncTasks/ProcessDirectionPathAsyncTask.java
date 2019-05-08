@@ -78,16 +78,16 @@ public class ProcessDirectionPathAsyncTask extends AsyncTask<Void, Integer, Map<
             Log.e("[HTTPHandler]", "Read Google Direction Result Error: " + e.toString());
         }
 
-        if(jsStr_GgleResult.length() > 3000) {
-            for(int i=0;i<jsStr_GgleResult.length();i+=3000){
-                if(i+3000<jsStr_GgleResult.length())
-                    Log.i("[DirectionAsync] -"+i,"Got direction: "+jsStr_GgleResult.substring(i, i+3000));
-                else
-                    Log.i("[DirectionAsync] -"+i,jsStr_GgleResult.substring(i, jsStr_GgleResult.length()));
-            }
-        } else {
-            Log.i("[DirectionAsync]","Got direction: "+jsStr_GgleResult);
-        }
+//        if(jsStr_GgleResult.length() > 3000) {
+//            for(int i=0;i<jsStr_GgleResult.length();i+=3000){
+//                if(i+3000<jsStr_GgleResult.length())
+//                    Log.i("[DirectionAsync] -"+i,"Got direction: "+jsStr_GgleResult.substring(i, i+3000));
+//                else
+//                    Log.i("[DirectionAsync] -"+i,jsStr_GgleResult.substring(i, jsStr_GgleResult.length()));
+//            }
+//        } else {
+//            Log.i("[DirectionAsync]","Got direction: "+jsStr_GgleResult);
+//        }
 
         //List<LatLng> result = mapDrawer.createDirectionPath(jsStr_GgleResult);
         Map<String, Object> result = mapDrawer.createDirectionPath(jsStr_GgleResult);
